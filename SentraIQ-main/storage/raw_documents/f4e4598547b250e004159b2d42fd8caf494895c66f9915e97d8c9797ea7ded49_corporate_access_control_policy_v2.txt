@@ -1,0 +1,139 @@
+
+CORPORATE ACCESS CONTROL POLICY
+Version 2.0
+Effective Date: January 1, 2025
+
+DOCUMENT CLASSIFICATION: INTERNAL - REGULATORY COMPLIANCE
+
+================================================================================
+1. OVERVIEW
+================================================================================
+
+This Corporate Access Control Policy establishes the security requirements for
+access to payment systems, including SWIFT, CHAPS, and FPS terminals.
+
+================================================================================
+2. SCOPE
+================================================================================
+
+This policy applies to all employees, contractors, and third parties requiring
+access to critical payment infrastructure.
+
+================================================================================
+3. ACCESS CONTROL REQUIREMENTS
+================================================================================
+
+3.1 Multi-Factor Authentication (MFA)
+
+All access to SWIFT terminals and payment gateways MUST enforce Two-Factor
+Authentication (2FA) using:
+- Something you know (password)
+- Something you have (hardware token or mobile authenticator)
+
+Policy Clause 12.1: "Two-Factor Authentication is MANDATORY for all SWIFT
+terminal access. No exceptions permitted without C-level authorization."
+
+3.2 Password Requirements
+
+- Minimum 12 characters
+- Complexity: uppercase, lowercase, numbers, special characters
+- Maximum age: 90 days
+- Cannot reuse last 10 passwords
+
+3.3 Account Lockout
+
+- Maximum failed attempts: 3
+- Lockout duration: 30 minutes
+- Automatic notification to Security Operations Center (SOC)
+
+================================================================================
+4. PAYMENT SYSTEM SPECIFIC CONTROLS
+================================================================================
+
+4.1 SWIFT Alliance Access
+
+- MFA required for all logins
+- Session timeout: 15 minutes of inactivity
+- Concurrent session limit: 1 per user
+- All actions logged with timestamp and user ID
+
+4.2 CHAPS and FPS Terminals
+
+- Role-based access control (RBAC)
+- Principle of least privilege
+- Quarterly access reviews
+
+================================================================================
+5. ENCRYPTION REQUIREMENTS
+================================================================================
+
+5.1 Data in Transit
+
+All payment data transmitted between systems MUST use:
+- TLS 1.2 or higher
+- Strong cipher suites only
+- Certificate-based authentication
+
+5.2 Data at Rest
+
+- AES-256 encryption for stored payment data
+- Encrypted backups
+- Hardware Security Module (HSM) for key management
+
+================================================================================
+6. AUDIT AND LOGGING
+================================================================================
+
+6.1 Logging Requirements
+
+All access attempts (successful and failed) MUST be logged with:
+- Timestamp
+- User ID
+- Source IP address
+- Action performed
+- MFA status
+- Result (granted/denied)
+
+6.2 Log Retention
+
+- Minimum retention: 7 years
+- Immutable storage
+- Regular integrity checks
+
+================================================================================
+7. COMPLIANCE AND ENFORCEMENT
+================================================================================
+
+This policy supports compliance with:
+- SWIFT Customer Security Programme (CSP)
+- PCI-DSS Requirements
+- Regional banking regulations
+
+Violations of this policy may result in:
+- Immediate access revocation
+- Disciplinary action up to and including termination
+- Regulatory reporting where required
+
+================================================================================
+8. POLICY MAINTENANCE
+================================================================================
+
+This policy shall be reviewed annually and updated as necessary to reflect:
+- Changes in regulatory requirements
+- Emerging security threats
+- Technology updates
+
+Policy Owner: Chief Information Security Officer (CISO)
+Last Review Date: January 1, 2025
+Next Review Date: January 1, 2026
+
+================================================================================
+APPROVAL
+================================================================================
+
+Approved by:
+- Chief Information Security Officer
+- Chief Risk Officer
+- Chief Technology Officer
+
+Date: January 1, 2025

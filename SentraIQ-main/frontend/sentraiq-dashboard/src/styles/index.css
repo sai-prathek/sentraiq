@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 font-sans text-gray-900;
+  }
+}
+
+@layer components {
+  .gradient-bg {
+    background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+    background-size: 200% 200%;
+    animation: gradient 20s ease infinite;
+  }
+
+  .glass {
+    @apply bg-white bg-opacity-95 backdrop-blur-lg border border-white border-opacity-30 shadow-xl;
+  }
+
+  .stat-card {
+    @apply bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer;
+  }
+
+  .stat-card:hover {
+    @apply -translate-y-1;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-700 font-semibold px-6 py-3 rounded-lg hover:bg-gray-300 transition-all duration-300;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent outline-none transition-all;
+  }
+
+  .drop-zone {
+    @apply border-2 border-dashed border-gray-300 rounded-xl p-12 text-center transition-all duration-300 cursor-pointer bg-gray-50 hover:border-purple-600 hover:bg-purple-50;
+  }
+
+  .drop-zone.drag-over {
+    @apply border-purple-600 border-solid bg-purple-50 scale-105;
+  }
+
+  .tab-btn {
+    @apply px-6 py-3 font-semibold text-gray-600 hover:text-purple-600 transition-colors duration-300 border-b-2 border-transparent;
+  }
+
+  .tab-btn.active {
+    @apply text-purple-600 border-purple-600;
+  }
+
+  .progress-bar {
+    @apply w-full h-2 bg-gray-200 rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-500 relative overflow-hidden;
+  }
+
+  .progress-fill::after {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-full;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  .toast {
+    @apply bg-white rounded-lg shadow-2xl p-4 min-w-[300px] flex items-center gap-3 animate-slide-in;
+  }
+
+  .toast.success {
+    @apply border-l-4 border-green-500;
+  }
+
+  .toast.error {
+    @apply border-l-4 border-red-500;
+  }
+
+  .toast.warning {
+    @apply border-l-4 border-yellow-500;
+  }
+
+  .toast.info {
+    @apply border-l-4 border-blue-500;
+  }
+
+  .spinner {
+    @apply border-4 border-gray-200 border-t-purple-600 rounded-full w-12 h-12 animate-spin;
+  }
+
+  .badge {
+    @apply inline-block px-3 py-1 text-xs font-semibold rounded-full;
+  }
+
+  .badge-primary {
+    @apply bg-purple-100 text-purple-800;
+  }
+
+  .badge-secondary {
+    @apply bg-pink-100 text-pink-800;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .result-card {
+    @apply bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200;
+  }
+}

@@ -1,0 +1,32 @@
+services:
+  # Backend API Service
+  - type: web
+    name: sentraiq-backend
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sentraiq-db
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: APP_NAME
+        value: SentraIQ
+      - key: APP_VERSION
+        value: 1.0.0
+    healthCheckPath: /health
+
+databases:
+  # PostgreSQL Database
+  - name: sentraiq-db
+    databaseName: sentraiq
+    user: sentraiq_user
+    region: oregon
+    plan: free
+    ipAllowList: []

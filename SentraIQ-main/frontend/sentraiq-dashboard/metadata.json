@@ -1,0 +1,5 @@
+{
+  "name": "SentraIQ Dashboard",
+  "description": "A modern Hybrid Evidence Lakehouse dashboard for ingesting evidence, natural language querying, and generating compliance assurance packs.",
+  "requestFramePermissions": []
+}
