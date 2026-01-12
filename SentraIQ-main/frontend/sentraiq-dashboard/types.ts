@@ -39,10 +39,37 @@ export interface GeneratedPack {
 
 export type TabType = 'ingest' | 'query' | 'generate';
 
+export interface IngestedLog {
+  id: number;
+  hash: string;
+  source: string;
+  filename: string;
+  size_bytes: number;
+  ingested_at: string;
+  description?: string;
+}
+
+export interface IngestedDocument {
+  id: number;
+  hash: string;
+  doc_type: string;
+  filename: string;
+  size_bytes: number;
+  ingested_at: string;
+  description?: string;
+}
+
+export interface WorkflowState {
+  hasIngested: boolean;
+  hasQueried: boolean;
+}
+
 export interface DashboardOutletContext {
   addToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   selectedEvidence: EvidenceItem[];
   addEvidenceToPack: (item: EvidenceItem) => void;
   removeEvidenceFromPack: (id: string, type: 'Log' | 'Document') => void;
   clearSelectedEvidence: () => void;
+  workflowState: WorkflowState;
+  setWorkflowState: (state: WorkflowState) => void;
 }

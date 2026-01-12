@@ -17,15 +17,9 @@ export const api = {
     try {
       const response = await axios.get(`${API_BASE}/dashboard/stats`);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching stats:', error);
-      // Return fallback demo data
-      return {
-        total_logs: 2,
-        total_documents: 4,
-        total_evidence_objects: 6,
-        total_assurance_packs: 1
-      };
+      throw new Error(error.response?.data?.detail || 'Failed to fetch dashboard stats');
     }
   },
 
@@ -70,6 +64,44 @@ export const api = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || 'Failed to ingest document');
+    }
+  },
+
+  getIngestedLogs: async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/ingest/logs`);
+      return response.data.logs || [];
+    } catch (error: any) {
+      console.error('Error fetching logs:', error);
+      return [];
+    }
+  },
+
+  getIngestedDocuments: async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/ingest/documents`);
+      return response.data.documents || [];
+    } catch (error: any) {
+      console.error('Error fetching documents:', error);
+      return [];
+    }
+  },
+
+  deleteLog: async (logId: number) => {
+    try {
+      const response = await axios.delete(`${API_BASE}/ingest/log/${logId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to delete log');
+    }
+  },
+
+  deleteDocument: async (documentId: number) => {
+    try {
+      const response = await axios.delete(`${API_BASE}/ingest/document/${documentId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to delete document');
     }
   },
 

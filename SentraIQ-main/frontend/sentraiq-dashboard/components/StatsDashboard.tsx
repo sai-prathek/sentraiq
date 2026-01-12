@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Database, FileText, Link as LinkIcon, Box } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { DashboardStats } from '../types';
-import { mockApi } from '../services/mockApi';
+import { api } from '../services/api';
 
 interface StatCardProps {
   label: string;
@@ -79,10 +79,12 @@ const StatsDashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const data = await mockApi.getStats();
+      const data = await api.getStats();
       setStats(data);
     } catch (e) {
-      console.error("Failed to load stats");
+      console.error("Failed to load stats:", e);
+      // Set to null to show loading state on error
+      setStats(null);
     }
   };
 

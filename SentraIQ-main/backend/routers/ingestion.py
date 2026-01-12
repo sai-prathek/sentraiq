@@ -167,3 +167,33 @@ async def list_documents(
             for doc in docs
         ]
     }
+
+
+@router.delete("/log/{log_id}")
+async def delete_log(
+    log_id: int,
+    session: AsyncSession = Depends(get_session)
+):
+    """Delete an ingested log and its associated evidence objects"""
+    try:
+        await RawVault.delete_log(session, log_id)
+        return {"message": f"Log {log_id} deleted successfully", "deleted": True}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete log: {str(e)}")
+
+
+@router.delete("/document/{document_id}")
+async def delete_document(
+    document_id: int,
+    session: AsyncSession = Depends(get_session)
+):
+    """Delete an ingested document and its associated evidence objects"""
+    try:
+        await RawVault.delete_document(session, document_id)
+        return {"message": f"Document {document_id} deleted successfully", "deleted": True}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete document: {str(e)}")

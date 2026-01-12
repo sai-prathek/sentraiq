@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Search, FileText, Database, ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { EvidenceItem } from '../types';
+import { EvidenceItem, DashboardOutletContext } from '../types';
 import { api } from '../services/api';
 import EvidenceDetailModal from './EvidenceDetailModal';
+import { useOutletContext } from 'react-router-dom';
 
 interface QueryTabProps {
   onToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
@@ -16,6 +17,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
   selectedEvidence,
   onAddEvidenceToPack,
 }) => {
+  const { setWorkflowState } = useOutletContext<DashboardOutletContext>();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<EvidenceItem[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,9 @@ const QueryTab: React.FC<QueryTabProps> = ({
     try {
       const data = await api.queryEvidence(searchQuery);
       setResults(data);
+      
+      // Mark query step as complete
+      setWorkflowState((prev) => ({ ...prev, hasQueried: true }));
     } catch (error: any) {
       console.error('Query error:', error);
       onToast(

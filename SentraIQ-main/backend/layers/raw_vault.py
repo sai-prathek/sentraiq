@@ -181,3 +181,91 @@ class RawVault:
         stmt = select(RawDocument).order_by(RawDocument.ingested_at.desc()).limit(limit)
         result = await session.execute(stmt)
         return list(result.scalars().all())
+
+    @staticmethod
+    async def delete_log(session: AsyncSession, log_id: int) -> bool:
+        """
+        Delete a log and its associated evidence objects
+        
+        Args:
+            session: Database session
+            log_id: ID of the log to delete
+            
+        Returns:
+            True if deleted successfully
+        """
+        from backend.database import EvidenceObject
+        from pathlib import Path
+        
+        # Get the log
+        stmt = select(RawLog).where(RawLog.id == log_id)
+        result = await session.execute(stmt)
+        raw_log = result.scalar_one_or_none()
+        
+        if not raw_log:
+            raise ValueError(f"Log with ID {log_id} not found")
+        
+        # Delete associated evidence objects
+        evidence_stmt = select(EvidenceObject).where(EvidenceObject.log_id == log_id)
+        evidence_result = await session.execute(evidence_stmt)
+        evidence_objects = list(evidence_result.scalars().all())
+        for eo in evidence_objects:
+            await session.delete(eo)
+        
+        # Delete the file
+        file_path = Path(raw_log.file_path)
+        if file_path.exists():
+            try:
+                file_path.unlink()
+            except Exception as e:
+                print(f"Warning: Failed to delete file {file_path}: {e}")
+        
+        # Delete the database record
+        await session.delete(raw_log)
+        await session.commit()
+        
+        return True
+
+    @staticmethod
+    async def delete_document(session: AsyncSession, document_id: int) -> bool:
+        """
+        Delete a document and its associated evidence objects
+        
+        Args:
+            session: Database session
+            document_id: ID of the document to delete
+            
+        Returns:
+            True if deleted successfully
+        """
+        from backend.database import EvidenceObject
+        from pathlib import Path
+        
+        # Get the document
+        stmt = select(RawDocument).where(RawDocument.id == document_id)
+        result = await session.execute(stmt)
+        raw_document = result.scalar_one_or_none()
+        
+        if not raw_document:
+            raise ValueError(f"Document with ID {document_id} not found")
+        
+        # Delete associated evidence objects
+        evidence_stmt = select(EvidenceObject).where(EvidenceObject.document_id == document_id)
+        evidence_result = await session.execute(evidence_stmt)
+        evidence_objects = list(evidence_result.scalars().all())
+        for eo in evidence_objects:
+            await session.delete(eo)
+        
+        # Delete the file
+        file_path = Path(raw_document.file_path)
+        if file_path.exists():
+            try:
+                file_path.unlink()
+            except Exception as e:
+                print(f"Warning: Failed to delete file {file_path}: {e}")
+        
+        # Delete the database record
+        await session.delete(raw_document)
+        await session.commit()
+        
+        return True

@@ -16,7 +16,6 @@ const QueryPage: React.FC = () => {
       onToast={addToast}
       selectedEvidence={selectedEvidence}
       onAddEvidenceToPack={addEvidenceToPack}
-      onRemoveEvidenceFromPack={removeEvidenceFromPack}
     />
   );
 };

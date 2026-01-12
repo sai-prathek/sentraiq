@@ -1,8 +1,10 @@
-import React, { useState, useCallback } from 'react';
-import { UploadCloud, File as FileIcon, CheckCircle2 } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { UploadCloud, File as FileIcon, CheckCircle2, Database, FileText, Calendar, Trash2, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LoadingOverlay from './LoadingOverlay';
 import { api } from '../services/api';
+import { IngestedLog, IngestedDocument, DashboardOutletContext } from '../types';
+import { useOutletContext } from 'react-router-dom';
 
 interface IngestTabProps {
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
@@ -10,6 +12,39 @@ interface IngestTabProps {
 
 const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
   const [loading, setLoading] = useState(false);
+  const [ingestedLogs, setIngestedLogs] = useState<IngestedLog[]>([]);
+  const [ingestedDocs, setIngestedDocs] = useState<IngestedDocument[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
+  const [deletingId, setDeletingId] = useState<{ type: 'log' | 'document'; id: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ type: 'log' | 'document'; id: number; name: string } | null>(null);
+  
+  const { setWorkflowState } = useOutletContext<DashboardOutletContext>();
+
+  // Fetch ingested items on mount
+  useEffect(() => {
+    loadIngestedItems();
+  }, []);
+
+  const loadIngestedItems = async () => {
+    setLoadingList(true);
+    try {
+      const [logs, docs] = await Promise.all([
+        api.getIngestedLogs(),
+        api.getIngestedDocuments(),
+      ]);
+      setIngestedLogs(logs);
+      setIngestedDocs(docs);
+      
+      // Update workflow state if items exist
+      if (logs.length > 0 || docs.length > 0) {
+        setWorkflowState((prev) => ({ ...prev, hasIngested: true }));
+      }
+    } catch (error) {
+      console.error('Error loading ingested items:', error);
+    } finally {
+      setLoadingList(false);
+    }
+  };
 
   // Reusable Dropzone Component
   const DropZone = ({ 
@@ -17,13 +52,15 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
     type, 
     icon, 
     acceptedTypes,
-    options 
+    options,
+    onIngestSuccess
   }: { 
     title: string; 
     type: 'log' | 'document'; 
     icon: React.ReactNode; 
     acceptedTypes: string;
     options: string[];
+    onIngestSuccess: () => Promise<void>;
   }) => {
     const [dragActive, setDragActive] = useState(false);
     const [file, setFile] = useState<File | null>(null);
@@ -74,6 +111,9 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
         onToast(`Success! Ingested ${filename}`, 'success');
         setFile(null);
         setDescription('');
+        
+        // Reload ingested items and update workflow state
+        await onIngestSuccess();
       } catch (err: any) {
         onToast(err.message || 'Ingestion failed', 'error');
       } finally {
@@ -193,22 +233,247 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
     );
   };
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
+
+  const handleDeleteLog = async (logId: number, filename: string) => {
+    setConfirmDelete({ type: 'log', id: logId, name: filename });
+  };
+
+  const handleDeleteDocument = async (docId: number, filename: string) => {
+    setConfirmDelete({ type: 'document', id: docId, name: filename });
+  };
+
+  const confirmDeleteAction = async () => {
+    if (!confirmDelete) return;
+    
+    setDeletingId({ type: confirmDelete.type, id: confirmDelete.id });
+    setConfirmDelete(null);
+    
+    try {
+      if (confirmDelete.type === 'log') {
+        await api.deleteLog(confirmDelete.id);
+        onToast(`Log "${confirmDelete.name}" deleted successfully`, 'success');
+      } else {
+        await api.deleteDocument(confirmDelete.id);
+        onToast(`Document "${confirmDelete.name}" deleted successfully`, 'success');
+      }
+      
+      // Reload the list
+      await loadIngestedItems();
+      
+      // Check if we need to update workflow state (if no items left)
+      const [logs, docs] = await Promise.all([
+        api.getIngestedLogs(),
+        api.getIngestedDocuments(),
+      ]);
+      if (logs.length === 0 && docs.length === 0) {
+        setWorkflowState((prev) => ({ ...prev, hasIngested: false }));
+      }
+    } catch (error: any) {
+      onToast(error?.message || 'Failed to delete item', 'error');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-      <DropZone 
-        title="Ingest Machine Logs" 
-        type="log" 
-        icon={<CheckCircle2 className="w-5 h-5 text-purple-600" />}
-        acceptedTypes=".log,.txt"
-        options={['SWIFT', 'Firewall', 'FPS', 'CHAPS', 'Other']}
-      />
-      <DropZone 
-        title="Ingest Documentary Evidence" 
-        type="document" 
-        icon={<FileIcon className="w-5 h-5 text-pink-600" />}
-        acceptedTypes=".pdf,.doc,.docx,.txt"
-        options={['Policy', 'Audit Report', 'Configuration', 'Procedure', 'Other']}
-      />
+    <div className="space-y-6">
+      {/* Upload Section */}
+      <div>
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <UploadCloud className="w-5 h-5 text-purple-600" />
+          Upload New Evidence
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <DropZone 
+            title="Ingest Machine Logs" 
+            type="log" 
+            icon={<CheckCircle2 className="w-5 h-5 text-purple-600" />}
+            acceptedTypes=".log,.txt"
+            options={['SWIFT', 'Firewall', 'FPS', 'CHAPS', 'Other']}
+            onIngestSuccess={loadIngestedItems}
+          />
+          <DropZone 
+            title="Ingest Documentary Evidence" 
+            type="document" 
+            icon={<FileIcon className="w-5 h-5 text-pink-600" />}
+            acceptedTypes=".pdf,.doc,.docx,.txt"
+            options={['Policy', 'Audit Report', 'Configuration', 'Procedure', 'Other']}
+            onIngestSuccess={loadIngestedItems}
+          />
+        </div>
+      </div>
+
+      {/* Ingested Items List */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <Database className="w-5 h-5 text-blue-600" />
+            Ingested Evidence ({ingestedLogs.length + ingestedDocs.length})
+          </h2>
+          <button
+            onClick={loadIngestedItems}
+            disabled={loadingList}
+            className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+          >
+            {loadingList ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+
+        {loadingList ? (
+          <div className="text-center py-8 text-gray-400">Loading...</div>
+        ) : ingestedLogs.length === 0 && ingestedDocs.length === 0 ? (
+          <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-8 text-center">
+            <Database className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">No evidence ingested yet</p>
+            <p className="text-sm text-gray-400 mt-1">Upload logs or documents above to get started</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Ingested Logs */}
+            {ingestedLogs.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <Database className="w-4 h-4 text-blue-600" />
+                  Logs ({ingestedLogs.length})
+                </h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {ingestedLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-gray-900 truncate">{log.filename}</p>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Database className="w-3 h-3" />
+                              {log.source}
+                            </span>
+                            <span>{formatFileSize(log.size_bytes)}</span>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(log.ingested_at)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteLog(log.id, log.filename)}
+                          disabled={deletingId?.type === 'log' && deletingId?.id === log.id}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50"
+                          title="Delete log"
+                        >
+                          {deletingId?.type === 'log' && deletingId?.id === log.id ? (
+                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Ingested Documents */}
+            {ingestedDocs.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-orange-600" />
+                  Documents ({ingestedDocs.length})
+                </h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {ingestedDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-orange-200 transition-colors group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-gray-900 truncate">{doc.filename}</p>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <FileText className="w-3 h-3" />
+                              {doc.doc_type}
+                            </span>
+                            <span>{formatFileSize(doc.size_bytes)}</span>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(doc.ingested_at)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteDocument(doc.id, doc.filename)}
+                          disabled={deletingId?.type === 'document' && deletingId?.id === doc.id}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50"
+                          title="Delete document"
+                        >
+                          {deletingId?.type === 'document' && deletingId?.id === doc.id ? (
+                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Confirm Deletion</h3>
+            </div>
+            
+            <p className="text-gray-700 mb-2">
+              Are you sure you want to delete <strong>{confirmDelete.name}</strong>?
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              This will permanently remove the {confirmDelete.type === 'log' ? 'log' : 'document'} and all associated evidence mappings. This action cannot be undone.
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteAction}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
