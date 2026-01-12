@@ -104,11 +104,11 @@ const DashboardLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-gray-900 pb-20">
+    <div className="h-screen bg-[#f8f9fa] text-gray-900 flex flex-col overflow-hidden">
       <Header />
       <ToastContainer notifications={toasts} removeToast={removeToast} />
 
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex flex-1 overflow-hidden">
         {/* Side Panel - Tab Navigation */}
         <aside className="w-72 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col shadow-sm">
           <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">

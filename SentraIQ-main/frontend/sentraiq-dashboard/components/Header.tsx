@@ -5,7 +5,7 @@ import { Shield, ExternalLink, Activity } from 'lucide-react';
 const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 border-b border-gray-200/60 shadow-sm transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Left: Logo */}
         <Link
