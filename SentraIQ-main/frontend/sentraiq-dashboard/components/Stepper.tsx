@@ -10,10 +10,10 @@ interface StepperProps {
 
 const Stepper: React.FC<StepperProps> = ({ currentStep, steps, onStepClick }) => {
   return (
-    <div className="w-full py-6">
-      <div className="flex items-center justify-between relative">
+    <div className="w-full py-8">
+      <div className="flex items-start justify-between relative">
         {/* Progress Line */}
-        <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 -z-10">
+        <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 -z-10" style={{ top: '24px' }}>
           <motion.div
             className="h-full bg-blue-900"
             initial={{ width: 0 }}
@@ -33,13 +33,14 @@ const Stepper: React.FC<StepperProps> = ({ currentStep, steps, onStepClick }) =>
             <div
               key={step.id}
               className="flex flex-col items-center flex-1 relative"
+              style={{ minWidth: 0 }}
             >
               {/* Step Circle */}
               <button
                 onClick={() => isClickable && onStepClick?.(step.id)}
                 disabled={!isClickable}
                 className={`
-                  w-12 h-12 rounded-full flex items-center justify-center transition-all
+                  w-12 h-12 rounded-full flex items-center justify-center transition-all flex-shrink-0 relative z-10
                   ${isCompleted 
                     ? 'bg-blue-900 text-white shadow-lg' 
                     : isCurrent 
@@ -52,20 +53,24 @@ const Stepper: React.FC<StepperProps> = ({ currentStep, steps, onStepClick }) =>
                 {isCompleted ? (
                   <CheckCircle className="w-6 h-6" />
                 ) : (
-                  <span className="text-sm font-bold">{step.id}</span>
+                  <span className={`text-sm font-bold ${isCurrent ? 'text-white' : 'text-gray-400'}`}>
+                    {step.id}
+                  </span>
                 )}
               </button>
 
               {/* Step Label */}
-              <div className="mt-3 text-center max-w-[120px]">
+              <div className="mt-4 text-center w-full px-2" style={{ maxWidth: '140px' }}>
                 <div className={`
-                  text-sm font-semibold
-                  ${isCurrent ? 'text-blue-900' : isCompleted ? 'text-gray-700' : 'text-gray-400'}
+                  text-sm font-bold mb-1
+                  ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-900' : 'text-gray-400'}
                 `}>
                   {step.label}
                 </div>
                 {step.description && (
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className={`text-xs mt-0.5 ${
+                    isCurrent ? 'text-gray-600' : isCompleted ? 'text-gray-500' : 'text-gray-400'
+                  }`}>
                     {step.description}
                   </div>
                 )}
