@@ -51,15 +51,33 @@ echo ""
 echo "🚀 Starting Backend on port $BACKEND_PORT..."
 cd "$PROJECT_ROOT"
 
-# Check if virtual environment exists
-if [ ! -d ".venv" ]; then
-    echo "❌ Virtual environment not found at $PROJECT_ROOT/.venv"
-    echo "   Please create it first: python3 -m venv .venv"
+# Initialize conda for bash script
+if [ -f "$HOME/anaconda3/etc/profile.d/conda.sh" ]; then
+    source "$HOME/anaconda3/etc/profile.d/conda.sh"
+elif [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+elif [ -f "/opt/conda/etc/profile.d/conda.sh" ]; then
+    source "/opt/conda/etc/profile.d/conda.sh"
+else
+    # Try to find conda base path
+    CONDA_BASE=$(conda info --base 2>/dev/null || echo "")
+    if [ ! -z "$CONDA_BASE" ] && [ -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
+        source "$CONDA_BASE/etc/profile.d/conda.sh"
+    else
+        echo "❌ Could not find conda initialization script"
+        exit 1
+    fi
+fi
+
+# Check if conda environment exists
+if ! conda env list | grep -q "^sentra "; then
+    echo "❌ Conda environment 'sentra' not found"
+    echo "   Please create it first: conda create -n sentra python=3.9"
     exit 1
 fi
 
-# Activate virtual environment and start backend
-source .venv/bin/activate
+# Activate conda environment and start backend
+conda activate sentra
 
 # Start backend in background
 nohup uvicorn backend.main:app --host 0.0.0.0 --port $BACKEND_PORT --reload > backend.log 2>&1 &
