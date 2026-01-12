@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom';
 import { TabType, ToastNotification, EvidenceItem, WorkflowState } from '../types';
 import Header from './Header';
@@ -23,15 +23,28 @@ const DashboardLayout: React.FC = () => {
     checkIngestionStatus();
   }, []);
 
+  // Track last redirect toast to prevent duplicates
+  const lastRedirectToastRef = useRef<string | null>(null);
+  
   useEffect(() => {
     // Enforce sequential workflow - redirect if trying to access out of order
     const path = location.pathname;
     if (path.includes('/query') && !workflowState.hasIngested) {
       navigate('/dashboard/ingest', { replace: true });
-      addToast('Please ingest evidence first before querying', 'warning');
+      const toastKey = 'redirect-query';
+      if (lastRedirectToastRef.current !== toastKey) {
+        addToast('Please ingest evidence first before querying', 'warning');
+        lastRedirectToastRef.current = toastKey;
+      }
     } else if (path.includes('/generate') && (!workflowState.hasIngested || !workflowState.hasQueried)) {
       navigate('/dashboard/query', { replace: true });
-      addToast('Please query evidence first before generating a pack', 'warning');
+      const toastKey = 'redirect-generate';
+      if (lastRedirectToastRef.current !== toastKey) {
+        addToast('Please query evidence first before generating a pack', 'warning');
+        lastRedirectToastRef.current = toastKey;
+      }
+    } else {
+      lastRedirectToastRef.current = null; // Reset when valid route
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, workflowState.hasIngested, workflowState.hasQueried]);
@@ -49,14 +62,29 @@ const DashboardLayout: React.FC = () => {
     }
   };
 
-  // Show welcome toast on mount
+  // Show welcome toast on mount (only once, even with React.StrictMode)
+  const welcomeShownRef = useRef(false);
   useEffect(() => {
-    addToast("Welcome back to SentraIQ", "info");
+    if (!welcomeShownRef.current) {
+      addToast("Welcome back to SentraIQ", "info");
+      welcomeShownRef.current = true;
+    }
   }, []);
 
   const addToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
+    // Generate a more unique ID using timestamp + random
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Check if the same message already exists (prevent duplicates)
+    setToasts((prev) => {
+      const exists = prev.some(
+        (t) => t.message === message && t.type === type
+      );
+      if (exists) {
+        return prev; // Don't add duplicate
+      }
+      return [...prev, { id, message, type }];
+    });
   };
 
   const removeToast = (id: string) => {
