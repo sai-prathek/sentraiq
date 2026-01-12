@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, Download, CheckCircle, ShieldCheck, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
@@ -104,6 +104,22 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       loadReport();
     }
   }, [generatedPack]);
+
+  // Scroll to top when step changes
+  useEffect(() => {
+    // Find and scroll the main scrollable container (from DashboardLayout)
+    const mainContainer = document.querySelector('main.overflow-y-auto') as HTMLElement;
+    if (mainContainer) {
+      mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    // Also scroll window to top as fallback
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll any nested scrollable containers
+    const scrollableDivs = document.querySelectorAll('.overflow-y-auto');
+    scrollableDivs.forEach((div) => {
+      (div as HTMLElement).scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }, [currentStep]);
 
   const loadReport = async () => {
     if (!generatedPack) return;
