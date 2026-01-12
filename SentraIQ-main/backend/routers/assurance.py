@@ -43,20 +43,33 @@ async def query_evidence(
             time_range_end=request.time_range_end
         )
 
-        # Convert to response model
-        evidence_items = [
-            EvidenceItem(
-                type=item['type'],
-                id=item['id'],
-                hash=item['hash'],
-                filename=item['filename'],
-                content_preview=item['content_preview'],
-                relevance_score=item['relevance_score'],
-                control_id=item.get('control_id'),
-                ingested_at=item['ingested_at']
-            )
-            for item in result['evidence_items']
-        ]
+        # Convert to response model with error handling
+        evidence_items = []
+        for item in result.get('evidence_items', []):
+            try:
+                # Ensure ingested_at is a datetime object
+                ingested_at = item.get('ingested_at')
+                if isinstance(ingested_at, str):
+                    from dateutil.parser import parse
+                    ingested_at = parse(ingested_at)
+                elif ingested_at is None:
+                    ingested_at = datetime.utcnow()
+                
+                evidence_items.append(
+                    EvidenceItem(
+                        type=item.get('type', 'log'),
+                        id=item.get('id', 0),
+                        hash=item.get('hash', ''),
+                        filename=item.get('filename', ''),
+                        content_preview=item.get('content_preview', ''),
+                        relevance_score=item.get('relevance_score', 0.0),
+                        control_id=item.get('control_id'),
+                        ingested_at=ingested_at
+                    )
+                )
+            except Exception as item_error:
+                print(f"Warning: Failed to process evidence item: {str(item_error)}")
+                continue
 
         # Use OpenAI (if configured) to generate a natural-language summary of results
         ai_summary = await Telescope.summarize_evidence_with_ai(
@@ -64,33 +77,46 @@ async def query_evidence(
             evidence_items=result['evidence_items']
         )
         
-        # Perform gap analysis
-        time_range_start = request.time_range_start or result.get('time_range', {}).get('start')
-        time_range_end = request.time_range_end or result.get('time_range', {}).get('end')
-        
+        # Perform gap analysis (only if time range is available)
         gap_analysis = None
-        if time_range_start and time_range_end:
-            from dateutil.parser import parse
-            start_dt = parse(time_range_start) if isinstance(time_range_start, str) else time_range_start
-            end_dt = parse(time_range_end) if isinstance(time_range_end, str) else time_range_end
+        try:
+            time_range_start = request.time_range_start
+            time_range_end = request.time_range_end
             
-            # Extract control_id from intent if available
-            control_id = None
-            intent = result.get('interpreted_intent', {})
-            if isinstance(intent, str):
-                import json
-                try:
-                    intent = json.loads(intent)
-                except:
-                    intent = {}
-            control_id = intent.get('control_id') or request.control_id if hasattr(request, 'control_id') else None
+            # If not provided, try to get from result
+            if not time_range_start or not time_range_end:
+                time_range = result.get('time_range', {})
+                if time_range:
+                    from dateutil.parser import parse
+                    time_range_start = time_range.get('start')
+                    time_range_end = time_range.get('end')
+                    if time_range_start:
+                        time_range_start = parse(time_range_start) if isinstance(time_range_start, str) else time_range_start
+                    if time_range_end:
+                        time_range_end = parse(time_range_end) if isinstance(time_range_end, str) else time_range_end
             
-            gap_analysis = await Telescope.perform_gap_analysis(
-                control_id=control_id,
-                evidence_items=result['evidence_items'],
-                time_range_start=start_dt,
-                time_range_end=end_dt
-            )
+            if time_range_start and time_range_end:
+                # Extract control_id from intent if available
+                control_id = None
+                intent = result.get('interpreted_intent', {})
+                if isinstance(intent, str):
+                    import json
+                    try:
+                        intent = json.loads(intent)
+                    except:
+                        intent = {}
+                control_id = intent.get('control_id') or (request.control_id if hasattr(request, 'control_id') else None)
+                
+                gap_analysis = await Telescope.perform_gap_analysis(
+                    control_id=control_id,
+                    evidence_items=result['evidence_items'],
+                    time_range_start=time_range_start,
+                    time_range_end=time_range_end
+                )
+        except Exception as gap_error:
+            # Don't fail the entire query if gap analysis fails
+            print(f"Warning: Gap analysis failed: {str(gap_error)}")
+            gap_analysis = None
 
         response = TelescopeQueryResponse(
             query=result['query'],

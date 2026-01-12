@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
-import { CheckCircle, AlertCircle, ArrowRight, ArrowLeft, FileCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CheckCircle, AlertCircle, ArrowRight, ArrowLeft, FileCheck, Sparkles, Clock, FileX } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { api } from '../services/api';
+import { EvidenceItem } from '../types';
 
 export interface AssessmentAnswer {
   questionId: string;
   question: string;
   answer: 'yes' | 'no' | 'partial' | null;
-  evidence: string[];
+  evidence: EvidenceItem[];
+  evidenceIds: string[];
   notes: string;
+  reason: string;
+  gapType?: 'outdated' | 'missing' | 'insufficient' | null;
+  gapReason?: string;
+  autoAnswered?: boolean;
 }
 
 interface AssessmentQuestionsProps {
@@ -206,22 +213,290 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
   const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>({});
   const [currentSection, setCurrentSection] = useState<string>('1. Secure Your Environment');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['1. Secure Your Environment']));
+  const [autoAnswering, setAutoAnswering] = useState(false);
+  const [autoAnswerProgress, setAutoAnswerProgress] = useState({ current: 0, total: 0 });
+  const [autoAnswerStarted, setAutoAnswerStarted] = useState(false);
 
   const questions = framework === 'SWIFT_CSP' ? SWIFT_QUESTIONS : SWIFT_QUESTIONS; // Add other frameworks later
 
   const sections = Array.from(new Set(questions.map(q => q.section)));
 
-  const updateAnswer = (questionId: string, question: string, answer: 'yes' | 'no' | 'partial' | null, notes: string = '') => {
+  const updateAnswer = (
+    questionId: string, 
+    question: string, 
+    answer: 'yes' | 'no' | 'partial' | null, 
+    notes: string = '',
+    evidence: EvidenceItem[] = [],
+    reason: string = '',
+    gapType?: 'outdated' | 'missing' | 'insufficient' | null,
+    gapReason?: string
+  ) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: {
         questionId,
         question,
         answer,
-        evidence: prev[questionId]?.evidence || [],
-        notes
+        evidence: evidence.length > 0 ? evidence : (prev[questionId]?.evidence || []),
+        evidenceIds: evidence.map(e => `${e.id}-${e.type}`),
+        notes,
+        reason: reason || prev[questionId]?.reason || '',
+        gapType: gapType !== undefined ? gapType : prev[questionId]?.gapType,
+        gapReason: gapReason || prev[questionId]?.gapReason || '',
+        autoAnswered: prev[questionId]?.autoAnswered || false
       }
     }));
+  };
+
+  // Check if evidence is outdated (older than 90 days)
+  const isEvidenceOutdated = (timestamp: string): boolean => {
+    const evidenceDate = new Date(timestamp);
+    const now = new Date();
+    const daysDiff = (now.getTime() - evidenceDate.getTime()) / (1000 * 60 * 60 * 24);
+    return daysDiff > 90;
+  };
+
+  // Check if evidence preview indicates non-compliance (negative keywords)
+  const indicatesNonCompliance = (preview: string): boolean => {
+    const negativeKeywords = [
+      'missing', 'failed', 'gaps', 'not properly', 'not implemented', 
+      'unpatched', 'unsecured', 'unhardened', 'missing controls',
+      'no proper', 'improper', 'inadequate', 'deficient', 'violation',
+      'non-compliant', 'non compliant', 'breach', 'weakness', 'vulnerability'
+    ];
+    const lowerPreview = preview.toLowerCase();
+    return negativeKeywords.some(keyword => lowerPreview.includes(keyword));
+  };
+
+  // Analyze evidence and determine answer
+  const analyzeEvidence = (evidenceItems: EvidenceItem[], question: string, questionId?: string): {
+    answer: 'yes' | 'no' | 'partial';
+    reason: string;
+    gapType?: 'outdated' | 'missing' | 'insufficient' | null;
+    gapReason?: string;
+  } => {
+    // 1. NO EVIDENCE FOUND → PARTIAL (evidence gap - missing)
+    if (evidenceItems.length === 0) {
+      return {
+        answer: 'partial',
+        reason: 'No evidence found for this requirement. Cannot determine compliance status.',
+        gapType: 'missing',
+        gapReason: 'No evidence items found in the system for this assessment question. Evidence gap detected.'
+      };
+    }
+
+    // Check for outdated evidence
+    const outdatedItems = evidenceItems.filter(item => isEvidenceOutdated(item.timestamp));
+    const recentItems = evidenceItems.filter(item => !isEvidenceOutdated(item.timestamp));
+
+    // Check relevance scores
+    const highRelevanceItems = evidenceItems.filter(item => item.relevance >= 70);
+    const mediumRelevanceItems = evidenceItems.filter(item => item.relevance >= 50 && item.relevance < 70);
+    const lowRelevanceItems = evidenceItems.filter(item => item.relevance < 50);
+
+    // Check if evidence indicates non-compliance
+    const nonCompliantEvidence = evidenceItems.filter(item => 
+      indicatesNonCompliance(item.preview) || item.relevance < 40
+    );
+
+    // 2. CLEAR EVIDENCE OF NON-COMPLIANCE → NO
+    // If we have recent evidence with negative indicators (low relevance + negative keywords)
+    if (nonCompliantEvidence.length > 0 && recentItems.length > 0) {
+      const recentNonCompliant = nonCompliantEvidence.filter(item => 
+        !isEvidenceOutdated(item.timestamp)
+      );
+      if (recentNonCompliant.length > 0) {
+        return {
+          answer: 'no',
+          reason: `Found ${recentNonCompliant.length} recent evidence item(s) that clearly indicate non-compliance. The requirement is not adequately implemented.`,
+          gapType: null, // Not a gap - it's a clear "no"
+          gapReason: undefined
+        };
+      }
+    }
+
+    // 3. OUTDATED EVIDENCE ONLY → PARTIAL (evidence gap - outdated)
+    if (recentItems.length === 0 && outdatedItems.length > 0) {
+      return {
+        answer: 'partial',
+        reason: `Found ${outdatedItems.length} evidence item(s), but all are older than 90 days. Recent evidence is required to determine current compliance status.`,
+        gapType: 'outdated',
+        gapReason: `Evidence found is ${Math.round((new Date().getTime() - new Date(outdatedItems[0].timestamp).getTime()) / (1000 * 60 * 60 * 24))} days old. SWIFT CSCF requires evidence to be current (within 90 days). Evidence gap detected.`
+      };
+    }
+
+    // 4. INSUFFICIENT/LOW RELEVANCE EVIDENCE → PARTIAL (evidence gap - insufficient)
+    if (highRelevanceItems.length === 0 && (mediumRelevanceItems.length > 0 || lowRelevanceItems.length > 0)) {
+      return {
+        answer: 'partial',
+        reason: `Found ${evidenceItems.length} evidence item(s), but relevance scores are insufficient (below 70%). Cannot definitively determine compliance status.`,
+        gapType: 'insufficient',
+        gapReason: 'Evidence found has low or medium relevance scores, indicating it may not fully address the requirement. Evidence gap detected - additional evidence needed.'
+      };
+    }
+
+    // 5. CLEAR EVIDENCE OF COMPLIANCE → YES
+    if (recentItems.length > 0 && highRelevanceItems.length > 0) {
+      return {
+        answer: 'yes',
+        reason: `Found ${recentItems.length} recent evidence item(s) with high relevance (${highRelevanceItems.length} items with ≥70% relevance). Clear evidence supports compliance.`,
+        gapType: null,
+        gapReason: undefined
+      };
+    }
+
+    // 6. FALLBACK: PARTIAL (evidence gap - insufficient)
+    return {
+      answer: 'partial',
+      reason: `Found ${evidenceItems.length} evidence item(s), but cannot definitively determine compliance status. Review recommended.`,
+      gapType: 'insufficient',
+      gapReason: 'Evidence found requires manual review to determine full compliance. Evidence gap detected.'
+    };
+  };
+
+  // Predefined mock evidence responses for demo
+  const getMockEvidenceForQuestion = (questionId: string): EvidenceItem[] => {
+    const mockEvidence: Record<string, EvidenceItem[]> = {
+      '1.1.d.1': [
+        { id: '1', type: 'Log', filename: 'swift_access_control.log', preview: 'Local operator access logs', relevance: 92, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '2', type: 'Document', filename: 'access_control_policy.pdf', preview: 'Access control policy document', relevance: 88, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '1.1.d.2': [
+        { id: '3', type: 'Log', filename: 'remote_access_audit.log', preview: 'Remote operator access audit logs', relevance: 90, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '1.1.e': [
+        { id: '4', type: 'Document', filename: 'network_segmentation.pdf', preview: 'Network segmentation documentation', relevance: 85, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '1.2': [
+        { id: '5', type: 'Log', filename: 'privileged_account_audit.log', preview: 'Privileged account usage logs', relevance: 95, control_id: 'SWIFT-1.2', timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '6', type: 'Document', filename: 'privileged_access_policy.pdf', preview: 'Privileged access control policy', relevance: 91, control_id: 'SWIFT-1.2', timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '1.3': [
+        { id: '7', type: 'Document', filename: 'virtualization_audit_report.pdf', preview: 'Virtualization platform audit shows missing security controls and unpatched vulnerabilities', relevance: 45, control_id: 'SWIFT-1.3', timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '8', type: 'Log', filename: 'vm_security_gaps.log', preview: 'VM security configuration gaps identified - missing hardening controls', relevance: 40, control_id: 'SWIFT-1.3', timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '1.4': [
+        { id: '8', type: 'Log', filename: 'internet_access_control.log', preview: 'Internet access restriction logs', relevance: 89, control_id: 'SWIFT-1.4', timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '2.1': [
+        { id: '10', type: 'Log', filename: 'data_flow_security.log', preview: 'Internal data flow security logs', relevance: 93, control_id: 'SWIFT-2.1', timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '2.2': [
+        { id: '11', type: 'Log', filename: 'security_updates.log', preview: 'Security patch application logs', relevance: 94, control_id: 'SWIFT-2.2', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '12', type: 'Document', filename: 'patch_management_policy.pdf', preview: 'Patch management policy', relevance: 90, control_id: 'SWIFT-2.2', timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '2.3': [
+        { id: '13', type: 'Document', filename: 'hardening_assessment.pdf', preview: 'System hardening assessment reveals multiple unhardened systems and missing security configurations', relevance: 35, control_id: 'SWIFT-2.3', timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '14', type: 'Log', filename: 'hardening_failures.log', preview: 'System hardening checklist shows 60% of systems not properly hardened', relevance: 38, control_id: 'SWIFT-2.3', timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '2.6': [
+        { id: '14', type: 'Log', filename: 'operator_session_logs.log', preview: 'Operator session encryption logs', relevance: 91, control_id: 'SWIFT-2.6', timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '2.7': [
+        { id: '15', type: 'Log', filename: 'vulnerability_scan_results.log', preview: 'Vulnerability scanning results', relevance: 96, control_id: 'SWIFT-2.7', timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '16', type: 'Document', filename: 'vuln_scanning_policy.pdf', preview: 'Vulnerability scanning policy', relevance: 92, control_id: 'SWIFT-2.7', timestamp: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '2.9': [
+        { id: '17', type: 'Log', filename: 'transaction_monitoring.log', preview: 'Transaction business control logs', relevance: 89, control_id: 'SWIFT-2.9', timestamp: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '2.10': [
+        { id: '18', type: 'Document', filename: 'app_security_review.pdf', preview: 'Application security review indicates missing application hardening procedures and unsecured interfaces', relevance: 42, control_id: 'SWIFT-2.10', timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '4.1': [
+        { id: '20', type: 'Document', filename: 'password_policy.pdf', preview: 'Password policy document', relevance: 93, control_id: 'SWIFT-4.1', timestamp: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '21', type: 'Log', filename: 'password_compliance.log', preview: 'Password policy enforcement logs', relevance: 90, control_id: 'SWIFT-4.1', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '4.2': [
+        { id: '22', type: 'Log', filename: 'mfa_authentication.log', preview: 'MFA authentication logs', relevance: 97, control_id: 'SWIFT-4.2', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '23', type: 'Document', filename: 'mfa_policy.pdf', preview: 'Multi-factor authentication policy', relevance: 95, control_id: 'SWIFT-4.2', timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '5.1': [
+        { id: '24', type: 'Document', filename: 'logical_access_control.pdf', preview: 'Logical access control policy', relevance: 91, control_id: 'SWIFT-5.1', timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '5.2': [
+        { id: '25', type: 'Log', filename: 'token_audit.log', preview: 'Token management audit shows missing token tracking, unaccounted tokens, and improper token lifecycle management', relevance: 30, control_id: 'SWIFT-5.2', timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '26', type: 'Document', filename: 'token_gaps.pdf', preview: 'Token management policy gaps identified - no proper tracking or management procedures', relevance: 35, control_id: 'SWIFT-5.2', timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '5.4': [
+        { id: '26', type: 'Document', filename: 'password_storage_policy.pdf', preview: 'Password storage security policy', relevance: 89, control_id: 'SWIFT-5.4', timestamp: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '6.1': [
+        { id: '27', type: 'Log', filename: 'malware_protection.log', preview: 'Malware protection scan logs', relevance: 92, control_id: 'SWIFT-6.1', timestamp: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '6.2': [
+        { id: '28', type: 'Document', filename: 'software_integrity_audit.pdf', preview: 'Software integrity verification audit shows missing integrity checks, unsigned binaries, and no verification procedures', relevance: 25, control_id: 'SWIFT-6.2', timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '29', type: 'Log', filename: 'integrity_failures.log', preview: 'Software integrity checks failed - multiple unsigned components detected', relevance: 28, control_id: 'SWIFT-6.2', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '6.3': [
+        { id: '29', type: 'Log', filename: 'database_integrity.log', preview: 'Database integrity check logs', relevance: 90, control_id: 'SWIFT-6.3', timestamp: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '6.4': [
+        { id: '30', type: 'Log', filename: 'security_monitoring.log', preview: 'Security event logging and monitoring', relevance: 94, control_id: 'SWIFT-6.4', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '31', type: 'Document', filename: 'logging_policy.pdf', preview: 'Logging and monitoring policy', relevance: 91, control_id: 'SWIFT-6.4', timestamp: new Date(Date.now() - 17 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      '7.2': [
+        { id: '33', type: 'Document', filename: 'security_training.pdf', preview: 'Security awareness training documentation', relevance: 87, control_id: 'SWIFT-7.2', timestamp: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString() }
+      ]
+    };
+
+    return mockEvidence[questionId] || [];
+  };
+
+  // Auto-answer all questions using predefined mock responses
+  const autoAnswerAllQuestions = async () => {
+    setAutoAnswering(true);
+    setAutoAnswerStarted(true);
+    setAutoAnswerProgress({ current: 0, total: questions.length });
+
+    const newAnswers: Record<string, AssessmentAnswer> = { ...answers };
+
+    for (let i = 0; i < questions.length; i++) {
+      const question = questions[i];
+      setAutoAnswerProgress({ current: i + 1, total: questions.length });
+
+      // Simulate API delay for demo
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      try {
+        // Get mock evidence for this question
+        const evidenceItems = getMockEvidenceForQuestion(question.id);
+
+        // Analyze evidence
+        const analysis = analyzeEvidence(evidenceItems, question.question, question.id);
+
+        // Update answer
+        newAnswers[question.id] = {
+          questionId: question.id,
+          question: question.question,
+          answer: analysis.answer,
+          evidence: evidenceItems,
+          evidenceIds: evidenceItems.map(e => `${e.id}-${e.type}`),
+          notes: analysis.reason,
+          reason: analysis.reason,
+          gapType: analysis.gapType,
+          gapReason: analysis.gapReason,
+          autoAnswered: true
+        };
+
+        setAnswers(newAnswers);
+      } catch (error) {
+        console.error(`Error auto-answering question ${question.id}:`, error);
+        // Mark as unanswered if processing fails
+        newAnswers[question.id] = {
+          questionId: question.id,
+          question: question.question,
+          answer: null,
+          evidence: [],
+          evidenceIds: [],
+          notes: 'Auto-answer failed. Please answer manually.',
+          reason: 'Failed to process evidence automatically.',
+          autoAnswered: false
+        };
+      }
+    }
+
+    setAnswers(newAnswers);
+    setAutoAnswering(false);
   };
 
   const toggleSection = (section: string) => {
@@ -263,16 +538,51 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
             <div className="text-2xl font-bold text-blue-900">{answered}/{total}</div>
           </div>
         </div>
-        
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-          <motion.div
-            className="bg-blue-900 h-3 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-          />
+
+        {/* Auto-Answer Button */}
+        <div className="mb-4">
+          <button
+            onClick={autoAnswerAllQuestions}
+            disabled={autoAnswering}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors
+              ${autoAnswering
+                ? 'bg-blue-200 text-blue-700 cursor-not-allowed'
+                : 'bg-blue-900 text-white hover:bg-blue-800'
+              }
+            `}
+          >
+            <Sparkles className="w-4 h-4" />
+            {autoAnswering 
+              ? `Auto-Answering... (${autoAnswerProgress.current}/${autoAnswerProgress.total})`
+              : autoAnswerStarted
+              ? 'Re-run Auto-Answer'
+              : 'Auto-Answer All Questions'
+            }
+          </button>
+          {autoAnswering && (
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+              <motion.div
+                className="bg-blue-900 h-2 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${(autoAnswerProgress.current / autoAnswerProgress.total) * 100}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+          )}
         </div>
+        
+        {/* Overall Progress Bar - Hide when auto-answering */}
+        {!autoAnswering && (
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+            <motion.div
+              className="bg-blue-900 h-3 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+        )}
 
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
@@ -290,8 +600,25 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
       <div className="space-y-4">
         {sections.map((section) => {
           const sectionQuestions = questions.filter(q => q.section === section);
-          const sectionAnswers = sectionQuestions.filter(q => answers[q.id]?.answer !== null).length;
+          const sectionTotal = sectionQuestions.length;
+          
+          // Calculate actual answered count - only count if answer is explicitly set to yes, no, or partial
+          const sectionAnswers = sectionQuestions.filter(q => {
+            const answer = answers[q.id];
+            return answer && 
+                   answer.answer !== null && 
+                   answer.answer !== undefined &&
+                   (answer.answer === 'yes' || answer.answer === 'no' || answer.answer === 'partial');
+          }).length;
+          
+          // Calculate breakdown
+          const yesCount = sectionQuestions.filter(q => answers[q.id]?.answer === 'yes').length;
+          const noCount = sectionQuestions.filter(q => answers[q.id]?.answer === 'no').length;
+          const partialCount = sectionQuestions.filter(q => answers[q.id]?.answer === 'partial').length;
+          const pendingCount = sectionTotal - sectionAnswers;
+          
           const isExpanded = expandedSections.has(section);
+          const isComplete = sectionAnswers === sectionTotal;
 
           return (
             <div key={section} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -299,17 +626,53 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                 onClick={() => toggleSection(section)}
                 className="w-full p-5 flex items-center justify-between hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    sectionAnswers === sectionQuestions.length 
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  {/* Counter Badge - Leftmost */}
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0 ${
+                    isComplete
                       ? 'bg-green-100 text-green-700' 
-                      : 'bg-blue-100 text-blue-700'
+                      : sectionAnswers > 0
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-100 text-gray-500'
                   }`}>
-                    {sectionAnswers}/{sectionQuestions.length}
+                    {sectionAnswers}/{sectionTotal}
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">{section}</h3>
+                  
+                  {/* Step Name - Left */}
+                  <h3 className="text-base font-bold text-gray-900 flex-shrink-0">{section}</h3>
+                  
+                  {/* Spacer */}
+                  <div className="flex-1"></div>
+                  
+                  {/* Answer Breakdown - Right */}
+                  <div className="flex items-center gap-3 text-xs flex-shrink-0">
+                    {yesCount > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
+                        <span className="text-gray-700">{yesCount} Yes</span>
+                      </div>
+                    )}
+                    {noCount > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></div>
+                        <span className="text-gray-700">{noCount} No</span>
+                      </div>
+                    )}
+                    {partialCount > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0"></div>
+                        <span className="text-gray-700">{partialCount} Partial</span>
+                      </div>
+                    )}
+                    {pendingCount > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></div>
+                        <span className="text-gray-500">{pendingCount} Pending</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <ArrowRight className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                <ArrowRight className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ml-2 ${isExpanded ? 'rotate-90' : ''}`} />
               </button>
 
               {isExpanded && (
@@ -344,6 +707,39 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                               </div>
                             </div>
 
+                            {/* Gap Indicator */}
+                            {currentAnswer?.gapType && (
+                              <div className={`mb-3 p-3 rounded-lg flex items-start gap-2 ${
+                                currentAnswer.gapType === 'outdated' 
+                                  ? 'bg-orange-50 border border-orange-200'
+                                  : currentAnswer.gapType === 'missing'
+                                  ? 'bg-red-50 border border-red-200'
+                                  : 'bg-yellow-50 border border-yellow-200'
+                              }`}>
+                                {currentAnswer.gapType === 'outdated' && <Clock className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />}
+                                {currentAnswer.gapType === 'missing' && <FileX className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />}
+                                {currentAnswer.gapType === 'insufficient' && <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />}
+                                <div className="flex-1">
+                                  <div className="text-xs font-semibold mb-1">
+                                    {currentAnswer.gapType === 'outdated' && '⚠️ Evidence Gap: Outdated'}
+                                    {currentAnswer.gapType === 'missing' && '❌ Evidence Gap: Missing'}
+                                    {currentAnswer.gapType === 'insufficient' && '⚠️ Evidence Gap: Insufficient'}
+                                  </div>
+                                  <div className="text-xs text-gray-700">
+                                    {currentAnswer.gapReason || 'Evidence gap detected'}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Auto-Answered Indicator */}
+                            {currentAnswer?.autoAnswered && (
+                              <div className="mb-3 flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+                                <Sparkles className="w-3 h-3" />
+                                <span>Auto-answered using Telescope AI</span>
+                              </div>
+                            )}
+
                             {/* Answer Options */}
                             <div className="flex gap-3 mb-3">
                               {(['yes', 'partial', 'no'] as const).map((option) => {
@@ -351,7 +747,14 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                                 return (
                                   <button
                                     key={option}
-                                    onClick={() => updateAnswer(q.id, q.question, option, currentAnswer?.notes || '')}
+                                    onClick={() => updateAnswer(
+                                      q.id, 
+                                      q.question, 
+                                      option, 
+                                      currentAnswer?.notes || '',
+                                      currentAnswer?.evidence || [],
+                                      currentAnswer?.reason || ''
+                                    )}
                                     className={`
                                       px-4 py-2 rounded-lg text-sm font-medium transition-all
                                       ${isSelected
@@ -370,11 +773,58 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                               })}
                             </div>
 
+                            {/* Evidence Items */}
+                            {currentAnswer?.evidence && currentAnswer.evidence.length > 0 && (
+                              <div className="mb-3 p-3 bg-blue-50 rounded-lg">
+                                <div className="text-xs font-semibold text-blue-900 mb-2">
+                                  Evidence Found ({currentAnswer.evidence.length}):
+                                </div>
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                  {currentAnswer.evidence.slice(0, 5).map((item, idx) => (
+                                    <div key={idx} className="text-xs text-gray-700 flex items-center gap-2">
+                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                        item.type === 'Log' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                                      }`}>
+                                        {item.type}
+                                      </span>
+                                      <span className="flex-1 truncate">{item.filename}</span>
+                                      <span className="text-gray-500">{item.relevance}%</span>
+                                      {isEvidenceOutdated(item.timestamp) && (
+                                        <div title="Outdated">
+                                          <Clock className="w-3 h-3 text-orange-500" />
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {currentAnswer.evidence.length > 5 && (
+                                    <div className="text-xs text-gray-500 italic">
+                                      ... and {currentAnswer.evidence.length - 5} more
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Reason Field (Auto-filled) */}
+                            {currentAnswer?.reason && (
+                              <div className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                <div className="text-xs font-semibold text-gray-700 mb-1">Reason:</div>
+                                <div className="text-sm text-gray-800">{currentAnswer.reason}</div>
+                              </div>
+                            )}
+
                             {/* Notes Field */}
                             <textarea
-                              placeholder="Add notes or evidence references..."
+                              placeholder="Add additional notes or evidence references..."
                               value={currentAnswer?.notes || ''}
-                              onChange={(e) => updateAnswer(q.id, q.question, currentAnswer?.answer || null, e.target.value)}
+                              onChange={(e) => updateAnswer(
+                                q.id, 
+                                q.question, 
+                                currentAnswer?.answer || null, 
+                                e.target.value,
+                                currentAnswer?.evidence || [],
+                                currentAnswer?.reason || ''
+                              )}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               rows={2}
                             />
