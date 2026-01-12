@@ -165,25 +165,49 @@ export const api = {
     explicitEvidence: EvidenceItem[] = []
   ): Promise<GeneratedPack> => {
     try {
+      // Parse evidence IDs more robustly
+      // Handle both string IDs like "123" and potentially formatted IDs like "LOG_123"
+      const parseEvidenceId = (id: string): number | null => {
+        // If it's already a number string, parse it
+        const numId = parseInt(id, 10);
+        if (!Number.isNaN(numId) && numId > 0) {
+          return numId;
+        }
+        // Try to extract number from formatted IDs like "LOG_123" or "DOC_456"
+        const match = id.match(/\d+$/);
+        if (match) {
+          const extracted = parseInt(match[0], 10);
+          if (!Number.isNaN(extracted) && extracted > 0) {
+            return extracted;
+          }
+        }
+        console.warn(`Failed to parse evidence ID: ${id}`);
+        return null;
+      };
+
       const explicitLogIds = explicitEvidence
         .filter((e) => e.type === 'Log')
-        .map((e) => parseInt(e.id, 10))
-        .filter((id) => !Number.isNaN(id));
+        .map((e) => parseEvidenceId(e.id))
+        .filter((id): id is number => id !== null);
 
       const explicitDocumentIds = explicitEvidence
         .filter((e) => e.type === 'Document')
-        .map((e) => parseInt(e.id, 10))
-        .filter((id) => !Number.isNaN(id));
+        .map((e) => parseEvidenceId(e.id))
+        .filter((id): id is number => id !== null);
+
+      if (explicitEvidence.length > 0) {
+        console.log(`📦 Including ${explicitLogIds.length} logs and ${explicitDocumentIds.length} documents in pack`);
+      }
 
       const response = await axios.post(`${API_BASE}/assurance/generate-pack`, {
         query,
-        control_id: controlId,
+        control_id: controlId || null,
         time_range_start: `${startDate}T00:00:00`,
         time_range_end: `${endDate}T23:59:59`,
         include_documents: true,
         include_logs: true,
-        explicit_log_ids: explicitLogIds.length ? explicitLogIds : undefined,
-        explicit_document_ids: explicitDocumentIds.length ? explicitDocumentIds : undefined,
+        explicit_log_ids: explicitLogIds.length > 0 ? explicitLogIds : undefined,
+        explicit_document_ids: explicitDocumentIds.length > 0 ? explicitDocumentIds : undefined,
       });
 
       return {
@@ -195,7 +219,9 @@ export const api = {
         timestamp: response.data.created_at
       };
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to generate assurance pack');
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to generate assurance pack';
+      console.error('Pack generation error:', errorMessage, error);
+      throw new Error(errorMessage);
     }
   },
 
@@ -244,6 +270,17 @@ export const api = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || 'Failed to get evidence by control');
+    }
+  },
+
+  getPackReport: async (packId: string): Promise<string> => {
+    try {
+      const response = await axios.get(`${API_BASE}/assurance/report/${packId}`, {
+        responseType: 'text',
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch pack report');
     }
   },
 

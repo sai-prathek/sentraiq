@@ -111,6 +111,7 @@ class AssurancePackResponse(BaseModel):
     file_path: str
     download_url: str
     created_at: datetime
+    report_url: Optional[str] = None
     disclaimer: str = (
         "This assurance pack supports attestation readiness by providing "
         "structured, time-bound evidence. It does not constitute certification, "

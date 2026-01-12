@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Optional
 
 from backend.database import get_session
-from backend.layers.telescope import Telescope
+from backend.layers.telescope import Telescope, ai_cache
 from backend.models.schemas import (
     TelescopeQueryRequest, TelescopeQueryResponse, EvidenceItem,
     AssurancePackRequest, AssurancePackResponse
@@ -107,6 +107,7 @@ async def generate_assurance_pack(
             pack_hash=pack.pack_hash,
             file_path=pack.file_path,
             download_url=f"/api/v1/assurance/download/{pack.pack_id}",
+            report_url=f"/api/v1/assurance/report/{pack.pack_id}",
             created_at=pack.created_at
         )
 
@@ -137,3 +138,57 @@ async def download_assurance_pack(pack_id: str, session: AsyncSession = Depends(
         filename=f"{pack_id}.zip",
         media_type="application/zip"
     )
+
+
+@router.get("/report/{pack_id}")
+async def get_pack_report(
+    pack_id: str,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Get markdown report for an assurance pack
+    
+    The report includes:
+    - Pack overview and metadata
+    - Query information (if available)
+    - Selected evidence items
+    - Evidence files included
+    - Audit findings
+    - Integrity verification
+    """
+    from fastapi.responses import Response
+    
+    try:
+        report = await Telescope.generate_pack_report(
+            session=session,
+            pack_id=pack_id
+        )
+        
+        return Response(
+            content=report,
+            media_type="text/markdown",
+            headers={
+                "Content-Disposition": f'inline; filename="{pack_id}_report.md"'
+            }
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
+
+
+@router.get("/cache/stats")
+async def get_cache_stats():
+    """
+    Get AI cache statistics (for debugging/demo purposes)
+    """
+    return ai_cache.stats()
+
+
+@router.post("/cache/clear")
+async def clear_cache():
+    """
+    Clear the AI cache (for debugging/demo purposes)
+    """
+    ai_cache.clear()
+    return {"message": "AI cache cleared successfully", "stats": ai_cache.stats()}
