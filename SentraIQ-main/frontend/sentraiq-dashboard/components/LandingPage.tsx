@@ -97,7 +97,7 @@ const demoDocs = [
 
                 <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button
-                        onClick={() => navigate('/dashboard/ingest')}
+                        onClick={() => navigate('/dashboard/generate')}
                         className="px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center gap-2 group"
                     >
                         <Play className="w-5 h-5 fill-current" />
