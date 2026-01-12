@@ -23,191 +23,470 @@ interface AssessmentQuestionsProps {
   onBack: () => void;
 }
 
-// SWIFT CSCF v2023 Assessment Questions
 const SWIFT_QUESTIONS = [
   {
-    id: '1.1.d.1',
-    section: '1. Secure Your Environment',
-    subsection: '1.1 SWIFT Environment Protection',
-    question: 'Has the user adequately controlled local operator (end user and administrator) access to the secure zone?',
-    guideline: 'd.1'
+    "id": "1.1.a.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user adequately defined and documented design goals for implementing environment separation?",
+    "guideline": "a"
   },
   {
-    id: '1.1.d.2',
-    section: '1. Secure Your Environment',
-    subsection: '1.1 SWIFT Environment Protection',
-    question: 'Has the user adequately controlled remote operator (teleworker, "on-call" staff, remote administrator) access to the secure zone?',
-    guideline: 'd.2'
+    "id": "1.1.a.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
   },
   {
-    id: '1.1.e',
-    section: '1. Secure Your Environment',
-    subsection: '1.1 SWIFT Environment Protection',
-    question: 'Has the user adequately separated the secure zone from general enterprise IT services?',
-    guideline: 'e'
+    "id": "1.1.b.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user adequately defined and implemented the scope for the secure zone?",
+    "guideline": "b"
   },
   {
-    id: '1.2',
-    section: '1. Secure Your Environment',
-    subsection: '1.2 Operating System Privileged Account Control',
-    question: 'Has the user restricted and controlled the allocation and usage of administrator-level operating system accounts?',
-    guideline: 'Guideline'
+    "id": "1.1.b.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "b"
   },
   {
-    id: '1.3',
-    section: '1. Secure Your Environment',
-    subsection: '1.3 Virtualisation Platform Protection',
-    question: 'Has the user secured the virtualisation platform or cloud and virtual machines (VMs) hosting SWIFT-related components to the same level as physical systems?',
-    guideline: 'Guideline'
+    "id": "1.1.c.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user adequately implemented boundary protections for the secure zone?",
+    "guideline": "c"
   },
   {
-    id: '1.4',
-    section: '1. Secure Your Environment',
-    subsection: '1.4 Restriction of Internet Access',
-    question: 'Has the user controlled/protected Internet access from operator PCs and systems within the secure zone?',
-    guideline: 'Guideline'
+    "id": "1.1.c.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "c"
   },
   {
-    id: '1.5.e',
-    section: '1. Secure Your Environment',
-    subsection: '1.5 Customer Environment Protection',
-    question: 'Has the user adequately separated the secure zone from general enterprise IT services?',
-    guideline: 'e'
+    "id": "1.1.d.1.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user adequately controlled local operator (end user and administrator) access to the secure zone?",
+    "guideline": "d.1"
   },
   {
-    id: '2.1',
-    section: '2. Know and Limit Access',
-    subsection: '2.1 Internal Data Flow Security',
-    question: 'Has the user ensured the confidentiality, integrity, and authenticity of data flows between local SWIFT-related applications?',
-    guideline: 'Guideline'
+    "id": "1.1.d.1.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "d.1"
   },
   {
-    id: '2.2',
-    section: '2. Know and Limit Access',
-    subsection: '2.2 Security Updates',
-    question: 'Has the user ensured vendor support, applied mandatory software updates, and applied timely security updates aligned to the assessed risk?',
-    guideline: 'Guideline'
+    "id": "1.1.d.2.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user adequately controlled remote operator (teleworker, \"on-call\" staff, remote administrator) access to the secure zone?",
+    "guideline": "d.2"
   },
   {
-    id: '2.3',
-    section: '2. Know and Limit Access',
-    subsection: '2.3 System Hardening',
-    question: 'Has the user reduced the cyber attack surface of SWIFT-related components by performing system hardening?',
-    guideline: 'Guideline'
+    "id": "1.1.d.2.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "d.2"
   },
   {
-    id: '2.6',
-    section: '2. Know and Limit Access',
-    subsection: '2.6 Operator Session Confidentiality and Integrity',
-    question: 'Has the user protected the confidentiality and integrity of interactive operator sessions that connect to the local or remote SWIFT infrastructure?',
-    guideline: 'Guideline'
+    "id": "1.1.e.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user adequately separated the secure zone from general enterprise IT services?",
+    "guideline": "e"
   },
   {
-    id: '2.7',
-    section: '2. Know and Limit Access',
-    subsection: '2.7 Vulnerability Scanning',
-    question: 'Has the user identified known vulnerabilities within the local SWIFT environment by implementing a regular vulnerability scanning process and acting upon results?',
-    guideline: 'Guideline'
+    "id": "1.1.e.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.1 SWIFT Environment Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "e"
   },
   {
-    id: '2.9',
-    section: '2. Know and Limit Access',
-    subsection: '2.9 Transaction Business Controls',
-    question: 'Has the user restricted transaction activity within the expected bounds of normal business by at least one detective or/and preventive control(s)?',
-    guideline: 'Guideline'
+    "id": "1.2.a.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.2 Operating System Privileged Account Control",
+    "question": "Has the user adequately restricted the number of privileged accounts for operating systems?",
+    "guideline": "a"
   },
   {
-    id: '2.10',
-    section: '2. Know and Limit Access',
-    subsection: '2.10 Application Hardening',
-    question: 'Has the user adequately reduced the attack surface of SWIFT-related components by performing application hardening on the SWIFT-certified messaging and communication interfaces and related applications?',
-    guideline: 'Guideline'
+    "id": "1.2.a.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.2 Operating System Privileged Account Control",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
   },
   {
-    id: '3.1',
-    section: '3. Detect and Respond',
-    subsection: '3.1 Physical Security',
-    question: 'Has the user prevented unauthorized physical access to sensitive equipment, workplace environments, hosting sites, and storage?',
-    guideline: 'Guideline'
+    "id": "1.2.b.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.2 Operating System Privileged Account Control",
+    "question": "Has the user adequately controlled the usage of privileged accounts for operating systems?",
+    "guideline": "b"
   },
   {
-    id: '4.1',
-    section: '4. Password Policy & MFA',
-    subsection: '4.1 Password Policy',
-    question: 'Has the user ensured passwords are sufficiently resistant against common password attacks by implementing and enforcing an effective password policy?',
-    guideline: 'Guideline'
+    "id": "1.2.b.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.2 Operating System Privileged Account Control",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "b"
   },
   {
-    id: '4.2',
-    section: '4. Password Policy & MFA',
-    subsection: '4.2 Multi-Factor Authentication',
-    question: 'Has the user implemented multi-factor authentication to prevent a compromise of a single authentication factor from allowing access into SWIFT-related systems?',
-    guideline: 'Guideline'
+    "id": "1.3.a.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.3 Virtualisation or Cloud Platform Protection",
+    "question": "Has the user adequately protected the virtualisation or cloud platform?",
+    "guideline": "a"
   },
   {
-    id: '5.1',
-    section: '5. Logical Access & Token Management',
-    subsection: '5.1 Logical Access Control',
-    question: 'Has the user enforced the security principles of need-to-know access, least privilege, and separation of duties for operator accounts?',
-    guideline: 'Guideline'
+    "id": "1.3.a.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.3 Virtualisation or Cloud Platform Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
   },
   {
-    id: '5.2',
-    section: '5. Logical Access & Token Management',
-    subsection: '5.2 Token Management',
-    question: 'Has the user ensured the proper management, tracking, and use of connected and disconnected hardware authentication tokens (when tokens are used)?',
-    guideline: 'Guideline'
+    "id": "1.3.b.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.3 Virtualisation or Cloud Platform Protection",
+    "question": "Has the user adequately secured the virtualisation or cloud platform management console?",
+    "guideline": "b"
   },
   {
-    id: '5.4',
-    section: '5. Logical Access & Token Management',
-    subsection: '5.4 Physical and Logical Password Storage',
-    question: 'Has the user protected physically and logically the repository of recorded passwords?',
-    guideline: 'Guideline'
+    "id": "1.3.b.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.3 Virtualisation or Cloud Platform Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "b"
   },
   {
-    id: '6.1',
-    section: '6. Malware Protection & Integrity',
-    subsection: '6.1 Malware Protection',
-    question: 'Has the user ensured that local SWIFT infrastructure is protected against malware and acted upon results?',
-    guideline: 'Guideline'
+    "id": "1.4.a.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.4 Restriction of Internet Access",
+    "question": "Has the user adequately restricted internet access?",
+    "guideline": "a"
   },
   {
-    id: '6.2',
-    section: '6. Malware Protection & Integrity',
-    subsection: '6.2 Software Integrity',
-    question: 'Has the user ensured the software integrity of the SWIFT-related components?',
-    guideline: 'Guideline'
+    "id": "1.4.a.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.4 Restriction of Internet Access",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
   },
   {
-    id: '6.3',
-    section: '6. Malware Protection & Integrity',
-    subsection: '6.3 Database Integrity',
-    question: 'Has the user ensured the integrity of the database records for the SWIFT messaging interface?',
-    guideline: 'Guideline'
+    "id": "1.5.a.1",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.5 Customer Environment Protection",
+    "question": "Has the user adequately separated the secure zone from the external environment?",
+    "guideline": "a"
   },
   {
-    id: '6.4',
-    section: '6. Malware Protection & Integrity',
-    subsection: '6.4 Logging and Monitoring',
-    question: 'Has the user recorded security events and detected anomalous actions and operations within the local SWIFT environment?',
-    guideline: 'Guideline'
+    "id": "1.5.a.2",
+    "section": "1. Secure Your Environment",
+    "subsection": "1.5 Customer Environment Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
   },
   {
-    id: '7.1',
-    section: '7. Incident Response & Training',
-    subsection: '7.1 Cyber Incident Response Planning',
-    question: 'Has the user defined and tested a cyber incident response plan to ensure a consistent and effective approach for the management of cyber incidents?',
-    guideline: 'Guideline'
+    "id": "2.1.a.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.1 Internal Data Flow Security",
+    "question": "Has the user adequately protected the confidentiality and integrity of data flows?",
+    "guideline": "a"
   },
   {
-    id: '7.2',
-    section: '7. Incident Response & Training',
-    subsection: '7.2 Security Training and Awareness',
-    question: 'Has the user ensured all staff are aware of and fulfil their security responsibilities by performing regular awareness activities?',
-    guideline: 'Guideline'
+    "id": "2.1.a.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.1 Internal Data Flow Security",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.1.b.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.1 Internal Data Flow Security",
+    "question": "Has the user adequately validated the authenticity of data flows?",
+    "guideline": "b"
+  },
+  {
+    "id": "2.1.b.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.1 Internal Data Flow Security",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "b"
+  },
+  {
+    "id": "2.2.a.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.2 Security Updates",
+    "question": "Has the user adequately implemented security updates?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.2.a.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.2 Security Updates",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.3.a.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.3 System Hardening",
+    "question": "Has the user adequately hardened the systems?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.3.a.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.3 System Hardening",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.6.a.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.6 Operator Session Confidentiality and Integrity",
+    "question": "Has the user adequately protected the confidentiality and integrity of operator sessions?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.6.a.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.6 Operator Session Confidentiality and Integrity",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.7.a.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.7 Vulnerability Scanning",
+    "question": "Has the user adequately implemented vulnerability scanning?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.7.a.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.7 Vulnerability Scanning",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.8.a.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.8 Outsourced Critical Activity Protection",
+    "question": "Has the user adequately protected outsourced critical activities?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.8.a.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.8 Outsourced Critical Activity Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.9.a.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.9 Transaction Business Controls",
+    "question": "Has the user adequately implemented transaction business controls?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.9.a.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.9 Transaction Business Controls",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.10.a.1",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.10 Application Hardening",
+    "question": "Has the user adequately hardened the applications?",
+    "guideline": "a"
+  },
+  {
+    "id": "2.10.a.2",
+    "section": "2. Know and Limit Access",
+    "subsection": "2.10 Application Hardening",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "3.1.a.1",
+    "section": "3. Physical Security",
+    "subsection": "3.1 Physical Security",
+    "question": "Has the user adequately physically secured the environment?",
+    "guideline": "a"
+  },
+  {
+    "id": "3.1.a.2",
+    "section": "3. Physical Security",
+    "subsection": "3.1 Physical Security",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "4.1.a.1",
+    "section": "4. Authentication and Access Control",
+    "subsection": "4.1 Password Policy",
+    "question": "Has the user adequately defined and implemented a password policy?",
+    "guideline": "a"
+  },
+  {
+    "id": "4.1.a.2",
+    "section": "4. Authentication and Access Control",
+    "subsection": "4.1 Password Policy",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "4.2.a.1",
+    "section": "4. Authentication and Access Control",
+    "subsection": "4.2 Multi-Factor Authentication",
+    "question": "Has the user adequately implemented multi-factor authentication?",
+    "guideline": "a"
+  },
+  {
+    "id": "4.2.a.2",
+    "section": "4. Authentication and Access Control",
+    "subsection": "4.2 Multi-Factor Authentication",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "5.1.a.1",
+    "section": "5. Access Management",
+    "subsection": "5.1 Logical Access Control",
+    "question": "Has the user adequately implemented logical access control?",
+    "guideline": "a"
+  },
+  {
+    "id": "5.1.a.2",
+    "section": "5. Access Management",
+    "subsection": "5.1 Logical Access Control",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "5.2.a.1",
+    "section": "5. Access Management",
+    "subsection": "5.2 Token Management",
+    "question": "Has the user adequately managed tokens?",
+    "guideline": "a"
+  },
+  {
+    "id": "5.2.a.2",
+    "section": "5. Access Management",
+    "subsection": "5.2 Token Management",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "5.4.a.1",
+    "section": "5. Access Management",
+    "subsection": "5.4 Password Repository Protection",
+    "question": "Has the user adequately protected the password repository?",
+    "guideline": "a"
+  },
+  {
+    "id": "5.4.a.2",
+    "section": "5. Access Management",
+    "subsection": "5.4 Password Repository Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "6.1.a.1",
+    "section": "6. Protection and Integrity",
+    "subsection": "6.1 Malware Protection",
+    "question": "Has the user adequately implemented malware protection?",
+    "guideline": "a"
+  },
+  {
+    "id": "6.1.a.2",
+    "section": "6. Protection and Integrity",
+    "subsection": "6.1 Malware Protection",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "6.2.a.1",
+    "section": "6. Protection and Integrity",
+    "subsection": "6.2 Software Integrity",
+    "question": "Has the user adequately checked software integrity?",
+    "guideline": "a"
+  },
+  {
+    "id": "6.2.a.2",
+    "section": "6. Protection and Integrity",
+    "subsection": "6.2 Software Integrity",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "6.3.a.1",
+    "section": "6. Protection and Integrity",
+    "subsection": "6.3 Database Integrity",
+    "question": "Has the user adequately checked database integrity?",
+    "guideline": "a"
+  },
+  {
+    "id": "6.3.a.2",
+    "section": "6. Protection and Integrity",
+    "subsection": "6.3 Database Integrity",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "6.4.a.1",
+    "section": "6. Protection and Integrity",
+    "subsection": "6.4 Logging and Monitoring",
+    "question": "Has the user adequately implemented logging and monitoring?",
+    "guideline": "a"
+  },
+  {
+    "id": "6.4.a.2",
+    "section": "6. Protection and Integrity",
+    "subsection": "6.4 Logging and Monitoring",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "7.1.a.1",
+    "section": "7. Incident Response and Training",
+    "subsection": "7.1 Cyber Incident Response Planning",
+    "question": "Has the user adequately planned for cyber incident response?",
+    "guideline": "a"
+  },
+  {
+    "id": "7.1.a.2",
+    "section": "7. Incident Response and Training",
+    "subsection": "7.1 Cyber Incident Response Planning",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
+  },
+  {
+    "id": "7.2.a.1",
+    "section": "7. Incident Response and Training",
+    "subsection": "7.2 Security Training and Awareness",
+    "question": "Has the user adequately implemented security training and awareness?",
+    "guideline": "a"
+  },
+  {
+    "id": "7.2.a.2",
+    "section": "7. Incident Response and Training",
+    "subsection": "7.2 Security Training and Awareness",
+    "question": "Has the user employed an alternative implementation approach?",
+    "guideline": "a"
   }
-];
+]
 
 const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, onComplete, onBack }) => {
   const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>({});
@@ -222,9 +501,9 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
   const sections = Array.from(new Set(questions.map(q => q.section)));
 
   const updateAnswer = (
-    questionId: string, 
-    question: string, 
-    answer: 'yes' | 'no' | 'partial' | null, 
+    questionId: string,
+    question: string,
+    answer: 'yes' | 'no' | 'partial' | null,
     notes: string = '',
     evidence: EvidenceItem[] = [],
     reason: string = '',
@@ -259,7 +538,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
   // Check if evidence preview indicates non-compliance (negative keywords)
   const indicatesNonCompliance = (preview: string): boolean => {
     const negativeKeywords = [
-      'missing', 'failed', 'gaps', 'not properly', 'not implemented', 
+      'missing', 'failed', 'gaps', 'not properly', 'not implemented',
       'unpatched', 'unsecured', 'unhardened', 'missing controls',
       'no proper', 'improper', 'inadequate', 'deficient', 'violation',
       'non-compliant', 'non compliant', 'breach', 'weakness', 'vulnerability'
@@ -295,14 +574,14 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
     const lowRelevanceItems = evidenceItems.filter(item => item.relevance < 50);
 
     // Check if evidence indicates non-compliance
-    const nonCompliantEvidence = evidenceItems.filter(item => 
+    const nonCompliantEvidence = evidenceItems.filter(item =>
       indicatesNonCompliance(item.preview) || item.relevance < 40
     );
 
     // 2. CLEAR EVIDENCE OF NON-COMPLIANCE → NO
     // If we have recent evidence with negative indicators (low relevance + negative keywords)
     if (nonCompliantEvidence.length > 0 && recentItems.length > 0) {
-      const recentNonCompliant = nonCompliantEvidence.filter(item => 
+      const recentNonCompliant = nonCompliantEvidence.filter(item =>
         !isEvidenceOutdated(item.timestamp)
       );
       if (recentNonCompliant.length > 0) {
@@ -357,6 +636,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
   // Predefined mock evidence responses for demo
   const getMockEvidenceForQuestion = (questionId: string): EvidenceItem[] => {
     const mockEvidence: Record<string, EvidenceItem[]> = {
+      // Section 1 - Secure Your Environment
       '1.1.d.1': [
         { id: '1', type: 'Log', filename: 'swift_access_control.log', preview: 'Local operator access logs', relevance: 92, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
         { id: '2', type: 'Document', filename: 'access_control_policy.pdf', preview: 'Access control policy document', relevance: 88, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() }
@@ -378,6 +658,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
       '1.4': [
         { id: '8', type: 'Log', filename: 'internet_access_control.log', preview: 'Internet access restriction logs', relevance: 89, control_id: 'SWIFT-1.4', timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() }
       ],
+      // Section 2 - Know and Limit Access
       '2.1': [
         { id: '10', type: 'Log', filename: 'data_flow_security.log', preview: 'Internal data flow security logs', relevance: 93, control_id: 'SWIFT-2.1', timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() }
       ],
@@ -402,6 +683,11 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
       '2.10': [
         { id: '18', type: 'Document', filename: 'app_security_review.pdf', preview: 'Application security review indicates missing application hardening procedures and unsecured interfaces', relevance: 42, control_id: 'SWIFT-2.10', timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() }
       ],
+      // Section 3 - Physical Security
+      '3.1': [
+        { id: '19', type: 'Document', filename: 'physical_security_audit.pdf', preview: 'Physical security controls documentation', relevance: 88, control_id: 'SWIFT-3.1', timestamp: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      // Section 4 - Authentication and Access Control
       '4.1': [
         { id: '20', type: 'Document', filename: 'password_policy.pdf', preview: 'Password policy document', relevance: 93, control_id: 'SWIFT-4.1', timestamp: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() },
         { id: '21', type: 'Log', filename: 'password_compliance.log', preview: 'Password policy enforcement logs', relevance: 90, control_id: 'SWIFT-4.1', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() }
@@ -410,6 +696,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
         { id: '22', type: 'Log', filename: 'mfa_authentication.log', preview: 'MFA authentication logs', relevance: 97, control_id: 'SWIFT-4.2', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
         { id: '23', type: 'Document', filename: 'mfa_policy.pdf', preview: 'Multi-factor authentication policy', relevance: 95, control_id: 'SWIFT-4.2', timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() }
       ],
+      // Section 5 - Access Management
       '5.1': [
         { id: '24', type: 'Document', filename: 'logical_access_control.pdf', preview: 'Logical access control policy', relevance: 91, control_id: 'SWIFT-5.1', timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() }
       ],
@@ -420,6 +707,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
       '5.4': [
         { id: '26', type: 'Document', filename: 'password_storage_policy.pdf', preview: 'Password storage security policy', relevance: 89, control_id: 'SWIFT-5.4', timestamp: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000).toISOString() }
       ],
+      // Section 6 - Protection and Integrity
       '6.1': [
         { id: '27', type: 'Log', filename: 'malware_protection.log', preview: 'Malware protection scan logs', relevance: 92, control_id: 'SWIFT-6.1', timestamp: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() }
       ],
@@ -434,12 +722,33 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
         { id: '30', type: 'Log', filename: 'security_monitoring.log', preview: 'Security event logging and monitoring', relevance: 94, control_id: 'SWIFT-6.4', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
         { id: '31', type: 'Document', filename: 'logging_policy.pdf', preview: 'Logging and monitoring policy', relevance: 91, control_id: 'SWIFT-6.4', timestamp: new Date(Date.now() - 17 * 24 * 60 * 60 * 1000).toISOString() }
       ],
+      // Section 7 - Incident Response and Training
+      '7.1': [
+        { id: '32', type: 'Document', filename: 'incident_response_plan.pdf', preview: 'Cyber incident response plan documentation', relevance: 89, control_id: 'SWIFT-7.1', timestamp: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
       '7.2': [
         { id: '33', type: 'Document', filename: 'security_training.pdf', preview: 'Security awareness training documentation', relevance: 87, control_id: 'SWIFT-7.2', timestamp: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString() }
       ]
     };
 
-    return mockEvidence[questionId] || [];
+    // Try exact match first
+    if (mockEvidence[questionId]) {
+      return mockEvidence[questionId];
+    }
+
+    // Try matching by progressively removing the last segment
+    // e.g., '1.1.d.1.1' -> '1.1.d.1' -> '1.1.d' -> '1.1' -> '1'
+    let currentId = questionId;
+    while (currentId.includes('.')) {
+      const lastDotIndex = currentId.lastIndexOf('.');
+      currentId = currentId.substring(0, lastDotIndex);
+      if (mockEvidence[currentId]) {
+        return mockEvidence[currentId];
+      }
+    }
+
+    // No match found
+    return [];
   };
 
   // Auto-answer all questions using predefined mock responses
@@ -553,11 +862,11 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
             `}
           >
             <Sparkles className="w-4 h-4" />
-            {autoAnswering 
+            {autoAnswering
               ? `Auto-Answering... (${autoAnswerProgress.current}/${autoAnswerProgress.total})`
               : autoAnswerStarted
-              ? 'Re-run Auto-Answer'
-              : 'Auto-Answer All Questions'
+                ? 'Re-run Auto-Answer'
+                : 'Auto-Answer All Questions'
             }
           </button>
           {autoAnswering && (
@@ -571,7 +880,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
             </div>
           )}
         </div>
-        
+
         {/* Overall Progress Bar - Hide when auto-answering */}
         {!autoAnswering && (
           <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
@@ -601,22 +910,22 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
         {sections.map((section) => {
           const sectionQuestions = questions.filter(q => q.section === section);
           const sectionTotal = sectionQuestions.length;
-          
+
           // Calculate actual answered count - only count if answer is explicitly set to yes, no, or partial
           const sectionAnswers = sectionQuestions.filter(q => {
             const answer = answers[q.id];
-            return answer && 
-                   answer.answer !== null && 
-                   answer.answer !== undefined &&
-                   (answer.answer === 'yes' || answer.answer === 'no' || answer.answer === 'partial');
+            return answer &&
+              answer.answer !== null &&
+              answer.answer !== undefined &&
+              (answer.answer === 'yes' || answer.answer === 'no' || answer.answer === 'partial');
           }).length;
-          
+
           // Calculate breakdown
           const yesCount = sectionQuestions.filter(q => answers[q.id]?.answer === 'yes').length;
           const noCount = sectionQuestions.filter(q => answers[q.id]?.answer === 'no').length;
           const partialCount = sectionQuestions.filter(q => answers[q.id]?.answer === 'partial').length;
           const pendingCount = sectionTotal - sectionAnswers;
-          
+
           const isExpanded = expandedSections.has(section);
           const isComplete = sectionAnswers === sectionTotal;
 
@@ -628,22 +937,21 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   {/* Counter Badge - Leftmost */}
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0 ${
-                    isComplete
-                      ? 'bg-green-100 text-green-700' 
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0 ${isComplete
+                      ? 'bg-green-100 text-green-700'
                       : sectionAnswers > 0
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}>
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}>
                     {sectionAnswers}/{sectionTotal}
                   </div>
-                  
+
                   {/* Step Name - Left */}
                   <h3 className="text-base font-bold text-gray-900 flex-shrink-0">{section}</h3>
-                  
+
                   {/* Spacer */}
                   <div className="flex-1"></div>
-                  
+
                   {/* Answer Breakdown - Right */}
                   <div className="flex items-center gap-3 text-xs flex-shrink-0">
                     {yesCount > 0 && (
@@ -693,7 +1001,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                           {isFirstInSubsection && (
                             <h4 className="text-sm font-semibold text-gray-700 mb-3">{q.subsection}</h4>
                           )}
-                          
+
                           <div className="bg-gray-50 rounded-lg p-4">
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
@@ -709,13 +1017,12 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
 
                             {/* Gap Indicator */}
                             {currentAnswer?.gapType && (
-                              <div className={`mb-3 p-3 rounded-lg flex items-start gap-2 ${
-                                currentAnswer.gapType === 'outdated' 
+                              <div className={`mb-3 p-3 rounded-lg flex items-start gap-2 ${currentAnswer.gapType === 'outdated'
                                   ? 'bg-orange-50 border border-orange-200'
                                   : currentAnswer.gapType === 'missing'
-                                  ? 'bg-red-50 border border-red-200'
-                                  : 'bg-yellow-50 border border-yellow-200'
-                              }`}>
+                                    ? 'bg-red-50 border border-red-200'
+                                    : 'bg-yellow-50 border border-yellow-200'
+                                }`}>
                                 {currentAnswer.gapType === 'outdated' && <Clock className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />}
                                 {currentAnswer.gapType === 'missing' && <FileX className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />}
                                 {currentAnswer.gapType === 'insufficient' && <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />}
@@ -748,9 +1055,9 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                                   <button
                                     key={option}
                                     onClick={() => updateAnswer(
-                                      q.id, 
-                                      q.question, 
-                                      option, 
+                                      q.id,
+                                      q.question,
+                                      option,
                                       currentAnswer?.notes || '',
                                       currentAnswer?.evidence || [],
                                       currentAnswer?.reason || ''
@@ -761,8 +1068,8 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                                         ? option === 'yes'
                                           ? 'bg-green-100 text-green-700 border-2 border-green-300'
                                           : option === 'partial'
-                                          ? 'bg-yellow-100 text-yellow-700 border-2 border-yellow-300'
-                                          : 'bg-red-100 text-red-700 border-2 border-red-300'
+                                            ? 'bg-yellow-100 text-yellow-700 border-2 border-yellow-300'
+                                            : 'bg-red-100 text-red-700 border-2 border-red-300'
                                         : 'bg-white text-gray-600 border border-gray-300 hover:border-blue-300 hover:bg-blue-50'
                                       }
                                     `}
@@ -782,9 +1089,8 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                                 <div className="space-y-1 max-h-32 overflow-y-auto">
                                   {currentAnswer.evidence.slice(0, 5).map((item, idx) => (
                                     <div key={idx} className="text-xs text-gray-700 flex items-center gap-2">
-                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                        item.type === 'Log' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${item.type === 'Log' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                                        }`}>
                                         {item.type}
                                       </span>
                                       <span className="flex-1 truncate">{item.filename}</span>
@@ -818,9 +1124,9 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                               placeholder="Add additional notes or evidence references..."
                               value={currentAnswer?.notes || ''}
                               onChange={(e) => updateAnswer(
-                                q.id, 
-                                q.question, 
-                                currentAnswer?.answer || null, 
+                                q.id,
+                                q.question,
+                                currentAnswer?.answer || null,
                                 e.target.value,
                                 currentAnswer?.evidence || [],
                                 currentAnswer?.reason || ''
