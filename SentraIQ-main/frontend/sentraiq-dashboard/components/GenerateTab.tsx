@@ -226,7 +226,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   return (
     <div className="flex flex-col h-full">
       {/* Stepper UI */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 mb-3">
         <Stepper
           currentStep={currentStep}
           steps={STEPS}

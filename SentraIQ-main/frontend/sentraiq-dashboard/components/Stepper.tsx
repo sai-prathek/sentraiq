@@ -10,10 +10,10 @@ interface StepperProps {
 
 const Stepper: React.FC<StepperProps> = ({ currentStep, steps, onStepClick }) => {
   return (
-    <div className="w-full py-8">
+    <div className="w-full py-3">
       <div className="flex items-start justify-between relative">
-        {/* Progress Line */}
-        <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200 -z-10" style={{ top: '24px' }}>
+        {/* Progress Line - Centered with circle centers (w-8 h-8 = 32px, center at 16px) */}
+        <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 -z-10">
           <motion.div
             className="h-full bg-blue-900"
             initial={{ width: 0 }}
@@ -40,40 +40,33 @@ const Stepper: React.FC<StepperProps> = ({ currentStep, steps, onStepClick }) =>
                 onClick={() => isClickable && onStepClick?.(step.id)}
                 disabled={!isClickable}
                 className={`
-                  w-12 h-12 rounded-full flex items-center justify-center transition-all flex-shrink-0 relative z-10
+                  w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0 relative z-10
                   ${isCompleted 
-                    ? 'bg-blue-900 text-white shadow-lg' 
+                    ? 'bg-blue-900 text-white shadow-sm' 
                     : isCurrent 
-                    ? 'bg-blue-900 text-white shadow-lg ring-4 ring-blue-200' 
+                    ? 'bg-blue-900 text-white shadow-sm ring-2 ring-blue-200' 
                     : 'bg-white border-2 border-gray-300 text-gray-400'
                   }
-                  ${isClickable ? 'cursor-pointer hover:scale-110' : 'cursor-not-allowed'}
+                  ${isClickable ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed'}
                 `}
               >
                 {isCompleted ? (
-                  <CheckCircle className="w-6 h-6" />
+                  <CheckCircle className="w-4 h-4" />
                 ) : (
-                  <span className={`text-sm font-bold ${isCurrent ? 'text-white' : 'text-gray-400'}`}>
+                  <span className={`text-xs font-bold ${isCurrent ? 'text-white' : 'text-gray-400'}`}>
                     {step.id}
                   </span>
                 )}
               </button>
 
-              {/* Step Label */}
-              <div className="mt-4 text-center w-full px-2" style={{ maxWidth: '140px' }}>
+              {/* Step Label - Centered and properly aligned */}
+              <div className="mt-1.5 text-center w-full px-1">
                 <div className={`
-                  text-sm font-bold mb-1
-                  ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-900' : 'text-gray-400'}
+                  text-xs font-semibold leading-tight break-words
+                  ${isCurrent ? 'text-gray-900' : isCompleted ? 'text-gray-700' : 'text-gray-400'}
                 `}>
                   {step.label}
                 </div>
-                {step.description && (
-                  <div className={`text-xs mt-0.5 ${
-                    isCurrent ? 'text-gray-600' : isCompleted ? 'text-gray-500' : 'text-gray-400'
-                  }`}>
-                    {step.description}
-                  </div>
-                )}
               </div>
             </div>
           );
