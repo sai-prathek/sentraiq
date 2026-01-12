@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, FileText, Database, ArrowRight, Sparkles, Zap, Shield, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { Search, FileText, Database, ArrowRight, Sparkles, Zap, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EvidenceItem, DashboardOutletContext } from '../types';
 import { api } from '../services/api';
@@ -82,21 +82,6 @@ const QueryTab: React.FC<QueryTabProps> = ({
         </div>
         <h2 className="text-2xl font-bold text-gray-800">Natural Language Evidence Search</h2>
         <p className="text-gray-500">Ask questions about your compliance data using plain English. Powered by OpenAI GPT-4.</p>
-        
-        {/* Auditor Mode Toggle */}
-        <div className="flex items-center justify-center gap-3 mt-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={auditorMode}
-              onChange={(e) => setAuditorMode(e.target.checked)}
-              className="w-4 h-4 text-blue-900 border-gray-300 rounded focus:ring-blue-900"
-            />
-            <Shield className="w-4 h-4 text-blue-900" />
-            <span className="text-sm font-medium text-gray-700">Auditor Mode</span>
-          </label>
-          <span className="text-xs text-gray-500">Enable to simulate auditor challenges</span>
-        </div>
       </div>
 
       {/* Search Input Area */}
@@ -241,30 +226,6 @@ const QueryTab: React.FC<QueryTabProps> = ({
               </motion.div>
             )}
 
-            {/* Auditor Mode Challenge */}
-            {auditorMode && results.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-50 border border-red-200 rounded-xl p-6"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <Shield className="w-5 h-5 text-red-700" />
-                  <h3 className="font-semibold text-red-900">Auditor Challenge Mode</h3>
-                </div>
-                <p className="text-sm text-red-800 mb-3">
-                  <strong>Challenge:</strong> "Prove to me that your evidence is current and comprehensive."
-                </p>
-                <div className="bg-white rounded-lg p-4 border border-red-100">
-                  <p className="text-sm text-gray-700 mb-2">
-                    <strong>Response:</strong> Evidence includes {results.length} items covering {new Set(results.filter(r => r.control_id).map(r => r.control_id)).size} controls.
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    All evidence items are cryptographically hashed and timestamped. Evidence hashes available for verification.
-                  </p>
-                </div>
-              </motion.div>
-            )}
 
             <div className="flex justify-between items-end border-b border-gray-200 pb-2 mb-4">
                 <h3 className="text-lg font-semibold text-gray-700">Found {results.length} relevant items</h3>
@@ -310,12 +271,6 @@ const QueryTab: React.FC<QueryTabProps> = ({
                                   </span>
                                 )}
                             </div>
-                            {/* Show hash if available (for show your work) */}
-                            {auditorMode && (item as any).hash && (
-                              <div className="mt-2 text-xs text-gray-500 font-mono">
-                                Hash: {(item as any).hash.substring(0, 16)}...
-                              </div>
-                            )}
                         </div>
                     </div>
 
