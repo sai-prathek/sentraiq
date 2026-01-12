@@ -60,9 +60,9 @@ const QueryTab: React.FC<QueryTabProps> = ({
 
       {/* Search Header */}
       <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full">
-          <Zap className="w-4 h-4 text-purple-600" />
-          <span className="text-sm font-semibold text-purple-700">AI-Powered Search</span>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 rounded-full">
+          <Zap className="w-4 h-4 text-blue-900" />
+          <span className="text-sm font-semibold text-blue-900">AI-Powered Search</span>
         </div>
         <h2 className="text-2xl font-bold text-gray-800">Natural Language Evidence Search</h2>
         <p className="text-gray-500">Ask questions about your compliance data using plain English. Powered by OpenAI GPT-4.</p>
@@ -70,10 +70,10 @@ const QueryTab: React.FC<QueryTabProps> = ({
 
       {/* Search Input Area */}
       <div className="relative group z-10">
-        <div className={`absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300 ${loading ? 'animate-pulse' : ''}`}></div>
+        <div className={`absolute inset-0 bg-blue-900 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300 ${loading ? 'animate-pulse' : ''}`}></div>
         <div className="relative flex items-center bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <div className="pl-6">
-            <Search className={`w-6 h-6 ${loading ? 'text-purple-500 animate-spin' : 'text-gray-400'}`} />
+            <Search className={`w-6 h-6 ${loading ? 'text-blue-900 animate-spin' : 'text-gray-400'}`} />
           </div>
           <input
             type="text"
@@ -104,7 +104,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
             <button
               key={i}
               onClick={() => handleSearch(q)}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all cursor-pointer shadow-sm hover:shadow-md"
+              className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-600 hover:border-blue-700 hover:text-blue-900 hover:bg-blue-50 transition-all cursor-pointer shadow-sm hover:shadow-md"
             >
               {q}
             </button>
@@ -116,7 +116,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
       <div className="flex-1">
         {loading && (
             <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-900 rounded-full animate-spin"></div>
                 <p className="text-gray-400 animate-pulse">AI is analyzing your evidence lakehouse...</p>
                 <p className="text-sm text-gray-400">Using OpenAI GPT-4 for semantic understanding</p>
             </div>
@@ -140,7 +140,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:border-purple-200 transition-all group"
+                    className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex gap-4">
@@ -149,7 +149,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">{item.filename}</h4>
+                            <h4 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors">{item.filename}</h4>
                             {item.control_id && (
                               <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200 font-mono">
                                 {item.control_id}
@@ -173,7 +173,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
                             {item.relevance}% Match
                           </div>
                           {isInPack && (
-                            <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-semibold text-blue-900 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">
                               In Pack List
                             </span>
                           )}
@@ -183,7 +183,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
                             setCurrentEvidence(item);
                             setIsModalOpen(true);
                           }}
-                          className="text-sm text-purple-600 font-medium flex items-center hover:underline mt-2"
+                          className="text-sm text-blue-900 font-medium flex items-center hover:underline mt-2"
                         >
                           View Details <ArrowRight className="w-4 h-4 ml-1" />
                         </button>

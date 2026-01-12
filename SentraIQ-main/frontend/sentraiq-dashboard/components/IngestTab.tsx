@@ -137,8 +137,8 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
             className={`
               relative border-2 border-dashed rounded-xl p-8 transition-all duration-200 text-center
               flex flex-col items-center justify-center gap-3 cursor-pointer group
-              ${dragActive ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'}
-              ${file ? 'bg-purple-50 border-purple-200' : ''}
+              ${dragActive ? 'border-blue-900 bg-blue-50' : 'border-gray-300 hover:border-blue-700 hover:bg-gray-50'}
+              ${file ? 'bg-blue-50 border-blue-200' : ''}
             `}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -156,20 +156,20 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
             
             {file ? (
               <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex flex-col items-center">
-                <div className="bg-purple-100 p-3 rounded-full mb-2">
-                  <FileIcon className="w-8 h-8 text-purple-600" />
+                <div className="bg-blue-100 p-3 rounded-full mb-2">
+                  <FileIcon className="w-8 h-8 text-blue-900" />
                 </div>
                 <p className="font-semibold text-gray-800 truncate max-w-[200px]">{file.name}</p>
                 <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
-                <p className="text-xs text-purple-600 mt-2 font-medium">Click to replace</p>
+                <p className="text-xs text-blue-900 mt-2 font-medium">Click to replace</p>
               </motion.div>
             ) : (
               <>
                 <div className="bg-gray-100 p-3 rounded-full group-hover:bg-white group-hover:shadow-md transition-all">
-                  <UploadCloud className="w-8 h-8 text-gray-400 group-hover:text-purple-500 transition-colors" />
+                  <UploadCloud className="w-8 h-8 text-gray-400 group-hover:text-blue-900 transition-colors" />
                 </div>
                 <div className="text-sm text-gray-500">
-                  <span className="font-semibold text-purple-600">Click to upload</span> or drag and drop
+                  <span className="font-semibold text-blue-900">Click to upload</span> or drag and drop
                 </div>
                 <p className="text-xs text-gray-400">Supported: {type === 'log' ? '.log, .txt' : '.pdf, .docx, .txt'}</p>
               </>
@@ -185,7 +185,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
               <select 
                 value={selectedOption}
                 onChange={(e) => setSelectedOption(e.target.value)}
-                className="w-full rounded-lg border-gray-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-shadow"
+                className="w-full rounded-lg border-gray-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition-shadow"
               >
                 {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
@@ -199,7 +199,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="w-full rounded-lg border-gray-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-shadow resize-none"
+                className="w-full rounded-lg border-gray-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition-shadow resize-none"
                 placeholder="Add context about this ingestion..."
               />
             </div>
@@ -208,7 +208,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
                 <button 
                   type="button"
                   onClick={() => setAutoMap(!autoMap)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${autoMap ? 'bg-purple-600' : 'bg-gray-200'}`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 ${autoMap ? 'bg-blue-900' : 'bg-gray-200'}`}
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoMap ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
@@ -222,7 +222,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
             className={`
               mt-auto w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all shadow-md active:scale-95
               ${file 
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25' 
+                ? 'bg-blue-900 text-white hover:shadow-lg hover:shadow-blue-900/25' 
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
             `}
           >
@@ -289,14 +289,14 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
       {/* Upload Section */}
       <div>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <UploadCloud className="w-5 h-5 text-purple-600" />
+          <UploadCloud className="w-5 h-5 text-blue-900" />
           Upload New Evidence
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <DropZone 
             title="Ingest Machine Logs" 
             type="log" 
-            icon={<CheckCircle2 className="w-5 h-5 text-purple-600" />}
+            icon={<CheckCircle2 className="w-5 h-5 text-blue-900" />}
             acceptedTypes=".log,.txt"
             options={['SWIFT', 'Firewall', 'FPS', 'CHAPS', 'Other']}
             onIngestSuccess={loadIngestedItems}
@@ -304,7 +304,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
           <DropZone 
             title="Ingest Documentary Evidence" 
             type="document" 
-            icon={<FileIcon className="w-5 h-5 text-pink-600" />}
+            icon={<FileIcon className="w-5 h-5 text-blue-800" />}
             acceptedTypes=".pdf,.doc,.docx,.txt"
             options={['Policy', 'Audit Report', 'Configuration', 'Procedure', 'Other']}
             onIngestSuccess={loadIngestedItems}
@@ -316,13 +316,13 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Database className="w-5 h-5 text-blue-600" />
+            <Database className="w-5 h-5 text-blue-800" />
             Ingested Evidence ({ingestedLogs.length + ingestedDocs.length})
           </h2>
           <button
             onClick={loadIngestedItems}
             disabled={loadingList}
-            className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+            className="text-sm text-blue-900 hover:text-blue-800 font-medium disabled:opacity-50"
           >
             {loadingList ? 'Refreshing...' : 'Refresh'}
           </button>
@@ -342,7 +342,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
             {ingestedLogs.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <Database className="w-4 h-4 text-blue-600" />
+                  <Database className="w-4 h-4 text-blue-800" />
                   Logs ({ingestedLogs.length})
                 </h3>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -389,7 +389,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
             {ingestedDocs.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-orange-600" />
+                  <FileText className="w-4 h-4 text-blue-800" />
                   Documents ({ingestedDocs.length})
                 </h3>
                 <div className="space-y-2 max-h-64 overflow-y-auto">

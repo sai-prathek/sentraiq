@@ -18,7 +18,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ message = 'Processing..
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
         >
-          <Loader2 className="w-10 h-10 text-purple-600" />
+          <Loader2 className="w-10 h-10 text-blue-900" />
         </motion.div>
         <span className="text-gray-700 font-medium">{message}</span>
       </motion.div>

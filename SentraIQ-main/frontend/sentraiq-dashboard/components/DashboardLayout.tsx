@@ -111,7 +111,7 @@ const DashboardLayout: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Side Panel - Tab Navigation */}
         <aside className="w-72 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col shadow-sm">
-          <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+          <div className="p-5 border-b border-gray-200 bg-blue-50">
             <h2 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Navigation
             </h2>
@@ -128,17 +128,17 @@ const DashboardLayout: React.FC = () => {
                   className={`
                     relative flex items-center gap-3 px-4 py-3.5 rounded-lg transition-all duration-200 group
                     ${isActive 
-                      ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 font-semibold shadow-sm border border-purple-100' 
+                      ? 'bg-blue-50 text-blue-900 font-semibold shadow-sm border border-blue-100' 
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
                     }
                   `}
                 >
-                  <Icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                  <Icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive ? 'text-blue-900' : 'text-gray-400 group-hover:text-gray-600'}`} />
                   <span className="text-sm font-medium">{tab.label}</span>
                   {isActive && (
                     <motion.div
                       layoutId="activeTabIndicator"
-                      className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-600 to-pink-600 rounded-r-full"
+                      className="absolute left-0 top-0 bottom-0 w-1 bg-blue-900 rounded-r-full"
                       initial={false}
                     />
                   )}

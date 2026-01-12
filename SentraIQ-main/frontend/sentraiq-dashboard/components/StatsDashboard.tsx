@@ -45,11 +45,11 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, delayIndex }) =
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delayIndex * 0.1, duration: 0.4 }}
-      className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-purple-100 transition-all duration-300 group"
+      className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all duration-300 group"
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-full group-hover:from-purple-100 group-hover:to-pink-100 transition-colors">
-          <div className="text-purple-600 group-hover:scale-110 transition-transform duration-300">
+        <div className="p-3 bg-blue-50 rounded-full group-hover:bg-blue-100 transition-colors">
+          <div className="text-blue-900 group-hover:scale-110 transition-transform duration-300">
             {icon}
           </div>
         </div>
@@ -66,7 +66,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, delayIndex }) =
                 initial={{ width: 0 }}
                 animate={{ width: "70%" }}
                 transition={{ duration: 1.5, delay: 0.5 }}
-                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" 
+                className="h-full bg-blue-900 rounded-full" 
             />
         </div>
       </div>

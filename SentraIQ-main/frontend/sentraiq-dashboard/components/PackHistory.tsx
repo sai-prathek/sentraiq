@@ -103,7 +103,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading pack history...</p>
         </div>
       </div>
@@ -116,7 +116,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <Package className="text-purple-600 w-7 h-7" />
+            <Package className="text-blue-900 w-7 h-7" />
             Assurance Pack History
           </h2>
           <p className="text-gray-600 text-sm mt-2">
@@ -139,7 +139,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
           placeholder="Search by pack ID, query, control ID, or hash..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none"
         />
       </div>
 
@@ -208,7 +208,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
                           </p>
                         )}
                         {pack.control_id && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-900">
                             {pack.control_id}
                           </span>
                         )}
@@ -244,7 +244,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleViewReport(pack)}
-                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          className="p-2 text-blue-900 hover:bg-blue-50 rounded-lg transition-colors"
                           title="View Report"
                         >
                           <Eye className="w-5 h-5" />

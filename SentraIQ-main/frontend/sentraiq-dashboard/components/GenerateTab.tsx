@@ -288,7 +288,7 @@ const ReportContent: React.FC<{ content: string }> = ({ content }) => {
       if (m.type === 'bold') {
         parts.push(<strong key={`bold-${m.start}`} className="font-bold text-gray-900">{m.content}</strong>);
       } else if (m.type === 'code') {
-        parts.push(<code key={`code-${m.start}`} className="bg-gray-100 px-2 py-1 rounded font-mono text-sm text-purple-700">{m.content}</code>);
+        parts.push(<code key={`code-${m.start}`} className="bg-gray-100 px-2 py-1 rounded font-mono text-sm text-blue-900">{m.content}</code>);
       } else if (m.type === 'link') {
         parts.push(<a key={`link-${m.start}`} href={m.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{m.content}</a>);
       }
@@ -405,7 +405,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-              <ShieldCheck className="text-purple-600 w-7 h-7" />
+              <ShieldCheck className="text-blue-900 w-7 h-7" />
               Generate Compliance Assurance Pack
             </h2>
             <p className="text-gray-600 text-sm">Define evidence requirements to create an immutable compliance artifact</p>
@@ -421,7 +421,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
             <textarea 
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border-gray-300 border p-4 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none h-28 resize-none shadow-sm"
+              className="w-full rounded-lg border-gray-300 border p-4 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none h-28 resize-none shadow-sm"
               placeholder="e.g., Provide all evidence related to user access reviews for critical systems..."
             />
           </div>
@@ -435,7 +435,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
               type="text"
               value={controlId}
               onChange={(e) => setControlId(e.target.value)}
-              className="w-full rounded-lg border-gray-300 border p-4 text-sm focus:ring-2 focus:ring-purple-500 outline-none shadow-sm"
+              className="w-full rounded-lg border-gray-300 border p-4 text-sm focus:ring-2 focus:ring-blue-900 outline-none shadow-sm"
               placeholder="e.g., AC-001, NIST-800-53"
             />
           </div>
@@ -452,7 +452,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   type="date" 
                   value={dateRange.start}
                   onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none" 
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-900 outline-none" 
                 />
               </div>
               <div className="relative">
@@ -461,7 +461,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   type="date" 
                   value={dateRange.end}
                   onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none" 
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-900 outline-none" 
                 />
               </div>
             </div>
@@ -490,7 +490,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     key={`${e.id}-${e.type}`}
                     className="flex items-center gap-3 text-xs text-gray-600 py-1.5 px-1"
                   >
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-semibold text-[10px]">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-semibold text-[10px]">
                       {index + 1}
                     </span>
                     <span className="truncate flex-1 text-gray-700 font-medium">{e.filename}</span>
@@ -525,7 +525,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
           className="flex-1 bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden"
         >
           {/* Report Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-8 border-b border-purple-700">
+          <div className="bg-blue-900 text-white p-8 border-b border-blue-800">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-white/20 rounded-lg flex items-center justify-center">
@@ -533,7 +533,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                 </div>
                 <div>
                   <h3 className="text-xl font-bold mb-1">Compliance Assurance Report</h3>
-                  <p className="text-purple-100 text-sm">Pack ID: {generatedPack.pack_id}</p>
+                  <p className="text-blue-100 text-sm">Pack ID: {generatedPack.pack_id}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -563,7 +563,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                       onToast(error?.message || 'Failed to download pack', 'error');
                     }
                   }}
-                  className="px-5 py-2.5 bg-white text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                  className="px-5 py-2.5 bg-white text-blue-900 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
                 >
                   <Download className="w-4 h-4" />
                   Download ZIP
@@ -574,11 +574,11 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-xs text-purple-100 uppercase mb-2 tracking-wide">Evidence Items</p>
+                <p className="text-xs text-blue-100 uppercase mb-2 tracking-wide">Evidence Items</p>
                 <p className="text-2xl font-bold">{generatedPack.evidence_count}</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-xs text-purple-100 uppercase mb-2 tracking-wide">Pack Hash</p>
+                <p className="text-xs text-blue-100 uppercase mb-2 tracking-wide">Pack Hash</p>
                 <p className="text-xs font-mono truncate">{generatedPack.pack_hash.substring(0, 16)}...</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
@@ -593,7 +593,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
             {loadingReport ? (
               <div className="flex items-center justify-center h-full py-12">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto mb-4"></div>
                   <p className="text-gray-600">Loading compliance report...</p>
                 </div>
               </div>
@@ -642,7 +642,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
               exit={{ opacity: 0, scale: 0.95 }}
               className="fixed inset-4 md:inset-8 lg:inset-12 z-50 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden"
             >
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-8 border-b border-purple-700 flex items-center justify-between">
+              <div className="bg-blue-900 text-white p-8 border-b border-blue-800 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <FileText className="w-6 h-6" />
                   <h2 className="text-xl font-bold">Compliance Assurance Report - {generatedPack?.pack_id}</h2>

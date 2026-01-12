@@ -335,7 +335,7 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between p-8 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center gap-4">
-                <FileText className="w-6 h-6 text-purple-600" />
+                <FileText className="w-6 h-6 text-blue-900" />
                 <h2 className="text-xl font-bold text-gray-900">{title}</h2>
               </div>
               <button

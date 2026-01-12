@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, ExternalLink, Activity } from 'lucide-react';
 
 const Header: React.FC = () => {
   return (
@@ -10,39 +9,23 @@ const Header: React.FC = () => {
         {/* Left: Logo */}
         <Link
             to="/"
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-4 cursor-pointer group"
             title="Back to Landing Page"
         >
-          <div className="bg-gradient-to-tr from-purple-600 to-pink-600 p-2 rounded-lg shadow-lg shadow-purple-500/30 group-hover:scale-105 transition-transform">
-            <Shield className="w-6 h-6 text-white" />
+          <div className="bg-gray-900 px-4 py-2 rounded-lg group-hover:opacity-90 transition-opacity shadow-sm">
+            <img
+              src="https://www.infoseck2k.com/wp-content/themes/infoseck/images/infosec-logo.png"
+              alt="InfoSec K2K"
+              className="h-8 object-contain"
+            />
           </div>
-          <div>
+          <div className="flex flex-col">
             <h1 className="text-xl font-bold text-gray-900 leading-tight">SentraIQ</h1>
-            <p className="text-[10px] uppercase font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+            <p className="text-[10px] uppercase font-bold tracking-widest text-blue-900">
                 Evidence Lakehouse
             </p>
           </div>
-          <div className="flex items-center gap-2 ml-4 pl-4 border-l border-gray-200">
-            <div className="bg-gray-900 px-3 py-1.5 rounded-lg">
-              <img
-                src="https://www.infoseck2k.com/wp-content/themes/infoseck/images/infosec-logo.png"
-                alt="InfoSec K2K"
-                className="h-7 object-contain"
-              />
-            </div>
-          </div>
         </Link>
-
-        {/* Right: Actions */}
-        <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-100 shadow-sm">
-                <div className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                </div>
-                <span className="text-xs font-semibold text-green-700">System Online</span>
-            </div>
-        </div>
 
       </div>
     </header>

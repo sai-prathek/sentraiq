@@ -82,6 +82,8 @@ export interface WorkflowState {
   hasQueried: boolean;
 }
 
+import React from 'react';
+
 export interface DashboardOutletContext {
   addToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   selectedEvidence: EvidenceItem[];
@@ -89,5 +91,5 @@ export interface DashboardOutletContext {
   removeEvidenceFromPack: (id: string, type: 'Log' | 'Document') => void;
   clearSelectedEvidence: () => void;
   workflowState: WorkflowState;
-  setWorkflowState: (state: WorkflowState) => void;
+  setWorkflowState: React.Dispatch<React.SetStateAction<WorkflowState>>;
 }

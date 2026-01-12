@@ -67,7 +67,7 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 flex items-center justify-between">
+              <div className="bg-blue-900 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${evidence.type === 'Log' ? 'bg-blue-500' : 'bg-orange-500'}`}>
                     {evidence.type === 'Log' ? (
@@ -78,7 +78,7 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-white">{evidence.filename}</h2>
-                    <p className="text-sm text-purple-100">Evidence Details</p>
+                    <p className="text-sm text-blue-100">Evidence Details</p>
                   </div>
                 </div>
                 <button
@@ -103,7 +103,7 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
 
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="flex items-center gap-2 mb-1">
-                      <Shield className="w-4 h-4 text-purple-600" />
+                      <Shield className="w-4 h-4 text-blue-900" />
                       <span className="text-xs font-semibold text-gray-600 uppercase">Control</span>
                     </div>
                     <p className="text-lg font-bold text-gray-900 font-mono">{evidence.control_id || 'N/A'}</p>
@@ -165,11 +165,11 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
                       <Shield className="w-4 h-4" />
                       Compliance Control Mapping
                     </h3>
-                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-mono text-lg font-bold text-purple-900">{evidence.control_id}</p>
-                          <p className="text-sm text-purple-700 mt-1">
+                          <p className="font-mono text-lg font-bold text-blue-900">{evidence.control_id}</p>
+                          <p className="text-sm text-blue-800 mt-1">
                             {evidence.control_id.startsWith('AC-') && 'Access Control Family'}
                             {evidence.control_id.startsWith('IA-') && 'Identification and Authentication Family'}
                             {evidence.control_id.startsWith('AU-') && 'Audit and Accountability Family'}
@@ -191,7 +191,7 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
                     <ExternalLink className="w-4 h-4" />
                     AI-Enhanced Analysis
                   </h3>
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                     <p className="text-sm text-gray-700 leading-relaxed">
                       This evidence item was analyzed using OpenAI GPT-4 and scored at <strong>{evidence.relevance}%</strong> relevance
                       based on semantic similarity to your query. The AI engine identified key compliance indicators and
@@ -234,7 +234,7 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
                   <button 
                     onClick={handleMapToControls}
                     disabled={mapping}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-3 bg-blue-900 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {mapping ? (
                       <>
