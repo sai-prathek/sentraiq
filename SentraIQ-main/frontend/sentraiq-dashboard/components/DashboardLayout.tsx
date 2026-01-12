@@ -2,10 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import { TabType, ToastNotification, EvidenceItem, WorkflowState } from '../types';
 import Header from './Header';
-import StatsDashboard from './StatsDashboard';
 import ToastContainer from './Toast';
 import { motion } from 'framer-motion';
-import { Database, FileText, Package } from 'lucide-react';
+import { Database, FileText, Package, History } from 'lucide-react';
 
 const DashboardLayout: React.FC = () => {
   const location = useLocation();
@@ -91,6 +90,7 @@ const DashboardLayout: React.FC = () => {
     if (path.includes('/ingest')) return 'ingest';
     if (path.includes('/query')) return 'query';
     if (path.includes('/generate')) return 'generate';
+    if (path.includes('/history')) return 'history';
     return 'ingest';
   };
 
@@ -100,6 +100,7 @@ const DashboardLayout: React.FC = () => {
     { id: 'ingest', label: 'Ingest Evidence', icon: Database, path: '/dashboard/ingest' },
     { id: 'query', label: 'Query Evidence', icon: FileText, path: '/dashboard/query' },
     { id: 'generate', label: 'Generate Assurance Pack', icon: Package, path: '/dashboard/generate' },
+    { id: 'history', label: 'Pack History', icon: History, path: '/dashboard/history' },
   ];
 
   return (
@@ -107,16 +108,15 @@ const DashboardLayout: React.FC = () => {
       <Header />
       <ToastContainer notifications={toasts} removeToast={removeToast} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-        
-        {/* Stats Section */}
-        <section>
-          <StatsDashboard />
-        </section>
-
-        {/* Tab Navigation */}
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
-          <div className="flex border-b border-gray-100 overflow-x-auto">
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Side Panel - Tab Navigation */}
+        <aside className="w-72 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col shadow-sm">
+          <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+            <h2 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Navigation
+            </h2>
+          </div>
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -126,40 +126,50 @@ const DashboardLayout: React.FC = () => {
                   key={tab.id}
                   to={tab.path}
                   className={`
-                    relative px-8 py-5 text-sm font-medium transition-colors whitespace-nowrap outline-none flex items-center gap-2
-                    ${isActive ? 'text-purple-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}
+                    relative flex items-center gap-3 px-4 py-3.5 rounded-lg transition-all duration-200 group
+                    ${isActive 
+                      ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 font-semibold shadow-sm border border-purple-100' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
+                    }
                   `}
                 >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
+                  <Icon className={`w-5 h-5 flex-shrink-0 transition-colors ${isActive ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                  <span className="text-sm font-medium">{tab.label}</span>
                   {isActive && (
                     <motion.div
                       layoutId="activeTabIndicator"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-600 to-pink-600"
+                      className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-600 to-pink-600 rounded-r-full"
+                      initial={false}
                     />
                   )}
                 </Link>
               );
             })}
-          </div>
+          </nav>
+        </aside>
 
-          {/* Tab Content */}
-          <div className="p-6 md:p-8 flex-1 bg-gradient-to-b from-white to-gray-50/30">
-            <Outlet
-              context={{
-                addToast,
-                selectedEvidence,
-                addEvidenceToPack,
-                removeEvidenceFromPack,
-                clearSelectedEvidence,
-                workflowState,
-                setWorkflowState,
-              }}
-            />
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-6">
+            {/* Tab Content */}
+            <section className="bg-white rounded-2xl shadow-sm border border-gray-200 min-h-[600px] flex flex-col mb-8">
+              <div className="p-6 md:p-8 flex-1 bg-gradient-to-b from-white to-gray-50/30">
+                <Outlet
+                  context={{
+                    addToast,
+                    selectedEvidence,
+                    addEvidenceToPack,
+                    removeEvidenceFromPack,
+                    clearSelectedEvidence,
+                    workflowState,
+                    setWorkflowState,
+                  }}
+                />
+              </div>
+            </section>
           </div>
-        </section>
-
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

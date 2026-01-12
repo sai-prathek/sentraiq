@@ -5,6 +5,7 @@ import DashboardLayout from './components/DashboardLayout';
 import IngestPage from './pages/IngestPage';
 import QueryPage from './pages/QueryPage';
 import GeneratePage from './pages/GeneratePage';
+import HistoryPage from './pages/HistoryPage';
 
 const App: React.FC = () => {
   return (
@@ -19,6 +20,7 @@ const App: React.FC = () => {
           <Route path="ingest" element={<IngestPage />} />
           <Route path="query" element={<QueryPage />} />
           <Route path="generate" element={<GeneratePage />} />
+          <Route path="history" element={<HistoryPage />} />
         </Route>
 
         {/* Legacy routes for backward compatibility */}

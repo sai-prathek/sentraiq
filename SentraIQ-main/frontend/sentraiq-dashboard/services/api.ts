@@ -297,5 +297,15 @@ export const api = {
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || 'Failed to download pack');
     }
-  }
+  },
+
+  listPacks: async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/assurance/packs`);
+      return response.data.packs || [];
+    } catch (error: any) {
+      console.error('Error fetching packs:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch packs');
+    }
+  },
 };

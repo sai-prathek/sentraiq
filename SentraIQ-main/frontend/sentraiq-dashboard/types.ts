@@ -37,7 +37,25 @@ export interface GeneratedPack {
   timestamp: string;
 }
 
-export type TabType = 'ingest' | 'query' | 'generate';
+export type TabType = 'ingest' | 'query' | 'generate' | 'history';
+
+export interface PackHistoryItem {
+  pack_id: string;
+  control_id?: string;
+  query?: string;
+  evidence_count: number;
+  pack_hash: string;
+  created_at: string;
+  time_range_start: string;
+  time_range_end: string;
+  download_url: string;
+  report_url: string;
+  pack_size_mb?: number;
+  explicit_evidence?: {
+    log_ids?: number[];
+    document_ids?: number[];
+  };
+}
 
 export interface IngestedLog {
   id: number;

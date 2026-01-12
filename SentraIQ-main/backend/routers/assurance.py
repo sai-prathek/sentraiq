@@ -140,6 +140,45 @@ async def download_assurance_pack(pack_id: str, session: AsyncSession = Depends(
     )
 
 
+@router.get("/packs")
+async def list_assurance_packs(
+    limit: int = 100,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    List all assurance packs with metadata
+    """
+    from sqlalchemy import select, desc
+    from backend.database import AssurancePack
+    
+    try:
+        stmt = select(AssurancePack).order_by(desc(AssurancePack.created_at)).limit(limit)
+        result = await session.execute(stmt)
+        packs = result.scalars().all()
+        
+        packs_list = []
+        for pack in packs:
+            meta = pack.meta_data or {}
+            packs_list.append({
+                "pack_id": pack.pack_id,
+                "control_id": pack.control_id,
+                "query": pack.query,
+                "evidence_count": pack.evidence_count,
+                "pack_hash": pack.pack_hash,
+                "created_at": pack.created_at.isoformat() if pack.created_at else None,
+                "time_range_start": pack.time_range_start.isoformat() if pack.time_range_start else None,
+                "time_range_end": pack.time_range_end.isoformat() if pack.time_range_end else None,
+                "download_url": f"/api/v1/assurance/download/{pack.pack_id}",
+                "report_url": f"/api/v1/assurance/report/{pack.pack_id}",
+                "pack_size_mb": meta.get("pack_size_mb", 0),
+                "explicit_evidence": meta.get("explicit_evidence", {}),
+            })
+        
+        return {"packs": packs_list, "total": len(packs_list)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list packs: {str(e)}")
+
+
 @router.get("/report/{pack_id}")
 async def get_pack_report(
     pack_id: str,

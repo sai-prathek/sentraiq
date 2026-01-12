@@ -35,14 +35,6 @@ const Header: React.FC = () => {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-6">
-            <a 
-                href="/docs" 
-                target="_blank"
-                className="hidden md:flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-purple-600 transition-colors"
-            >
-                API Docs <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-
             <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-100 shadow-sm">
                 <div className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
