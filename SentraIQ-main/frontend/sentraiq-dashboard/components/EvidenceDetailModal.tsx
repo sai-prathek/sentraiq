@@ -42,30 +42,7 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
     }
   };
 
-  const handleCreatePack = async () => {
-    if (!packQuery.trim() || !packStartDate || !packEndDate) {
-      setPackResult({ error: 'Please fill in all required fields' });
-      return;
-    }
-
-    setPackCreating(true);
-    setPackResult(null);
-    
-    try {
-      const result = await api.generatePack(
-        packQuery,
-        packControlId || null,
-        packStartDate,
-        packEndDate
-      );
-      setPackResult(result);
-    } catch (error: any) {
-      console.error('Pack creation failed:', error);
-      setPackResult({ error: error.message || 'Failed to create assurance pack' });
-    } finally {
-      setPackCreating(false);
-    }
-  };
+  // Pack creation is now handled globally from the Generate tab using a shared pack list.
 
   return (
     <AnimatePresence>
@@ -251,6 +228,45 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
                     )}
                   </div>
                 )}
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button 
+                    onClick={handleMapToControls}
+                    disabled={mapping}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {mapping ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Mapping...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="w-4 h-4" />
+                        {evidence.control_id ? 'Re-map to Controls' : 'Map to Controls'}
+                      </>
+                    )}
+                  </button>
+                  <button 
+                    onClick={() => onAddToSelection && onAddToSelection(evidence)}
+                    disabled={isAlreadySelected}
+                    className={`flex-1 px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 ${
+                      isAlreadySelected
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
+                    }`}
+                  >
+                    <Package className="w-4 h-4" />
+                    {isAlreadySelected ? 'Already in Pack List' : 'Add to Pack List'}
+                  </button>
+                </div>
+
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
 
     </AnimatePresence>
   );

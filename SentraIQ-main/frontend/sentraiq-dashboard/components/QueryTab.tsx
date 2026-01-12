@@ -19,7 +19,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<EvidenceItem[] | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedEvidence, setSelectedEvidence] = useState<EvidenceItem | null>(null);
+  const [currentEvidence, setCurrentEvidence] = useState<EvidenceItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSearch = async (searchQuery: string = query) => {
@@ -175,7 +175,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
                         </div>
                         <button
                           onClick={() => {
-                            setSelectedEvidence(item);
+                            setCurrentEvidence(item);
                             setIsModalOpen(true);
                           }}
                           className="text-sm text-purple-600 font-medium flex items-center hover:underline mt-2"
@@ -201,7 +201,7 @@ const QueryTab: React.FC<QueryTabProps> = ({
 
       {/* Evidence Detail Modal */}
       <EvidenceDetailModal
-        evidence={selectedEvidence}
+        evidence={currentEvidence}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddToSelection={(item) => {
@@ -209,15 +209,10 @@ const QueryTab: React.FC<QueryTabProps> = ({
           onToast('Evidence added to pack list', 'success');
         }}
         isAlreadySelected={
-          !!selectedEvidence &&
-          selectedEvidence != null &&
-          selectedEvidence.id != null &&
-          selectedEvidence.type != null &&
-          selectedEvidence.id !== undefined &&
-          selectedEvidence.type !== undefined &&
-          selectedEvidence &&
-          selectedEvidence.id &&
-          false
+          currentEvidence !== null &&
+          selectedEvidence.some(
+            (e) => e.id === currentEvidence.id && e.type === currentEvidence.type
+          )
         }
       />
     </div>

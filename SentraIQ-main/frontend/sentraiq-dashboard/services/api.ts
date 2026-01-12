@@ -129,16 +129,29 @@ export const api = {
     query: string,
     controlId: string | null,
     startDate: string,
-    endDate: string
+    endDate: string,
+    explicitEvidence: EvidenceItem[] = []
   ): Promise<GeneratedPack> => {
     try {
+      const explicitLogIds = explicitEvidence
+        .filter((e) => e.type === 'Log')
+        .map((e) => parseInt(e.id, 10))
+        .filter((id) => !Number.isNaN(id));
+
+      const explicitDocumentIds = explicitEvidence
+        .filter((e) => e.type === 'Document')
+        .map((e) => parseInt(e.id, 10))
+        .filter((id) => !Number.isNaN(id));
+
       const response = await axios.post(`${API_BASE}/assurance/generate-pack`, {
         query,
         control_id: controlId,
         time_range_start: `${startDate}T00:00:00`,
         time_range_end: `${endDate}T23:59:59`,
         include_documents: true,
-        include_logs: true
+        include_logs: true,
+        explicit_log_ids: explicitLogIds.length ? explicitLogIds : undefined,
+        explicit_document_ids: explicitDocumentIds.length ? explicitDocumentIds : undefined,
       });
 
       return {

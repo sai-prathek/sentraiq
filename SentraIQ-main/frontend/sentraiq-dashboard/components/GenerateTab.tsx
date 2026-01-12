@@ -3,13 +3,19 @@ import { Calendar, Package, Download, CheckCircle, ShieldCheck, FileCheck } from
 import { motion } from 'framer-motion';
 import LoadingOverlay from './LoadingOverlay';
 import { api } from '../services/api';
-import { GeneratedPack } from '../types';
+import { EvidenceItem, GeneratedPack } from '../types';
 
 interface GenerateTabProps {
-    onToast: (msg: string, type: 'success' | 'error') => void;
+  onToast: (msg: string, type: 'success' | 'error') => void;
+  selectedEvidence: EvidenceItem[];
+  onClearSelectedEvidence: () => void;
 }
 
-const GenerateTab: React.FC<GenerateTabProps> = ({ onToast }) => {
+const GenerateTab: React.FC<GenerateTabProps> = ({
+  onToast,
+  selectedEvidence,
+  onClearSelectedEvidence,
+}) => {
   const [loading, setLoading] = useState(false);
   const [generatedPack, setGeneratedPack] = useState<GeneratedPack | null>(null);
   
@@ -31,10 +37,13 @@ const GenerateTab: React.FC<GenerateTabProps> = ({ onToast }) => {
         query,
         controlId || null,
         dateRange.start,
-        dateRange.end
+        dateRange.end,
+        selectedEvidence
       );
       setGeneratedPack(pack);
       onToast("Assurance pack generated successfully!", "success");
+      // Optionally clear the selection after successful pack creation
+      onClearSelectedEvidence();
     } catch (error: any) {
       console.error("Failed to generate pack:", error);
       onToast(
@@ -150,6 +159,36 @@ const GenerateTab: React.FC<GenerateTabProps> = ({ onToast }) => {
       {/* Right Column: Preview/Result */}
       <div className="flex-1 lg:basis-2/5 flex flex-col">
         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Output Preview</h3>
+        
+        {/* Selected evidence summary */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-600 uppercase">
+              Pack List
+            </span>
+            <span className="text-xs text-gray-400">
+              {selectedEvidence.length} item{selectedEvidence.length === 1 ? '' : 's'} selected
+            </span>
+          </div>
+          {selectedEvidence.length > 0 ? (
+            <div className="mt-2 max-h-32 overflow-y-auto border border-gray-100 rounded-lg bg-gray-50 p-2 space-y-1">
+              {selectedEvidence.map((e) => (
+                <div
+                  key={`${e.id}-${e.type}`}
+                  className="flex items-center justify-between text-[11px] text-gray-600"
+                >
+                  <span className="font-mono text-gray-700">{e.id}</span>
+                  <span className="truncate ml-2 flex-1">{e.filename}</span>
+                  <span className="ml-2 text-gray-400">{e.type}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-[11px] text-gray-400">
+              No specific evidence selected. Pack will be built purely from query and time range.
+            </p>
+          )}
+        </div>
         
         {generatedPack ? (
             <motion.div 
