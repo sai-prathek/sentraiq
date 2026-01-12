@@ -1,312 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Package, Download, CheckCircle, ShieldCheck, FileCheck, FileText, Maximize2, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Download, CheckCircle, ShieldCheck, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useOutletContext } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
-import MarkdownViewer from './MarkdownViewer';
+import Stepper from './Stepper';
+import ObjectiveSelector, { ObjectiveSelection } from './ObjectiveSelector';
+import AssessmentQuestions, { AssessmentAnswer } from './AssessmentQuestions';
+import IngestTab from './IngestTab';
+import QueryTab from './QueryTab';
 import { api } from '../services/api';
-import { EvidenceItem, GeneratedPack } from '../types';
-
-// Inline markdown renderer component for report display
-const ReportContent: React.FC<{ content: string }> = ({ content }) => {
-  const parseMarkdown = (text: string): JSX.Element[] => {
-    const lines = text.split('\n');
-    const elements: JSX.Element[] = [];
-    let inCodeBlock = false;
-    let codeBlockContent: string[] = [];
-    let listItems: string[] = [];
-    let inList = false;
-    let tableRows: JSX.Element[] = [];
-    let inTable = false;
-
-    lines.forEach((line, index) => {
-      // Code blocks
-      if (line.startsWith('```')) {
-        if (inCodeBlock) {
-          elements.push(
-            <pre key={`code-${index}`} className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto my-4 font-mono text-sm">
-              <code>{codeBlockContent.join('\n')}</code>
-            </pre>
-          );
-          codeBlockContent = [];
-          inCodeBlock = false;
-        } else {
-          inCodeBlock = true;
-        }
-        return;
-      }
-
-      if (inCodeBlock) {
-        codeBlockContent.push(line);
-        return;
-      }
-
-      // Headers
-      if (line.startsWith('# ')) {
-        if (inList) {
-          elements.push(renderList(listItems));
-          listItems = [];
-          inList = false;
-        }
-        if (inTable) {
-          elements.push(renderTable(tableRows));
-          tableRows = [];
-          inTable = false;
-        }
-      elements.push(
-        <h1 key={`h1-${index}`} className="text-3xl font-bold text-gray-900 mt-10 mb-6 pb-3 border-b-2 border-gray-300">
-          {line.substring(2)}
-        </h1>
-      );
-        return;
-      }
-      if (line.startsWith('## ')) {
-        if (inList) {
-          elements.push(renderList(listItems));
-          listItems = [];
-          inList = false;
-        }
-        if (inTable) {
-          elements.push(renderTable(tableRows));
-          tableRows = [];
-          inTable = false;
-        }
-        elements.push(
-          <h2 key={`h2-${index}`} className="text-2xl font-bold text-gray-800 mt-8 mb-4 pt-5">
-            {line.substring(3)}
-          </h2>
-        );
-        return;
-      }
-      if (line.startsWith('### ')) {
-        if (inList) {
-          elements.push(renderList(listItems));
-          listItems = [];
-          inList = false;
-        }
-        if (inTable) {
-          elements.push(renderTable(tableRows));
-          tableRows = [];
-          inTable = false;
-        }
-        elements.push(
-          <h3 key={`h3-${index}`} className="text-xl font-semibold text-gray-700 mt-6 mb-3">
-            {line.substring(4)}
-          </h3>
-        );
-        return;
-      }
-
-      // Horizontal rule
-      if (line.trim() === '---' || line.trim().startsWith('===')) {
-        if (inList) {
-          elements.push(renderList(listItems));
-          listItems = [];
-          inList = false;
-        }
-        if (inTable) {
-          elements.push(renderTable(tableRows));
-          tableRows = [];
-          inTable = false;
-        }
-        elements.push(<hr key={`hr-${index}`} className="my-8 border-gray-400 border-t-2" />);
-        return;
-      }
-
-      // Lists
-      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
-        if (!inList) {
-          inList = true;
-        }
-        if (inTable) {
-          elements.push(renderTable(tableRows));
-          tableRows = [];
-          inTable = false;
-        }
-        listItems.push(line.trim().substring(2));
-        return;
-      }
-
-      if (inList && line.trim() === '') {
-        elements.push(renderList(listItems));
-        listItems = [];
-        inList = false;
-        return;
-      }
-
-      // Tables
-      if (line.includes('|') && line.trim().startsWith('|')) {
-        if (inList) {
-          elements.push(renderList(listItems));
-          listItems = [];
-          inList = false;
-        }
-        const cells = line.split('|').map(c => c.trim()).filter(c => c);
-        const isHeader = cells[0] && (cells[0].includes('---') || cells[0].includes('----'));
-        if (isHeader) {
-          // This is a separator row - mark that the previous row was a header
-          if (tableRows.length > 0 && tableRows[tableRows.length - 1]) {
-            const lastRow = tableRows[tableRows.length - 1];
-            // Mark as header by adding a flag
-            (lastRow as any).isHeader = true;
-          }
-          return;
-        }
-        
-        if (!inTable) {
-          inTable = true;
-        }
-        
-        const isHeaderRow = tableRows.length === 0; // First row is typically header
-        
-        tableRows.push(
-          <tr key={`tr-${index}`} className={isHeaderRow ? 'bg-gray-100 font-semibold' : (tableRows.length % 2 === 0 ? 'bg-white' : 'bg-gray-50')}>
-            {cells.map((cell, cellIndex) => {
-              if (isHeaderRow) {
-                return (
-                  <th key={`th-${cellIndex}`} className="px-4 py-3 border border-gray-400 text-sm text-left font-semibold">
-                    {parseInlineMarkdown(cell)}
-                  </th>
-                );
-              }
-              return (
-                <td key={`td-${cellIndex}`} className="px-4 py-3 border border-gray-300 text-sm">
-                  {parseInlineMarkdown(cell)}
-                </td>
-              );
-            })}
-          </tr>
-        );
-        return;
-      }
-
-      if (inTable && line.trim() === '') {
-        elements.push(renderTable(tableRows));
-        tableRows = [];
-        inTable = false;
-        return;
-      }
-
-      // Regular paragraphs
-      if (line.trim() === '') {
-        if (inList) {
-          elements.push(renderList(listItems));
-          listItems = [];
-          inList = false;
-        }
-        if (inTable) {
-          elements.push(renderTable(tableRows));
-          tableRows = [];
-          inTable = false;
-        }
-        elements.push(<br key={`br-${index}`} />);
-        return;
-      }
-
-      if (inList) {
-        listItems.push(line);
-        return;
-      }
-
-      elements.push(
-        <p key={`p-${index}`} className="text-gray-700 mb-5 leading-relaxed text-base">
-          {parseInlineMarkdown(line)}
-        </p>
-      );
-    });
-
-    if (inList) {
-      elements.push(renderList(listItems));
-    }
-    if (inTable) {
-      elements.push(renderTable(tableRows));
-    }
-
-    return elements;
-  };
-
-  const renderList = (items: string[]): JSX.Element => {
-    return (
-      <ul key={`list-${items.length}`} className="list-disc list-inside mb-8 space-y-2.5 text-gray-700 text-base ml-5">
-        {items.map((item, idx) => (
-          <li key={`li-${idx}`} className="leading-relaxed pl-1">{parseInlineMarkdown(item)}</li>
-        ))}
-      </ul>
-    );
-  };
-
-  const renderTable = (rows: JSX.Element[]): JSX.Element => {
-    if (rows.length === 0) return <></>;
-    
-    // Separate header and data rows
-    const headerRow = rows.find((r: any) => r.isHeader) || rows[0];
-    const dataRows = rows.filter((r: any, idx) => !r.isHeader && idx > 0);
-    
-    return (
-      <div key={`table-wrapper-${rows.length}`} className="overflow-x-auto my-8 mb-10">
-        <table className="min-w-full border-collapse border border-gray-400">
-          {headerRow && (
-            <thead>
-              {headerRow}
-            </thead>
-          )}
-          <tbody>
-            {dataRows.length > 0 ? dataRows : rows.slice(1)}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
-
-  const parseInlineMarkdown = (text: string): JSX.Element => {
-    const parts: (string | JSX.Element)[] = [];
-    let currentIndex = 0;
-
-    const boldRegex = /\*\*(.+?)\*\*/g;
-    const codeRegex = /`([^`]+)`/g;
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-
-    const matches: Array<{ type: string; start: number; end: number; content: string; url?: string }> = [];
-
-    let match;
-    while ((match = boldRegex.exec(text)) !== null) {
-      matches.push({ type: 'bold', start: match.index, end: match.index + match[0].length, content: match[1] });
-    }
-    while ((match = codeRegex.exec(text)) !== null) {
-      matches.push({ type: 'code', start: match.index, end: match.index + match[0].length, content: match[1] });
-    }
-    while ((match = linkRegex.exec(text)) !== null) {
-      matches.push({ type: 'link', start: match.index, end: match.index + match[0].length, content: match[1], url: match[2] });
-    }
-
-    matches.sort((a, b) => a.start - b.start);
-
-    matches.forEach((m) => {
-      if (m.start > currentIndex) {
-        parts.push(text.substring(currentIndex, m.start));
-      }
-
-      if (m.type === 'bold') {
-        parts.push(<strong key={`bold-${m.start}`} className="font-bold text-gray-900">{m.content}</strong>);
-      } else if (m.type === 'code') {
-        parts.push(<code key={`code-${m.start}`} className="bg-gray-100 px-2 py-1 rounded font-mono text-sm text-blue-900">{m.content}</code>);
-      } else if (m.type === 'link') {
-        parts.push(<a key={`link-${m.start}`} href={m.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{m.content}</a>);
-      }
-
-      currentIndex = m.end;
-    });
-
-    if (currentIndex < text.length) {
-      parts.push(text.substring(currentIndex));
-    }
-
-    return <>{parts.length > 0 ? parts : text}</>;
-  };
-
-  const parsedContent = parseMarkdown(content);
-
-  return <div className="report-content">{parsedContent}</div>;
-};
+import { EvidenceItem, GeneratedPack, DashboardOutletContext } from '../types';
 
 interface GenerateTabProps {
   onToast: (msg: string, type: 'success' | 'error') => void;
@@ -314,22 +17,86 @@ interface GenerateTabProps {
   onClearSelectedEvidence: () => void;
 }
 
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
+
+const STEPS = [
+  { id: 1, label: 'Select Compliance Frameworks', description: 'Choose infrastructure & frameworks' },
+  { id: 2, label: 'Manage Evidence', description: 'Add and review evidence files' },
+  { id: 3, label: 'Assessment Questions', description: 'Answer compliance questions' },
+  { id: 4, label: 'Enhance Pack', description: 'Query evidence (optional)' },
+  { id: 5, label: 'Create Pack', description: 'Generate assurance pack' },
+  { id: 6, label: 'View Report', description: 'Download compliance report' },
+];
+
 const GenerateTab: React.FC<GenerateTabProps> = ({
   onToast,
   selectedEvidence,
   onClearSelectedEvidence,
 }) => {
+  const { addEvidenceToPack } = useOutletContext<DashboardOutletContext>();
+  const [currentStep, setCurrentStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [generatedPack, setGeneratedPack] = useState<GeneratedPack | null>(null);
   const [reportContent, setReportContent] = useState<string>('');
-  const [showReport, setShowReport] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
   const [showFullReport, setShowFullReport] = useState(false);
-  
-  // Form State
+
+  // Step data
+  const [objectiveSelection, setObjectiveSelection] = useState<ObjectiveSelection | null>(null);
+  const [assessmentAnswers, setAssessmentAnswers] = useState<AssessmentAnswer[]>([]);
+  const [regulatoryUpdates, setRegulatoryUpdates] = useState<any>(null);
+
+  // Form State for Step 5
   const [query, setQuery] = useState('');
   const [controlId, setControlId] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+  // Load saved data on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('objectiveSelection');
+    if (stored) {
+      try {
+        const selection = JSON.parse(stored);
+        setObjectiveSelection(selection);
+      } catch (e) {
+        console.error('Failed to load objective selection:', e);
+      }
+    }
+
+    const storedAnswers = localStorage.getItem('assessmentAnswers');
+    if (storedAnswers) {
+      try {
+        const answers = JSON.parse(storedAnswers);
+        setAssessmentAnswers(answers);
+      } catch (e) {
+        console.error('Failed to load assessment answers:', e);
+      }
+    }
+
+    // Set default date range
+    const end = new Date();
+    const start = new Date();
+    start.setMonth(end.getMonth() - 3);
+    setDateRange({
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0]
+    });
+  }, []);
+
+  // Load regulatory updates when frameworks are selected
+  useEffect(() => {
+    if (objectiveSelection && objectiveSelection.frameworks.length > 0) {
+      const loadUpdates = async () => {
+        try {
+          const updates = await api.checkRegulatoryUpdates();
+          setRegulatoryUpdates(updates);
+        } catch (error) {
+          console.error('Failed to load regulatory updates:', error);
+        }
+      };
+      loadUpdates();
+    }
+  }, [objectiveSelection]);
 
   // Auto-load report when pack is generated
   useEffect(() => {
@@ -352,317 +119,423 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     }
   };
 
-  const handleGenerate = async () => {
+  const handleStepComplete = (step: Step, data?: any) => {
+    if (step === 1 && data) {
+      setObjectiveSelection(data);
+      localStorage.setItem('objectiveSelection', JSON.stringify(data));
+      const frameworkIds = data.frameworks.map((f: any) => f.id);
+      localStorage.setItem('selectedFramework', frameworkIds[0] || 'SWIFT_CSP');
+      
+      // Pre-fill query
+      const frameworkNames = data.frameworks.map((f: any) => f.name).join(' + ');
+      setQuery(`Compliance evidence for ${data.infrastructure?.name} - ${frameworkNames}`);
+    } else if (step === 3 && data) {
+      setAssessmentAnswers(data);
+      localStorage.setItem('assessmentAnswers', JSON.stringify(data));
+    }
+    
+    // Move to next step
+    if (step < 6) {
+      setCurrentStep((step + 1) as Step);
+    }
+  };
+
+  const handleStepNavigation = (step: Step) => {
+    // Allow navigation to completed steps or current step
+    const maxCompletedStep = getMaxCompletedStep();
+    if (step <= maxCompletedStep + 1) {
+      setCurrentStep(step);
+    }
+  };
+
+  const getMaxCompletedStep = (): Step => {
+    if (generatedPack) return 6;
+    if (selectedEvidence.length > 0 || assessmentAnswers.length > 0) return 4;
+    if (assessmentAnswers.length > 0) return 3;
+    if (objectiveSelection) return 2;
+    return 1;
+  };
+
+  const handleGeneratePack = async () => {
     if (!query || !dateRange.start || !dateRange.end) {
       onToast("Please fill in all required fields", "error");
       return;
     }
-
+    
     setLoading(true);
     setGeneratedPack(null);
     try {
+      // Get assessment answers from localStorage
+      const storedAnswers = localStorage.getItem('assessmentAnswers');
+      const answers = storedAnswers ? JSON.parse(storedAnswers) : [];
+
       const pack = await api.generatePack(
         query,
         controlId || null,
         dateRange.start,
         dateRange.end,
-        selectedEvidence
+        selectedEvidence,
+        answers
       );
+      
       setGeneratedPack(pack);
       onToast("Assurance pack generated successfully!", "success");
-      // Optionally clear the selection after successful pack creation
       onClearSelectedEvidence();
+      
+      // Move to step 6
+      setCurrentStep(6);
     } catch (error: any) {
       console.error("Failed to generate pack:", error);
-      onToast(
-        error?.message || "Failed to generate pack",
-        "error"
-      );
+      onToast(error?.message || "Failed to generate pack", "error");
     } finally {
       setLoading(false);
     }
   };
 
   const setPresetDate = (type: 'month' | 'quarter' | 'year') => {
-      const end = new Date();
-      const start = new Date();
-      if (type === 'month') start.setMonth(end.getMonth() - 1);
-      if (type === 'quarter') start.setMonth(end.getMonth() - 3);
-      if (type === 'year') start.setFullYear(end.getFullYear() - 1);
-      
-      setDateRange({
-          start: start.toISOString().split('T')[0],
-          end: end.toISOString().split('T')[0]
-      });
+    const end = new Date();
+    const start = new Date();
+    if (type === 'month') start.setMonth(end.getMonth() - 1);
+    if (type === 'quarter') start.setMonth(end.getMonth() - 3);
+    if (type === 'year') start.setFullYear(end.getFullYear() - 1);
+    
+    setDateRange({
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0]
+    });
   };
 
+  const maxCompletedStep = getMaxCompletedStep();
+
   return (
-    <div className="flex flex-col h-full gap-8 px-1">
-      {/* Top Section: Generation Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 md:p-10 relative">
-        {loading && <LoadingOverlay message="Compiling Evidence & Generating Hash..." />}
-        
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3 mb-2">
-              <ShieldCheck className="text-blue-900 w-7 h-7" />
-              Generate Compliance Assurance Pack
-            </h2>
-            <p className="text-gray-600 text-sm">Define evidence requirements to create an immutable compliance artifact</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Query */}
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Evidence Requirement
-            </label>
-            <textarea 
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full rounded-lg border-gray-300 border p-4 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none h-28 resize-none shadow-sm"
-              placeholder="e.g., Provide all evidence related to user access reviews for critical systems..."
-            />
-          </div>
-
-          {/* Control ID */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Control ID <span className="font-normal text-gray-400">(Optional)</span>
-            </label>
-            <input 
-              type="text"
-              value={controlId}
-              onChange={(e) => setControlId(e.target.value)}
-              className="w-full rounded-lg border-gray-300 border p-4 text-sm focus:ring-2 focus:ring-blue-900 outline-none shadow-sm"
-              placeholder="e.g., AC-001, NIST-800-53"
-            />
-          </div>
-        </div>
-
-        {/* Date Range and Pack List */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Time Range</label>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input 
-                  type="date" 
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-900 outline-none" 
-                />
-              </div>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input 
-                  type="date" 
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-900 outline-none" 
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 mt-4">
-              {['month', 'quarter', 'year'].map(t => (
-                <button 
-                  key={t}
-                  onClick={() => setPresetDate(t as any)}
-                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-1.5 rounded-full transition-colors capitalize font-medium"
-                >
-                  Last {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Pack List Preview */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Selected Evidence ({selectedEvidence.length})
-            </label>
-            {selectedEvidence.length > 0 ? (
-              <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-lg bg-gray-50 p-3 space-y-2">
-                {selectedEvidence.map((e, index) => (
-                  <div
-                    key={`${e.id}-${e.type}`}
-                    className="flex items-center gap-3 text-xs text-gray-600 py-1.5 px-1"
-                  >
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-semibold text-[10px]">
-                      {index + 1}
-                    </span>
-                    <span className="truncate flex-1 text-gray-700 font-medium">{e.filename}</span>
-                    <span className="flex-shrink-0 px-2.5 py-1 rounded text-[10px] bg-gray-200 text-gray-600 font-medium">
-                      {e.type}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="border border-gray-200 rounded-lg bg-gray-50 p-4 text-xs text-gray-500 text-center">
-                No evidence selected. Pack will include query results.
-              </div>
-            )}
-          </div>
-        </div>
-
-        <button 
-          onClick={handleGenerate}
-          className="w-full bg-gray-900 text-white font-medium py-4 rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2"
-        >
-          <Package className="w-5 h-5" />
-          Generate Assurance Pack
-        </button>
+    <div className="flex flex-col h-full">
+      {/* Stepper UI */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <Stepper
+          currentStep={currentStep}
+          steps={STEPS}
+          onStepClick={handleStepNavigation}
+        />
       </div>
 
-      {/* Bottom Section: Report Display */}
-      {generatedPack ? (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex-1 bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden"
-        >
-          {/* Report Header */}
-          <div className="bg-blue-900 text-white p-8 border-b border-blue-800">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/20 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-7 h-7" />
+      {/* Step Content */}
+      <div className="flex-1 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="h-full"
+          >
+            {/* Step 1: Select Compliance Frameworks */}
+            {currentStep === 1 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 1: Select Compliance Frameworks</h2>
+                  <p className="text-gray-600">Choose your infrastructure type and compliance frameworks to begin</p>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-1">Compliance Assurance Report</h3>
-                  <p className="text-blue-100 text-sm">Pack ID: {generatedPack.pack_id}</p>
-                </div>
+                <ObjectiveSelector
+                  onSelectionComplete={(selection) => handleStepComplete(1, selection)}
+                />
               </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowFullReport(true)}
-                  className="px-5 py-2.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                  Full Screen
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      const packId = generatedPack.pack_id;
-                      const blob = await api.downloadPack(packId);
-                      const url = window.URL.createObjectURL(blob);
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.download = `${packId}.zip`;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                      window.URL.revokeObjectURL(url);
-                      onToast('Pack downloaded successfully!', 'success');
-                    } catch (error: any) {
-                      console.error('Download failed:', error);
-                      onToast(error?.message || 'Failed to download pack', 'error');
-                    }
-                  }}
-                  className="px-5 py-2.5 bg-white text-blue-900 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
-                >
-                  <Download className="w-4 h-4" />
-                  Download ZIP
-                </button>
-              </div>
-            </div>
-            
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-xs text-blue-100 uppercase mb-2 tracking-wide">Evidence Items</p>
-                <p className="text-2xl font-bold">{generatedPack.evidence_count}</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-xs text-blue-100 uppercase mb-2 tracking-wide">Pack Hash</p>
-                <p className="text-xs font-mono truncate">{generatedPack.pack_hash.substring(0, 16)}...</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-xs text-purple-100 uppercase mb-2 tracking-wide">Status</p>
-                <p className="text-sm font-semibold">Verified</p>
-              </div>
-            </div>
-          </div>
+            )}
 
-          {/* Report Content */}
-          <div className="flex-1 overflow-y-auto bg-gray-50">
-            {loadingReport ? (
-              <div className="flex items-center justify-center h-full py-12">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading compliance report...</p>
+            {/* Step 2: Manage Evidence */}
+            {currentStep === 2 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 2: Manage Evidence</h2>
+                    <p className="text-gray-600">Add and review evidence files for your compliance pack</p>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </button>
                 </div>
-              </div>
-            ) : reportContent ? (
-              <div className="p-8 md:p-10 lg:p-12">
-                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-10 md:p-12 lg:p-16">
-                  <ReportContent content={reportContent} />
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-full py-12">
-                <div className="text-center text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p>Report will be displayed here once generated</p>
+                <IngestTab onToast={onToast} />
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => handleStepComplete(2)}
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
+                  >
+                    Continue to Assessment Questions
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             )}
-          </div>
-        </motion.div>
-      ) : (
-        <div className="flex-1 bg-white rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center p-16">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-            <FileCheck className="w-10 h-10 text-gray-300" />
-          </div>
-          <h4 className="text-gray-900 font-semibold text-lg mb-3">Ready to Generate Compliance Report</h4>
-          <p className="text-gray-500 text-sm max-w-md">
-            Fill out the evidence requirements above to create a professional compliance assurance pack with a detailed markdown report.
-          </p>
-        </div>
-      )}
-      
-      {/* Full Screen Report Modal */}
-      <AnimatePresence>
-        {showFullReport && reportContent && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowFullReport(false)}
-              className="fixed inset-0 bg-black bg-opacity-75 z-50"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-4 md:inset-8 lg:inset-12 z-50 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden"
-            >
-              <div className="bg-blue-900 text-white p-8 border-b border-blue-800 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <FileText className="w-6 h-6" />
-                  <h2 className="text-xl font-bold">Compliance Assurance Report - {generatedPack?.pack_id}</h2>
+
+            {/* Step 3: Assessment Questions */}
+            {currentStep === 3 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 3: Assessment Questions</h2>
+                    <p className="text-gray-600">Answer compliance assessment questions to create initial pack</p>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStep(2)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowFullReport(false)}
-                  className="p-2.5 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <AssessmentQuestions
+                  framework={localStorage.getItem('selectedFramework') || 'SWIFT_CSP'}
+                  onComplete={(answers) => handleStepComplete(3, answers)}
+                  onBack={() => setCurrentStep(2)}
+                />
               </div>
-              <div className="flex-1 overflow-y-auto p-10 md:p-12 bg-gray-50">
-                <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-12 md:p-16 lg:p-20">
-                  <ReportContent content={reportContent} />
+            )}
+
+            {/* Step 4: Enhance Pack (Query Evidence) */}
+            {currentStep === 4 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 4: Enhance Pack (Optional)</h2>
+                    <p className="text-gray-600">Use query evidence to find and add additional evidence items</p>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStep(3)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </button>
+                </div>
+                <QueryTab
+                  onToast={onToast}
+                  selectedEvidence={selectedEvidence}
+                  onAddEvidenceToPack={addEvidenceToPack}
+                />
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => handleStepComplete(4)}
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
+                  >
+                    Continue to Create Pack
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+            )}
+
+            {/* Step 5: Create Pack */}
+            {currentStep === 5 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 relative">
+                {loading && <LoadingOverlay message="Compiling Evidence & Generating Hash..." />}
+                
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 5: Create Pack</h2>
+                    <p className="text-gray-600">Review and generate your compliance assurance pack</p>
+                  </div>
+                  <button
+                    onClick={() => setCurrentStep(4)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </button>
+                </div>
+
+                {/* Configuration Summary */}
+                {objectiveSelection && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                    <h3 className="font-semibold text-blue-900 mb-4">Configuration Summary</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-blue-700">Infrastructure:</span>
+                        <p className="font-medium text-blue-900">{objectiveSelection.infrastructure?.name}</p>
+                      </div>
+                      <div>
+                        <span className="text-blue-700">Frameworks:</span>
+                        <p className="font-medium text-blue-900">
+                          {objectiveSelection.frameworks.map(f => f.name).join(', ')}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-blue-700">Assessment Answers:</span>
+                        <p className="font-medium text-blue-900">{assessmentAnswers.length} questions answered</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Selected Evidence List */}
+                {selectedEvidence.length > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                    <h3 className="font-semibold text-green-900 mb-4">
+                      Enhanced Evidence Items ({selectedEvidence.length})
+                    </h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {selectedEvidence.map((item, idx) => (
+                        <div key={`${item.id}-${item.type}-${idx}`} className="bg-white rounded p-3 flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-3">
+                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                              {item.type}
+                            </span>
+                            <span className="font-medium text-gray-900">{item.filename}</span>
+                            {item.control_id && (
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-mono">
+                                {item.control_id}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pack Generation Form */}
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Evidence Requirement
+                    </label>
+                    <textarea 
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      className="w-full rounded-lg border-gray-300 border p-4 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none h-28 resize-none shadow-sm"
+                      placeholder="e.g., Provide all evidence related to user access reviews for critical systems..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Control ID <span className="font-normal text-gray-400">(Optional)</span>
+                      </label>
+                      <input 
+                        type="text"
+                        value={controlId}
+                        onChange={(e) => setControlId(e.target.value)}
+                        className="w-full rounded-lg border-gray-300 border p-4 text-sm focus:ring-2 focus:ring-blue-900 outline-none shadow-sm"
+                        placeholder="e.g., SWIFT-2.8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Time Range</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <input 
+                          type="date" 
+                          value={dateRange.start}
+                          onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-900 outline-none" 
+                        />
+                        <input 
+                          type="date" 
+                          value={dateRange.end}
+                          onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-900 outline-none" 
+                        />
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        {['month', 'quarter', 'year'].map(t => (
+                          <button 
+                            key={t}
+                            onClick={() => setPresetDate(t as any)}
+                            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-1.5 rounded-full transition-colors capitalize font-medium"
+                          >
+                            Last {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-4 pt-4">
+                    <button
+                      onClick={() => setCurrentStep(4)}
+                      className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleGeneratePack}
+                      disabled={loading || !query || !dateRange.start || !dateRange.end}
+                      className="px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {loading ? 'Generating...' : 'Generate Pack'}
+                      <ShieldCheck className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 6: View Report */}
+            {currentStep === 6 && generatedPack && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 6: Compliance Report</h2>
+                    <p className="text-gray-600">Review and download your compliance assurance report</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setCurrentStep(5)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Back
+                    </button>
+                    <a
+                      href={generatedPack.download_url}
+                      download
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download Pack
+                    </a>
+                  </div>
+                </div>
+
+                {loadingReport ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-900 rounded-full animate-spin"></div>
+                  </div>
+                ) : reportContent ? (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 border-b border-gray-200 p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <span className="font-semibold text-gray-900">Pack Generated Successfully</span>
+                      </div>
+                      <button
+                        onClick={() => setShowFullReport(!showFullReport)}
+                        className="text-sm text-blue-900 hover:text-blue-700 font-medium"
+                      >
+                        {showFullReport ? 'Show Summary' : 'Show Full Report'}
+                      </button>
+                    </div>
+                    <div className="p-6 max-h-[600px] overflow-y-auto prose prose-sm max-w-none">
+                      <div className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
+                        {reportContent}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p>Report not available</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

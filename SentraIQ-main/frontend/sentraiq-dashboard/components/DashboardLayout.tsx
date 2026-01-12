@@ -4,7 +4,7 @@ import { TabType, ToastNotification, EvidenceItem, WorkflowState } from '../type
 import Header from './Header';
 import ToastContainer from './Toast';
 import { motion } from 'framer-motion';
-import { Database, FileText, Package, History } from 'lucide-react';
+import { Database, FileText, Package, History, FileCheck } from 'lucide-react';
 
 const DashboardLayout: React.FC = () => {
   const location = useLocation();
@@ -87,18 +87,18 @@ const DashboardLayout: React.FC = () => {
   // Determine active tab from route
   const getActiveTab = (): TabType => {
     const path = location.pathname;
+    if (path.includes('/generate')) return 'generate';
     if (path.includes('/ingest')) return 'ingest';
     if (path.includes('/query')) return 'query';
-    if (path.includes('/generate')) return 'generate';
     if (path.includes('/history')) return 'history';
-    return 'ingest';
+    return 'generate';
   };
 
   const activeTab = getActiveTab();
 
   const tabs = [
     { id: 'generate', label: 'Generate Assurance Pack', icon: Package, path: '/dashboard/generate' },
-    { id: 'ingest', label: 'Ingest Evidence', icon: Database, path: '/dashboard/ingest' },
+    { id: 'ingest', label: 'Manage Evidence', icon: Database, path: '/dashboard/ingest' },
     { id: 'query', label: 'Query Evidence', icon: FileText, path: '/dashboard/query' },
     { id: 'history', label: 'Pack History', icon: History, path: '/dashboard/history' },
   ];

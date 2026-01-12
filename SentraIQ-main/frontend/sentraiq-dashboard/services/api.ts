@@ -6,7 +6,7 @@ import { DashboardStats, EvidenceItem, GeneratedPack, IngestResponse } from '../
 // If VITE_API_URL is set (e.g., in production), use that instead.
 const API_BASE =
   import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== ''
-    ? `${import.meta.env.VITE_API_URL}/api/v1`
+  ? `${import.meta.env.VITE_API_URL}/api/v1`
     : 'http://localhost:8080/api/v1';
 
 // Helper to simulate network delay for demo purposes
@@ -105,35 +105,43 @@ export const api = {
     }
   },
 
-  queryEvidence: async (query: string): Promise<EvidenceItem[]> => {
+  queryEvidence: async (query: string): Promise<any> => {
     try {
-      const response = await axios.post(`${API_BASE}/evidence/telescope`, {
-        natural_language_query: query
+      const response = await axios.post(`${API_BASE}/assurance/query`, {
+        query: query
       });
 
       // Transform backend response to frontend format
-      const items = response.data.evidence_objects || [];
-      return items.map((item: any) => ({
-        id: item.evidence_id,
-        type: item.source_type === 'RAW_LOG' ? 'Log' : 'Document',
-        filename: item.source_file,
-        preview: item.extracted_text || item.summary || 'No preview available',
-        relevance: Math.floor(Math.random() * 20) + 80, // Simulated relevance score
-        control_id: item.compliance_mappings?.[0]?.control_id || null,
-        timestamp: item.timestamp
+      const items = response.data.evidence_items || [];
+      const transformedItems = items.map((item: any) => ({
+        id: String(item.id),
+        type: item.type === 'log' ? 'Log' : 'Document',
+        filename: item.filename,
+        preview: item.content_preview || 'No preview available',
+        relevance: Math.round(item.relevance_score * 100),
+        control_id: item.control_id || null,
+        timestamp: item.ingested_at,
+        hash: item.hash
       }));
+      
+      // Return object with items and metadata
+      const result: any = transformedItems;
+      result.ai_summary = response.data.ai_summary;
+      result.gap_analysis = response.data.gap_analysis;
+      return result;
     } catch (error: any) {
       console.error('Error querying evidence:', error);
       // Return demo results if API fails
-      return [
+      const demoItems = [
         {
           id: '1',
           type: 'Log',
           filename: 'swift_access_q3_2025.log',
           preview: '[2025-09-11T01:00:00] Event ID: 4624 | Source: SWIFT | Terminal: SWIFT-2 | User: user4 | Action: LOGIN | MFA Status: SUCCESS',
           relevance: 95,
-          control_id: 'AC-002',
-          timestamp: '2025-09-11T01:00:00Z'
+          control_id: 'SWIFT-2.8',
+          timestamp: '2025-09-11T01:00:00Z',
+          hash: 'abc123...'
         },
         {
           id: '2',
@@ -141,8 +149,9 @@ export const api = {
           filename: 'mfa_policy.pdf',
           preview: 'Multi-Factor Authentication Policy: All privileged access requires MFA using FIPS 140-2 compliant tokens',
           relevance: 92,
-          control_id: 'IA-005',
-          timestamp: '2025-01-15T09:00:00Z'
+          control_id: 'SWIFT-2.8',
+          timestamp: '2025-01-15T09:00:00Z',
+          hash: 'def456...'
         },
         {
           id: '3',
@@ -150,10 +159,15 @@ export const api = {
           filename: 'encryption_policy.pdf',
           preview: 'Data Encryption Policy: All data at rest must be encrypted using AES-256. TLS 1.3 required for data in transit',
           relevance: 88,
-          control_id: 'SC-013',
-          timestamp: '2025-02-01T10:00:00Z'
+          control_id: 'SWIFT-3.1',
+          timestamp: '2025-02-01T10:00:00Z',
+          hash: 'ghi789...'
         }
       ];
+      const result: any = demoItems;
+      result.ai_summary = 'Found 3 evidence items related to MFA and encryption controls.';
+      result.gap_analysis = null;
+      return result;
     }
   },
 
@@ -162,7 +176,8 @@ export const api = {
     controlId: string | null,
     startDate: string,
     endDate: string,
-    explicitEvidence: EvidenceItem[] = []
+    explicitEvidence: EvidenceItem[] = [],
+    assessmentAnswers: any[] = []
   ): Promise<GeneratedPack> => {
     try {
       // Parse evidence IDs more robustly
@@ -199,6 +214,12 @@ export const api = {
         console.log(`📦 Including ${explicitLogIds.length} logs and ${explicitDocumentIds.length} documents in pack`);
       }
 
+      // Get assessment answers from localStorage if available
+      const storedAnswers = localStorage.getItem('assessmentAnswers');
+      const answers = assessmentAnswers.length > 0 
+        ? assessmentAnswers 
+        : (storedAnswers ? JSON.parse(storedAnswers) : []);
+
       const response = await axios.post(`${API_BASE}/assurance/generate-pack`, {
         query,
         control_id: controlId || null,
@@ -208,6 +229,7 @@ export const api = {
         include_logs: true,
         explicit_log_ids: explicitLogIds.length > 0 ? explicitLogIds : undefined,
         explicit_document_ids: explicitDocumentIds.length > 0 ? explicitDocumentIds : undefined,
+        assessment_answers: answers.length > 0 ? answers : undefined,
       });
 
       return {
@@ -306,6 +328,30 @@ export const api = {
     } catch (error: any) {
       console.error('Error fetching packs:', error);
       throw new Error(error.response?.data?.detail || 'Failed to fetch packs');
+    }
+  },
+
+  getControls: async (infrastructure?: string, frameworks?: string[]) => {
+    try {
+      const params: any = {};
+      if (infrastructure) params.infrastructure = infrastructure;
+      if (frameworks && frameworks.length > 0) params.frameworks = frameworks.join(',');
+      const response = await axios.get(`${API_BASE}/assurance/controls`, { params });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching controls:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch controls');
+    }
+  },
+
+  checkRegulatoryUpdates: async (framework?: string) => {
+    try {
+      const params = framework ? { framework } : {};
+      const response = await axios.get(`${API_BASE}/assurance/regulatory-updates/check`, { params });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error checking regulatory updates:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to check regulatory updates');
     }
   },
 };

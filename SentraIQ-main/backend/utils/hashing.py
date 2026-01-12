@@ -55,3 +55,25 @@ def verify_file_integrity(file_path: Union[str, Path], expected_hash: str) -> bo
     """
     actual_hash = calculate_file_hash(file_path)
     return actual_hash == expected_hash
+
+
+def calculate_hash_with_metadata(content: Union[str, bytes], source_timestamp: str, agent_id: str) -> str:
+    """
+    Calculate SHA-256 hash including content, source timestamp, and agent ID for immutable lineage
+    
+    Args:
+        content: String or bytes content
+        source_timestamp: ISO format timestamp from source system
+        agent_id: ID of the ingestion agent
+        
+    Returns:
+        Hexadecimal SHA-256 hash string
+    """
+    if isinstance(content, str):
+        content_bytes = content.encode('utf-8')
+    else:
+        content_bytes = content
+    
+    # Combine content + timestamp + agent for audit-ready hash
+    combined = content_bytes + source_timestamp.encode('utf-8') + agent_id.encode('utf-8')
+    return hashlib.sha256(combined).hexdigest()

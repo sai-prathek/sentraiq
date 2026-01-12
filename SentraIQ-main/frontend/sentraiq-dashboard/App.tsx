@@ -20,10 +20,10 @@ const App: React.FC = () => {
         
         {/* Dashboard Routes with Layout */}
         <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/dashboard/ingest" replace />} />
+          <Route index element={<Navigate to="/dashboard/generate" replace />} />
+          <Route path="generate" element={<GeneratePage />} />
           <Route path="ingest" element={<IngestPage />} />
           <Route path="query" element={<QueryPage />} />
-          <Route path="generate" element={<GeneratePage />} />
           <Route path="history" element={<HistoryPage />} />
         </Route>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, FileText, Database, ArrowRight, Sparkles, Zap } from 'lucide-react';
+import { Search, FileText, Database, ArrowRight, Sparkles, Zap, Shield, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EvidenceItem, DashboardOutletContext } from '../types';
 import { api } from '../services/api';
@@ -23,15 +23,31 @@ const QueryTab: React.FC<QueryTabProps> = ({
   const [loading, setLoading] = useState(false);
   const [currentEvidence, setCurrentEvidence] = useState<EvidenceItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [auditorMode, setAuditorMode] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [gapAnalysis, setGapAnalysis] = useState<any>(null);
 
   const handleSearch = async (searchQuery: string = query) => {
     if (!searchQuery.trim()) return;
     setQuery(searchQuery);
     setLoading(true);
-    setResults(null); // Reset results for re-animation
+    setResults(null);
+    setAiSummary(null);
+    setGapAnalysis(null);
+    
     try {
-      const data = await api.queryEvidence(searchQuery);
-      setResults(data);
+      const data: any = await api.queryEvidence(searchQuery);
+      
+      // Extract items, AI summary, and gap analysis from response
+      const items = Array.isArray(data) ? data : [];
+      setResults(items);
+      
+      if (data.ai_summary) {
+        setAiSummary(data.ai_summary);
+      }
+      if (data.gap_analysis) {
+        setGapAnalysis(data.gap_analysis);
+      }
       
       // Mark query step as complete
       setWorkflowState((prev) => ({ ...prev, hasQueried: true }));
@@ -66,6 +82,21 @@ const QueryTab: React.FC<QueryTabProps> = ({
         </div>
         <h2 className="text-2xl font-bold text-gray-800">Natural Language Evidence Search</h2>
         <p className="text-gray-500">Ask questions about your compliance data using plain English. Powered by OpenAI GPT-4.</p>
+        
+        {/* Auditor Mode Toggle */}
+        <div className="flex items-center justify-center gap-3 mt-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={auditorMode}
+              onChange={(e) => setAuditorMode(e.target.checked)}
+              className="w-4 h-4 text-blue-900 border-gray-300 rounded focus:ring-blue-900"
+            />
+            <Shield className="w-4 h-4 text-blue-900" />
+            <span className="text-sm font-medium text-gray-700">Auditor Mode</span>
+          </label>
+          <span className="text-xs text-gray-500">Enable to simulate auditor challenges</span>
+        </div>
       </div>
 
       {/* Search Input Area */}
@@ -123,7 +154,118 @@ const QueryTab: React.FC<QueryTabProps> = ({
         )}
 
         {results && (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Show Your Work Section */}
+            {aiSummary && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-blue-50 border border-blue-200 rounded-xl p-6"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-blue-900" />
+                  <h3 className="font-semibold text-blue-900">AI Analysis: Show Your Work</h3>
+                </div>
+                <p className="text-gray-700 mb-4">{aiSummary}</p>
+                
+                {/* Evidence Summary */}
+                <div className="bg-white rounded-lg p-4 border border-blue-100">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Evidence Items:</span>
+                      <p className="font-semibold text-gray-900">{results.length}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Controls Matched:</span>
+                      <p className="font-semibold text-gray-900">
+                        {new Set(results.filter(r => r.control_id).map(r => r.control_id)).size}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Logs:</span>
+                      <p className="font-semibold text-gray-900">
+                        {results.filter(r => r.type === 'Log').length}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Documents:</span>
+                      <p className="font-semibold text-gray-900">
+                        {results.filter(r => r.type === 'Document').length}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Control IDs with Links */}
+                  {results.some(r => r.control_id) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <span className="text-sm text-gray-600">Control IDs: </span>
+                      {Array.from(new Set(results.filter(r => r.control_id).map(r => r.control_id!))).map(ctrlId => (
+                        <span key={ctrlId} className="inline-block mx-1 px-2 py-1 bg-blue-100 text-blue-900 text-xs rounded font-mono">
+                          {ctrlId}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Gap Analysis Section */}
+            {gapAnalysis && gapAnalysis.gap_count > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-yellow-50 border border-yellow-200 rounded-xl p-6"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertCircle className="w-5 h-5 text-yellow-700" />
+                  <h3 className="font-semibold text-yellow-900">Compliance Gap Analysis</h3>
+                </div>
+                <p className="text-sm text-yellow-800 mb-4">
+                  {gapAnalysis.gap_count} gap(s) identified: {gapAnalysis.temporal_gaps?.length || 0} temporal, {gapAnalysis.coverage_gaps?.length || 0} coverage
+                </p>
+                
+                {gapAnalysis.temporal_gaps && gapAnalysis.temporal_gaps.length > 0 && (
+                  <div className="mb-3">
+                    <h4 className="text-sm font-semibold text-yellow-900 mb-2">Temporal Gaps:</h4>
+                    {gapAnalysis.temporal_gaps.slice(0, 3).map((gap: any, idx: number) => (
+                      <div key={idx} className="bg-white rounded p-2 mb-2 text-sm">
+                        <span className="font-medium">{gap.control_id}:</span> {gap.description}
+                        {gap.days_overdue && (
+                          <span className="text-red-700 ml-2">({gap.days_overdue} days overdue)</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* Auditor Mode Challenge */}
+            {auditorMode && results.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-200 rounded-xl p-6"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <Shield className="w-5 h-5 text-red-700" />
+                  <h3 className="font-semibold text-red-900">Auditor Challenge Mode</h3>
+                </div>
+                <p className="text-sm text-red-800 mb-3">
+                  <strong>Challenge:</strong> "Prove to me that your evidence is current and comprehensive."
+                </p>
+                <div className="bg-white rounded-lg p-4 border border-red-100">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>Response:</strong> Evidence includes {results.length} items covering {new Set(results.filter(r => r.control_id).map(r => r.control_id)).size} controls.
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    All evidence items are cryptographically hashed and timestamped. Evidence hashes available for verification.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
             <div className="flex justify-between items-end border-b border-gray-200 pb-2 mb-4">
                 <h3 className="text-lg font-semibold text-gray-700">Found {results.length} relevant items</h3>
                 <span className="text-xs text-gray-400">AI-enhanced relevance scoring</span>
@@ -135,40 +277,51 @@ const QueryTab: React.FC<QueryTabProps> = ({
                   (e) => e.id === item.id && e.type === item.type
                 );
                 return (
-                  <motion.div
+                <motion.div
                     key={`${item.id}-${item.type}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
-                  >
+                >
                     <div className="flex justify-between items-start">
-                      <div className="flex gap-4">
+                    <div className="flex gap-4">
                         <div className={`p-3 rounded-lg h-fit ${item.type === 'Log' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'}`}>
-                          {item.type === 'Log' ? <Database className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                        {item.type === 'Log' ? <Database className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors">{item.filename}</h4>
-                            {item.control_id && (
-                              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200 font-mono">
-                                {item.control_id}
-                              </span>
+                                {item.control_id && (
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200 font-mono">
+                                        {item.control_id}
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-sm text-gray-600 font-mono bg-gray-50 p-2 rounded border border-gray-100 mb-2 max-w-2xl line-clamp-2">
+                                {item.preview}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-gray-400">
+                                <span>{new Date(item.timestamp).toLocaleString()}</span>
+                                <span>ID: {item.id}</span>
+                                {item.control_id && (
+                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-mono">
+                                    Control: {item.control_id}
+                                  </span>
+                                )}
+                            </div>
+                            {/* Show hash if available (for show your work) */}
+                            {auditorMode && (item as any).hash && (
+                              <div className="mt-2 text-xs text-gray-500 font-mono">
+                                Hash: {(item as any).hash.substring(0, 16)}...
+                              </div>
                             )}
-                          </div>
-                          <p className="text-sm text-gray-600 font-mono bg-gray-50 p-2 rounded border border-gray-100 mb-2 max-w-2xl line-clamp-2">
-                            {item.preview}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-400">
-                            <span>{new Date(item.timestamp).toLocaleString()}</span>
-                            <span>ID: {item.id}</span>
-                          </div>
                         </div>
-                      </div>
+                    </div>
 
-                      <div className="flex flex-col items-end gap-2">
+                    <div className="flex flex-col items-end gap-2">
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded-md text-xs font-bold">
+                        <div className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded-md text-xs font-bold">
                             <Sparkles className="w-3 h-3" />
                             {item.relevance}% Match
                           </div>
@@ -179,17 +332,17 @@ const QueryTab: React.FC<QueryTabProps> = ({
                           )}
                         </div>
                         <button
-                          onClick={() => {
+                            onClick={() => {
                             setCurrentEvidence(item);
-                            setIsModalOpen(true);
-                          }}
+                                setIsModalOpen(true);
+                            }}
                           className="text-sm text-blue-900 font-medium flex items-center hover:underline mt-2"
                         >
-                          View Details <ArrowRight className="w-4 h-4 ml-1" />
+                            View Details <ArrowRight className="w-4 h-4 ml-1" />
                         </button>
-                      </div>
                     </div>
-                  </motion.div>
+                    </div>
+                </motion.div>
                 );
               })}
             </AnimatePresence>

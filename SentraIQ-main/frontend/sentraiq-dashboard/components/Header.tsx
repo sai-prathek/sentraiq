@@ -27,7 +27,7 @@ const Header: React.FC = () => {
               SentraIQ
             </h1>
             <p className="text-[11px] uppercase font-semibold tracking-[0.15em] text-blue-900 opacity-90">
-              Evidence Lakehouse
+                Evidence Lakehouse
             </p>
           </div>
         </Link>

@@ -9,6 +9,10 @@ from typing import Optional
 
 from backend.database import get_session
 from backend.layers.telescope import Telescope, ai_cache
+from backend.layers.control_library import (
+    get_all_controls, get_controls_by_infrastructure, get_controls_by_framework,
+    get_shared_controls, get_mandatory_vs_advisory, Framework, InfrastructureType
+)
 from backend.models.schemas import (
     TelescopeQueryRequest, TelescopeQueryResponse, EvidenceItem,
     AssurancePackRequest, AssurancePackResponse
@@ -59,8 +63,36 @@ async def query_evidence(
             query=result['query'],
             evidence_items=result['evidence_items']
         )
+        
+        # Perform gap analysis
+        time_range_start = request.time_range_start or result.get('time_range', {}).get('start')
+        time_range_end = request.time_range_end or result.get('time_range', {}).get('end')
+        
+        gap_analysis = None
+        if time_range_start and time_range_end:
+            from dateutil.parser import parse
+            start_dt = parse(time_range_start) if isinstance(time_range_start, str) else time_range_start
+            end_dt = parse(time_range_end) if isinstance(time_range_end, str) else time_range_end
+            
+            # Extract control_id from intent if available
+            control_id = None
+            intent = result.get('interpreted_intent', {})
+            if isinstance(intent, str):
+                import json
+                try:
+                    intent = json.loads(intent)
+                except:
+                    intent = {}
+            control_id = intent.get('control_id') or request.control_id if hasattr(request, 'control_id') else None
+            
+            gap_analysis = await Telescope.perform_gap_analysis(
+                control_id=control_id,
+                evidence_items=result['evidence_items'],
+                time_range_start=start_dt,
+                time_range_end=end_dt
+            )
 
-        return TelescopeQueryResponse(
+        response = TelescopeQueryResponse(
             query=result['query'],
             interpreted_intent=str(result['interpreted_intent']),
             results_count=result['results_count'],
@@ -68,6 +100,12 @@ async def query_evidence(
             execution_time_ms=result['execution_time_ms'],
             ai_summary=ai_summary
         )
+        
+        # Add gap analysis to response metadata if available
+        if gap_analysis:
+            response.gap_analysis = gap_analysis
+        
+        return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
@@ -98,6 +136,7 @@ async def generate_assurance_pack(
             time_range_end=request.time_range_end,
             explicit_log_ids=request.explicit_log_ids,
             explicit_document_ids=request.explicit_document_ids,
+            assessment_answers=request.assessment_answers,
         )
 
         return AssurancePackResponse(
@@ -231,3 +270,140 @@ async def clear_cache():
     """
     ai_cache.clear()
     return {"message": "AI cache cleared successfully", "stats": ai_cache.stats()}
+
+
+@router.get("/controls")
+async def get_controls(
+    infrastructure: Optional[str] = None,
+    frameworks: Optional[str] = None
+):
+    """
+    Get controls based on infrastructure and framework selection
+    Returns mandatory vs advisory controls and shared controls
+    """
+    try:
+        framework_list = []
+        if frameworks:
+            framework_list = [Framework(f) for f in frameworks.split(',') if f in [e.value for e in Framework]]
+        
+        infra_type = None
+        if infrastructure:
+            try:
+                infra_type = InfrastructureType(infrastructure)
+            except ValueError:
+                pass
+        
+        controls_data = {
+            "all_controls": [],
+            "mandatory": [],
+            "advisory": [],
+            "shared_controls": []
+        }
+        
+        if infra_type and framework_list:
+            # Get controls for infrastructure
+            controls = get_controls_by_infrastructure(infra_type)
+            
+            # Filter by frameworks
+            framework_control_ids = set()
+            for fw in framework_list:
+                fw_controls = get_controls_by_framework(fw)
+                framework_control_ids.update(fw_controls.keys())
+            
+            filtered_controls = [c for c in controls if c["control_id"] in framework_control_ids]
+            
+            # Get mandatory vs advisory
+            mandatory_advisory = get_mandatory_vs_advisory(infra_type, framework_list)
+            
+            # Get shared controls
+            shared = get_shared_controls(framework_list)
+            
+            controls_data = {
+                "all_controls": filtered_controls,
+                "mandatory": mandatory_advisory["mandatory"],
+                "advisory": mandatory_advisory["advisory"],
+                "shared_controls": shared
+            }
+        elif framework_list:
+            # Just frameworks, no infrastructure
+            all_controls = get_all_controls()
+            framework_control_ids = set()
+            for fw in framework_list:
+                fw_controls = get_controls_by_framework(fw)
+                framework_control_ids.update(fw_controls.keys())
+            
+            filtered_controls = [all_controls[cid] for cid in framework_control_ids if cid in all_controls]
+            shared = get_shared_controls(framework_list)
+            
+            controls_data = {
+                "all_controls": filtered_controls,
+                "mandatory": [c for c in filtered_controls if c.get("type") == "mandatory"],
+                "advisory": [c for c in filtered_controls if c.get("type") == "advisory"],
+                "shared_controls": shared
+            }
+        
+        return controls_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get controls: {str(e)}")
+
+
+@router.get("/regulatory-updates/check")
+async def check_regulatory_updates(
+    framework: Optional[str] = None
+):
+    """
+    Stub endpoint for regulatory update checks (Gemini + Google Search Grounding)
+    Returns mocked regulatory update information for demo purposes
+    
+    Args:
+        framework: Framework to check (SWIFT_CSP, SOC2, etc.)
+    
+    Returns:
+        Mocked regulatory update information
+    """
+    from datetime import datetime, timedelta
+    
+    # Mock regulatory updates
+    updates = []
+    
+    if not framework or framework.upper() == "SWIFT_CSP":
+        updates.append({
+            "framework": "SWIFT_CSP",
+            "update_type": "version_change",
+            "from_version": "CSCF v2023",
+            "to_version": "CSCF v2024",
+            "description": "SWIFT Customer Security Control Framework updated from v2023 to v2024",
+            "changes": [
+                "New mandatory control SWIFT-2.9: Enhanced monitoring requirements",
+                "Updated SWIFT-2.7: Vulnerability scanning frequency changed from quarterly to monthly",
+                "Advisory control SWIFT-3.2: Cloud security best practices added"
+            ],
+            "detected_at": (datetime.utcnow() - timedelta(days=7)).isoformat(),
+            "source": "SWIFT official bulletin",
+            "action_required": True,
+            "severity": "high"
+        })
+    
+    if not framework or framework.upper() == "SOC2":
+        updates.append({
+            "framework": "SOC2",
+            "update_type": "control_addition",
+            "from_version": "SOC 2 Type II 2023",
+            "to_version": "SOC 2 Type II 2024",
+            "description": "New control CC8.2 added for cloud infrastructure monitoring",
+            "changes": [
+                "New control CC8.2: Cloud infrastructure monitoring and alerting",
+                "Updated CC7.1: Enhanced system monitoring requirements"
+            ],
+            "detected_at": (datetime.utcnow() - timedelta(days=14)).isoformat(),
+            "source": "AICPA official update",
+            "action_required": True,
+            "severity": "medium"
+        })
+    
+    return {
+        "checked_at": datetime.utcnow().isoformat(),
+        "updates": updates,
+        "total_updates": len(updates),
+        "note": "This is a mocked response for demo purposes. In production, this would use Gemini API with Google Search Grounding to monitor official regulatory bulletins."
+    }

@@ -16,6 +16,7 @@ import shutil
 from backend.database import RawLog, RawDocument, EvidenceObject, TelescopeQuery, AssurancePack
 from backend.config import settings
 from backend.utils.hashing import calculate_content_hash, calculate_file_hash
+from backend.layers.control_library import get_all_controls, get_controls_by_framework, Framework
 import hashlib
 import time
 
@@ -564,6 +565,123 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         }
 
     @staticmethod
+    async def perform_gap_analysis(
+        control_id: Optional[str],
+        evidence_items: List[Dict[str, Any]],
+        time_range_start: datetime,
+        time_range_end: datetime
+    ) -> Dict[str, Any]:
+        """
+        Perform gap analysis: Compare assessment questions vs evidence freshness/applicability
+        Flags temporal gaps (e.g., evidence is 18 months old but question asks for annual testing)
+        
+        Args:
+            control_id: Control ID to analyze (optional)
+            evidence_items: List of evidence items
+            time_range_start: Start of time range
+            time_range_end: End of time range
+            
+        Returns:
+            Dictionary with gap analysis results
+        """
+        gaps = []
+        all_controls = get_all_controls()
+        
+        # If control_id provided, get its assessment questions
+        if control_id and control_id in all_controls:
+            control = all_controls[control_id]
+            assessment_questions = control.get("assessment_questions", [])
+            
+            # Check each question against evidence
+            for question in assessment_questions:
+                question_lower = question.lower()
+                
+                # Check for temporal requirements (annual, quarterly, monthly, etc.)
+                temporal_keywords = {
+                    "annual": 365,
+                    "yearly": 365,
+                    "quarterly": 90,
+                    "monthly": 30,
+                    "weekly": 7,
+                    "daily": 1
+                }
+                
+                required_frequency_days = None
+                for keyword, days in temporal_keywords.items():
+                    if keyword in question_lower:
+                        required_frequency_days = days
+                        break
+                
+                # Find relevant evidence for this question
+                relevant_evidence = []
+                for item in evidence_items:
+                    # Simple keyword matching for relevance
+                    if any(kw in item.get("content_preview", "").lower() for kw in question_lower.split()[:3]):
+                        relevant_evidence.append(item)
+                
+                # Check temporal gaps
+                if relevant_evidence and required_frequency_days:
+                    # Get most recent evidence timestamp
+                    most_recent = max(
+                        (item.get("ingested_at") for item in relevant_evidence if item.get("ingested_at")),
+                        default=None
+                    )
+                    
+                    if most_recent:
+                        if isinstance(most_recent, str):
+                            from dateutil.parser import parse
+                            most_recent = parse(most_recent)
+                        
+                        days_old = (datetime.utcnow() - most_recent).days
+                        
+                        if days_old > required_frequency_days:
+                            gaps.append({
+                                "type": "temporal_gap",
+                                "control_id": control_id,
+                                "question": question,
+                                "severity": "high" if days_old > required_frequency_days * 2 else "medium",
+                                "description": f"Evidence is {days_old} days old, but requirement is {required_frequency_days}-day frequency",
+                                "most_recent_evidence": most_recent.isoformat(),
+                                "required_frequency_days": required_frequency_days,
+                                "days_overdue": days_old - required_frequency_days
+                            })
+                
+                # Check coverage gaps (no evidence for question)
+                if not relevant_evidence:
+                    gaps.append({
+                        "type": "coverage_gap",
+                        "control_id": control_id,
+                        "question": question,
+                        "severity": "high",
+                        "description": f"No evidence found for assessment question: {question}",
+                        "evidence_count": 0
+                    })
+        
+        # General coverage analysis
+        if not control_id:
+            # Analyze overall evidence coverage
+            if not evidence_items:
+                gaps.append({
+                    "type": "coverage_gap",
+                    "control_id": None,
+                    "question": "General evidence coverage",
+                    "severity": "high",
+                    "description": "No evidence items found for the specified query and time range",
+                    "evidence_count": 0
+                })
+        
+        return {
+            "gaps": gaps,
+            "gap_count": len(gaps),
+            "temporal_gaps": [g for g in gaps if g["type"] == "temporal_gap"],
+            "coverage_gaps": [g for g in gaps if g["type"] == "coverage_gap"],
+            "time_range": {
+                "start": time_range_start.isoformat(),
+                "end": time_range_end.isoformat()
+            }
+        }
+
+    @staticmethod
     async def summarize_evidence_with_ai(
         query: str,
         evidence_items: List[Dict[str, Any]]
@@ -864,6 +982,7 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         time_range_end: datetime,
         explicit_log_ids: Optional[List[int]] = None,
         explicit_document_ids: Optional[List[int]] = None,
+        assessment_answers: Optional[List[Dict[str, Any]]] = None,
     ) -> AssurancePack:
         """
         Generate an Assurance Pack with evidence
@@ -951,6 +1070,14 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         # Ensure results_count reflects merged evidence set
         evidence_data["results_count"] = len(evidence_data.get("evidence_items", []))
         
+        # Perform gap analysis
+        gap_analysis = await Telescope.perform_gap_analysis(
+            control_id=control_id,
+            evidence_items=evidence_data.get("evidence_items", []),
+            time_range_start=time_range_start,
+            time_range_end=time_range_end
+        )
+        
         # Validate we have evidence
         if evidence_data['results_count'] == 0:
             raise ValueError(
@@ -959,6 +1086,8 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
             )
         
         print(f"✅ Found {evidence_data['results_count']} evidence items to include in pack")
+        if gap_analysis.get('gap_count', 0) > 0:
+            print(f"⚠️  Identified {gap_analysis['gap_count']} compliance gaps")
 
         # Create pack ID
         pack_id = f"PACK-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}"
@@ -989,6 +1118,7 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
                 'interpreted_intent': evidence_data.get('interpreted_intent', {}),
                 'ai_summary': ai_summary
             },
+            'gap_analysis': gap_analysis,
             'explicit_evidence': {
                 'log_ids': explicit_log_ids or [],
                 'document_ids': explicit_document_ids or []
@@ -1163,6 +1293,7 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         failed_files = manifest.get('failed_files', [])
         query_results = manifest.get('query_results', {})
         explicit_evidence = manifest.get('explicit_evidence', {})
+        assessment_answers = manifest.get('assessment_answers', [])
         
         # Debug: print files_info structure if available
         if files_info:
@@ -1359,13 +1490,53 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         report_lines.append("")
         report_lines.append("=" * 80)
         report_lines.append("")
+        
+        # Assessment Questions and Answers
+        if assessment_answers and len(assessment_answers) > 0:
+            report_lines.append("5.1 Assessment Questions and Responses")
+            report_lines.append("")
+            report_lines.append(
+                f"This pack addresses {len(assessment_answers)} compliance assessment questions "
+                f"based on the selected framework requirements."
+            )
+            report_lines.append("")
+            
+            # Group answers by answer type
+            yes_answers = [a for a in assessment_answers if a.get('answer') == 'yes']
+            partial_answers = [a for a in assessment_answers if a.get('answer') == 'partial']
+            no_answers = [a for a in assessment_answers if a.get('answer') == 'no']
+            
+            report_lines.append(f"Summary:")
+            report_lines.append(f"  - Fully Compliant (Yes): {len(yes_answers)}")
+            report_lines.append(f"  - Partially Compliant (Partial): {len(partial_answers)}")
+            report_lines.append(f"  - Non-Compliant (No): {len(no_answers)}")
+            report_lines.append("")
+            
+            # Show sample questions (first 10)
+            report_lines.append("Sample Assessment Questions:")
+            report_lines.append("")
+            for answer in assessment_answers[:10]:
+                answer_text = answer.get('answer', 'not_answered').upper()
+                answer_symbol = '✓' if answer_text == 'YES' else '~' if answer_text == 'PARTIAL' else '✗'
+                report_lines.append(f"{answer_symbol} {answer.get('questionId', 'N/A')}: {answer.get('question', 'N/A')}")
+                report_lines.append(f"   Answer: {answer_text}")
+                if answer.get('notes'):
+                    report_lines.append(f"   Notes: {answer.get('notes')}")
+                report_lines.append("")
+            
+            if len(assessment_answers) > 10:
+                report_lines.append(f"... and {len(assessment_answers) - 10} more questions")
+                report_lines.append("")
+        
         if query_results and query_results.get('ai_summary'):
             # Use AI summary for compliance assessment
-            report_lines.append("Evidence Analysis:")
+            report_lines.append("5.2 Evidence Analysis:")
             report_lines.append("")
             report_lines.append(query_results['ai_summary'])
             report_lines.append("")
         else:
+            report_lines.append("5.2 Evidence Summary:")
+            report_lines.append("")
             report_lines.append(
                 f"Based on the evidence collected for the period {pack.time_range_start.strftime('%B %d, %Y')} "
                 f"to {pack.time_range_end.strftime('%B %d, %Y')}, the following assessment is provided:"
@@ -1384,6 +1555,52 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
             report_lines.append("")
         report_lines.append("=" * 80)
         report_lines.append("")
+        
+        # 5.5 GAP ANALYSIS
+        gap_analysis = manifest.get('gap_analysis')
+        if gap_analysis:
+            report_lines.append("5.5 COMPLIANCE GAP ANALYSIS")
+            report_lines.append("")
+            report_lines.append("=" * 80)
+            report_lines.append("")
+            
+            gaps = gap_analysis.get('gaps', [])
+            temporal_gaps = gap_analysis.get('temporal_gaps', [])
+            coverage_gaps = gap_analysis.get('coverage_gaps', [])
+            
+            if gaps:
+                report_lines.append(f"Total Gaps Identified: {len(gaps)}")
+                report_lines.append(f"  - Temporal Gaps: {len(temporal_gaps)}")
+                report_lines.append(f"  - Coverage Gaps: {len(coverage_gaps)}")
+                report_lines.append("")
+                
+                if temporal_gaps:
+                    report_lines.append("Temporal Gaps (Evidence Freshness Issues):")
+                    report_lines.append("")
+                    for gap in temporal_gaps[:5]:  # Show top 5
+                        report_lines.append(f"  - Control: {gap.get('control_id', 'N/A')}")
+                        report_lines.append(f"    Question: {gap.get('question', 'N/A')}")
+                        report_lines.append(f"    Issue: {gap.get('description', 'N/A')}")
+                        report_lines.append(f"    Severity: {gap.get('severity', 'medium').upper()}")
+                        if gap.get('days_overdue'):
+                            report_lines.append(f"    Days Overdue: {gap['days_overdue']}")
+                        report_lines.append("")
+                
+                if coverage_gaps:
+                    report_lines.append("Coverage Gaps (Missing Evidence):")
+                    report_lines.append("")
+                    for gap in coverage_gaps[:5]:  # Show top 5
+                        report_lines.append(f"  - Control: {gap.get('control_id', 'N/A')}")
+                        report_lines.append(f"    Question: {gap.get('question', 'N/A')}")
+                        report_lines.append(f"    Issue: {gap.get('description', 'N/A')}")
+                        report_lines.append(f"    Severity: {gap.get('severity', 'medium').upper()}")
+                        report_lines.append("")
+            else:
+                report_lines.append("No compliance gaps identified. All assessment questions have adequate evidence coverage.")
+                report_lines.append("")
+            
+            report_lines.append("=" * 80)
+            report_lines.append("")
         
         # 6. CONCLUSION
         report_lines.append("6. CONCLUSION")

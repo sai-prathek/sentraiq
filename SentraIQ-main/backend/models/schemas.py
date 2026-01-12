@@ -84,6 +84,10 @@ class TelescopeQueryResponse(BaseModel):
         default=None,
         description="Optional AI-generated natural language summary of the evidence set"
     )
+    gap_analysis: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Gap analysis results comparing evidence to assessment questions"
+    )
 
 
 # Assurance Pack Schemas
@@ -100,6 +104,8 @@ class AssurancePackRequest(BaseModel):
     # These are in addition to whatever the Telescope query finds
     explicit_log_ids: Optional[List[int]] = None
     explicit_document_ids: Optional[List[int]] = None
+    # Assessment answers from compliance questions
+    assessment_answers: Optional[List[Dict[str, Any]]] = None
 
 
 class AssurancePackResponse(BaseModel):
