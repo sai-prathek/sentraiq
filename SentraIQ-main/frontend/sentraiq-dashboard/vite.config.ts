@@ -9,6 +9,11 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
+      // Support client-side routing - fallback to index.html for all routes
+      preview: {
+        port: 3000,
+        host: '0.0.0.0',
+      },
       plugins: [react()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),

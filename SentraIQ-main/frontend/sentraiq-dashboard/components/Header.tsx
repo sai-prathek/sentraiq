@@ -1,19 +1,16 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Shield, ExternalLink, Activity } from 'lucide-react';
 
-interface HeaderProps {
-    onHome?: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onHome }) => {
+const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 border-b border-gray-200/60 shadow-sm transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Left: Logo */}
-        <div
+        <Link
+            to="/"
             className="flex items-center gap-3 cursor-pointer group"
-            onClick={onHome}
             title="Back to Landing Page"
         >
           <div className="bg-gradient-to-tr from-purple-600 to-pink-600 p-2 rounded-lg shadow-lg shadow-purple-500/30 group-hover:scale-105 transition-transform">
@@ -34,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ onHome }) => {
               />
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Right: Actions */}
         <div className="flex items-center gap-6">

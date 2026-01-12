@@ -96,6 +96,10 @@ class AssurancePackRequest(BaseModel):
     time_range_end: datetime
     include_documents: bool = True
     include_logs: bool = True
+    # Optional explicit evidence IDs to always include in the pack
+    # These are in addition to whatever the Telescope query finds
+    explicit_log_ids: Optional[List[int]] = None
+    explicit_document_ids: Optional[List[int]] = None
 
 
 class AssurancePackResponse(BaseModel):

@@ -542,7 +542,9 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         control_id: Optional[str],
         query: str,
         time_range_start: datetime,
-        time_range_end: datetime
+        time_range_end: datetime,
+        explicit_log_ids: Optional[List[int]] = None,
+        explicit_document_ids: Optional[List[int]] = None,
     ) -> AssurancePack:
         """
         Generate an Assurance Pack with evidence
@@ -557,10 +559,47 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         Returns:
             AssurancePack record
         """
-        # Query evidence
+        # Query evidence based on query + time range
         evidence_data = await Telescope.query_evidence(
             session, query, time_range_start, time_range_end
         )
+
+        # Optionally merge in explicitly selected evidence IDs (from UI "pack list")
+        # while avoiding duplicates. We only need type + id for pack building.
+        explicit_log_ids = explicit_log_ids or []
+        explicit_document_ids = explicit_document_ids or []
+
+        existing_keys = {
+            (item["type"], item["id"])
+            for item in evidence_data.get("evidence_items", [])
+        }
+
+        # Add explicit logs
+        for lid in explicit_log_ids:
+            key = ("log", lid)
+            if key not in existing_keys:
+                evidence_data["evidence_items"].append(
+                    {
+                        "type": "log",
+                        "id": lid,
+                    }
+                )
+                existing_keys.add(key)
+
+        # Add explicit documents
+        for did in explicit_document_ids:
+            key = ("document", did)
+            if key not in existing_keys:
+                evidence_data["evidence_items"].append(
+                    {
+                        "type": "document",
+                        "id": did,
+                    }
+                )
+                existing_keys.add(key)
+
+        # Ensure results_count reflects merged evidence set
+        evidence_data["results_count"] = len(evidence_data.get("evidence_items", []))
 
         # Create pack ID
         pack_id = f"PACK-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}"

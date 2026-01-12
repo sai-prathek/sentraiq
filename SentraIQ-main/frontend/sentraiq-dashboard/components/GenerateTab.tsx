@@ -187,14 +187,33 @@ const GenerateTab: React.FC<GenerateTabProps> = ({ onToast }) => {
                     </div>
                 </div>
 
-                <a 
-                    href={generatedPack.download_url}
-                    onClick={(e) => e.preventDefault()} // Prevent actual nav since link is #
+                <button
+                    onClick={async () => {
+                        try {
+                            const packId = generatedPack.pack_id;
+                            const blob = await api.downloadPack(packId);
+                            
+                            // Create a blob URL and trigger download
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `${packId}.zip`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.URL.revokeObjectURL(url);
+                            
+                            onToast('Pack downloaded successfully!', 'success');
+                        } catch (error: any) {
+                            console.error('Download failed:', error);
+                            onToast(error?.message || 'Failed to download pack', 'error');
+                        }
+                    }}
                     className="mt-8 w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                     <Download className="w-5 h-5" />
                     Download ZIP Archive
-                </a>
+                </button>
             </motion.div>
         ) : (
             <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-8 flex-1 flex flex-col items-center justify-center text-center">

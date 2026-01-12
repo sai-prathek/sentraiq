@@ -95,7 +95,9 @@ async def generate_assurance_pack(
             control_id=request.control_id,
             query=query,
             time_range_start=request.time_range_start,
-            time_range_end=request.time_range_end
+            time_range_end=request.time_range_end,
+            explicit_log_ids=request.explicit_log_ids,
+            explicit_document_ids=request.explicit_document_ids,
         )
 
         return AssurancePackResponse(

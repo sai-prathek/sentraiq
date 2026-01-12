@@ -200,5 +200,20 @@ export const api = {
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || 'Failed to get evidence by control');
     }
+  },
+
+  downloadPack: async (packId: string): Promise<Blob> => {
+    try {
+      const apiBase = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== ''
+        ? import.meta.env.VITE_API_URL
+        : 'http://localhost:8080';
+      
+      const response = await axios.get(`${apiBase}/api/v1/assurance/download/${packId}`, {
+        responseType: 'blob'
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to download pack');
+    }
   }
 };

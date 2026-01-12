@@ -38,3 +38,11 @@ export interface GeneratedPack {
 }
 
 export type TabType = 'ingest' | 'query' | 'generate';
+
+export interface DashboardOutletContext {
+  addToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+  selectedEvidence: EvidenceItem[];
+  addEvidenceToPack: (item: EvidenceItem) => void;
+  removeEvidenceFromPack: (id: string, type: 'Log' | 'Document') => void;
+  clearSelectedEvidence: () => void;
+}

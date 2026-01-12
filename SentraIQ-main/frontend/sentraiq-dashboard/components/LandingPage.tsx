@@ -1,10 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, FileText, Database, Search, CheckCircle2, Play, FileCheck } from 'lucide-react';
 
-interface LandingPageProps {
-  onEnter: (mode: 'empty' | 'demo') => void;
-}
+const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
 
 const demoDocs = [
   { name: "SWIFT_Transaction_Log_2025.log", type: "Log", size: "2.4 MB" },
@@ -15,7 +15,6 @@ const demoDocs = [
   { name: "AWS_CloudTrail_Prod_Jan2025.json", type: "Log", size: "15.2 MB" }
 ];
 
-const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -58,7 +57,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             <a href="#contact" className="text-sm font-medium text-gray-600 hover:text-purple-600">Documentation</a>
         </div>
         <button
-            onClick={() => onEnter('empty')}
+            onClick={() => navigate('/dashboard/ingest')}
             className="px-5 py-2 rounded-full text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
         >
             Login
@@ -98,14 +97,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
 
                 <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button
-                        onClick={() => onEnter('demo')}
+                        onClick={() => navigate('/dashboard/ingest')}
                         className="px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center gap-2 group"
                     >
                         <Play className="w-5 h-5 fill-current" />
                         Launch Live Demo
                     </button>
                     <button
-                        onClick={() => onEnter('empty')}
+                        onClick={() => navigate('/dashboard/ingest')}
                         className="px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all shadow-sm hover:shadow-md"
                     >
                         Enter Workspace
@@ -267,14 +266,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
-                    onClick={() => onEnter('demo')}
+                    onClick={() => navigate('/dashboard/ingest')}
                     className="px-8 py-4 bg-white text-purple-600 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl flex items-center gap-2"
                 >
                     <Play className="w-5 h-5 fill-current" />
                     Try Live Demo
                 </button>
                 <button
-                    onClick={() => onEnter('empty')}
+                    onClick={() => navigate('/dashboard/ingest')}
                     className="px-8 py-4 bg-transparent text-white border-2 border-white rounded-xl font-bold text-lg hover:bg-white hover:text-purple-600 transition-all"
                 >
                     Start Building

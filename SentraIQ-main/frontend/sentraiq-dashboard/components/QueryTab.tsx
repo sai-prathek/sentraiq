@@ -5,7 +5,17 @@ import { EvidenceItem } from '../types';
 import { api } from '../services/api';
 import EvidenceDetailModal from './EvidenceDetailModal';
 
-const QueryTab: React.FC = () => {
+interface QueryTabProps {
+  onToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+  selectedEvidence: EvidenceItem[];
+  onAddEvidenceToPack: (item: EvidenceItem) => void;
+}
+
+const QueryTab: React.FC<QueryTabProps> = ({
+  onToast,
+  selectedEvidence,
+  onAddEvidenceToPack,
+}) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<EvidenceItem[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,8 +30,12 @@ const QueryTab: React.FC = () => {
     try {
       const data = await api.queryEvidence(searchQuery);
       setResults(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Query error:', error);
+      onToast(
+        error?.message || 'Failed to run evidence query',
+        'error'
+      );
     } finally {
       setLoading(false);
     }
@@ -111,56 +125,68 @@ const QueryTab: React.FC = () => {
             </div>
 
             <AnimatePresence>
-                {results.map((item, index) => (
-                <motion.div
-                    key={item.id}
+              {results.map((item, index) => {
+                const isInPack = selectedEvidence.some(
+                  (e) => e.id === item.id && e.type === item.type
+                );
+                return (
+                  <motion.div
+                    key={`${item.id}-${item.type}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:border-purple-200 transition-all group"
-                >
+                  >
                     <div className="flex justify-between items-start">
-                    <div className="flex gap-4">
+                      <div className="flex gap-4">
                         <div className={`p-3 rounded-lg h-fit ${item.type === 'Log' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'}`}>
-                        {item.type === 'Log' ? <Database className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                          {item.type === 'Log' ? <Database className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                         </div>
                         <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">{item.filename}</h4>
-                                {item.control_id && (
-                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200 font-mono">
-                                        {item.control_id}
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-sm text-gray-600 font-mono bg-gray-50 p-2 rounded border border-gray-100 mb-2 max-w-2xl line-clamp-2">
-                                {item.preview}
-                            </p>
-                            <div className="flex items-center gap-4 text-xs text-gray-400">
-                                <span>{new Date(item.timestamp).toLocaleString()}</span>
-                                <span>ID: {item.id}</span>
-                            </div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">{item.filename}</h4>
+                            {item.control_id && (
+                              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200 font-mono">
+                                {item.control_id}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 font-mono bg-gray-50 p-2 rounded border border-gray-100 mb-2 max-w-2xl line-clamp-2">
+                            {item.preview}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-gray-400">
+                            <span>{new Date(item.timestamp).toLocaleString()}</span>
+                            <span>ID: {item.id}</span>
+                          </div>
                         </div>
-                    </div>
+                      </div>
 
-                    <div className="flex flex-col items-end gap-2">
-                        <div className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded-md text-xs font-bold">
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded-md text-xs font-bold">
                             <Sparkles className="w-3 h-3" />
                             {item.relevance}% Match
+                          </div>
+                          {isInPack && (
+                            <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full">
+                              In Pack List
+                            </span>
+                          )}
                         </div>
                         <button
-                            onClick={() => {
-                                setSelectedEvidence(item);
-                                setIsModalOpen(true);
-                            }}
-                            className="text-sm text-purple-600 font-medium flex items-center hover:underline mt-2"
+                          onClick={() => {
+                            setSelectedEvidence(item);
+                            setIsModalOpen(true);
+                          }}
+                          className="text-sm text-purple-600 font-medium flex items-center hover:underline mt-2"
                         >
-                            View Details <ArrowRight className="w-4 h-4 ml-1" />
+                          View Details <ArrowRight className="w-4 h-4 ml-1" />
                         </button>
+                      </div>
                     </div>
-                    </div>
-                </motion.div>
-                ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         )}
@@ -178,6 +204,21 @@ const QueryTab: React.FC = () => {
         evidence={selectedEvidence}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onAddToSelection={(item) => {
+          onAddEvidenceToPack(item);
+          onToast('Evidence added to pack list', 'success');
+        }}
+        isAlreadySelected={
+          !!selectedEvidence &&
+          selectedEvidence != null &&
+          selectedEvidence.id != null &&
+          selectedEvidence.type != null &&
+          selectedEvidence.id !== undefined &&
+          selectedEvidence.type !== undefined &&
+          selectedEvidence &&
+          selectedEvidence.id &&
+          false
+        }
       />
     </div>
   );

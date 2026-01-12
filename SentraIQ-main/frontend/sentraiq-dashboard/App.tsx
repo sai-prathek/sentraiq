@@ -1,31 +1,35 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
-import Dashboard from './components/Dashboard';
+import DashboardLayout from './components/DashboardLayout';
+import IngestPage from './pages/IngestPage';
+import QueryPage from './pages/QueryPage';
+import GeneratePage from './pages/GeneratePage';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<'landing' | 'dashboard'>('landing');
-  const [demoMode, setDemoMode] = useState(false);
-
-  const handleEnter = (mode: 'empty' | 'demo') => {
-    // If demo mode is selected, we could potentially seed data here
-    // or pass the flag to the dashboard to show specific toasts/states
-    setDemoMode(mode === 'demo');
-    setView('dashboard');
-  };
-
-  const handleHome = () => {
-    setView('landing');
-    setDemoMode(false);
-  };
-
   return (
-    <>
-      {view === 'landing' ? (
-        <LandingPage onEnter={handleEnter} />
-      ) : (
-        <Dashboard demoMode={demoMode} onHome={handleHome} />
-      )}
-    </>
+    <BrowserRouter>
+      <Routes>
+        {/* Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* Dashboard Routes with Layout */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<Navigate to="/dashboard/ingest" replace />} />
+          <Route path="ingest" element={<IngestPage />} />
+          <Route path="query" element={<QueryPage />} />
+          <Route path="generate" element={<GeneratePage />} />
+        </Route>
+
+        {/* Legacy routes for backward compatibility */}
+        <Route path="/ingest" element={<Navigate to="/dashboard/ingest" replace />} />
+        <Route path="/query" element={<Navigate to="/dashboard/query" replace />} />
+        <Route path="/generate" element={<Navigate to="/dashboard/generate" replace />} />
+
+        {/* Catch all - redirect to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
