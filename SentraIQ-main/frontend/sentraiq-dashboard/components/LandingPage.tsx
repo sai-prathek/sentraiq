@@ -303,7 +303,7 @@ const demoDocs = [
                         </div>
                     </div>
                 </div>
-                <p className="text-sm">2025 SentraIQ by InfoSec K2K. Hybrid Evidence Lakehouse Platform.</p>
+                <p className="text-sm">2026 SentraIQ by InfoSec K2K. Hybrid Evidence Lakehouse Platform.</p>
             </div>
         </div>
       </footer>

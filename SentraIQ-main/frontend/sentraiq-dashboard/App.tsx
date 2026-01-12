@@ -6,6 +6,7 @@ import IngestPage from './pages/IngestPage';
 import QueryPage from './pages/QueryPage';
 import GeneratePage from './pages/GeneratePage';
 import HistoryPage from './pages/HistoryPage';
+import BusinessOverviewPage from './pages/BusinessOverviewPage';
 
 const App: React.FC = () => {
   return (
@@ -13,6 +14,9 @@ const App: React.FC = () => {
       <Routes>
         {/* Landing Page */}
         <Route path="/" element={<LandingPage />} />
+        
+        {/* Business Overview Page */}
+        <Route path="/business-overview" element={<BusinessOverviewPage />} />
         
         {/* Dashboard Routes with Layout */}
         <Route path="/dashboard" element={<DashboardLayout />}>

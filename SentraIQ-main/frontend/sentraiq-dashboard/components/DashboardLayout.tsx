@@ -97,9 +97,9 @@ const DashboardLayout: React.FC = () => {
   const activeTab = getActiveTab();
 
   const tabs = [
+    { id: 'generate', label: 'Generate Assurance Pack', icon: Package, path: '/dashboard/generate' },
     { id: 'ingest', label: 'Ingest Evidence', icon: Database, path: '/dashboard/ingest' },
     { id: 'query', label: 'Query Evidence', icon: FileText, path: '/dashboard/query' },
-    { id: 'generate', label: 'Generate Assurance Pack', icon: Package, path: '/dashboard/generate' },
     { id: 'history', label: 'Pack History', icon: History, path: '/dashboard/history' },
   ];
 
@@ -150,7 +150,7 @@ const DashboardLayout: React.FC = () => {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-6">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-8 pb-12">
             {/* Tab Content */}
             <section className="bg-white rounded-2xl shadow-sm border border-gray-200 min-h-[600px] flex flex-col mb-8">
               <div className="p-6 md:p-8 flex-1 bg-gradient-to-b from-white to-gray-50/30">
