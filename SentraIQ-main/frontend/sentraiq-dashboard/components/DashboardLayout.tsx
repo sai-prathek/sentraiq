@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import { TabType, ToastNotification, EvidenceItem, WorkflowState } from '../types';
 import Header from './Header';
 import StatsDashboard from './StatsDashboard';
 import ToastContainer from './Toast';
 import { motion } from 'framer-motion';
-import { Database, FileText, Package, Lock } from 'lucide-react';
+import { Database, FileText, Package } from 'lucide-react';
 
 const DashboardLayout: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
   const [selectedEvidence, setSelectedEvidence] = useState<EvidenceItem[]>([]);
   const [workflowState, setWorkflowState] = useState<WorkflowState>({
@@ -17,37 +16,11 @@ const DashboardLayout: React.FC = () => {
     hasQueried: false,
   });
 
-  // Check workflow state on mount and route changes
+  // Check workflow state on mount (for tracking purposes only, no restrictions)
   useEffect(() => {
     // Check if user has ingested data
     checkIngestionStatus();
   }, []);
-
-  // Track last redirect toast to prevent duplicates
-  const lastRedirectToastRef = useRef<string | null>(null);
-  
-  useEffect(() => {
-    // Enforce sequential workflow - redirect if trying to access out of order
-    const path = location.pathname;
-    if (path.includes('/query') && !workflowState.hasIngested) {
-      navigate('/dashboard/ingest', { replace: true });
-      const toastKey = 'redirect-query';
-      if (lastRedirectToastRef.current !== toastKey) {
-        addToast('Please ingest evidence first before querying', 'warning');
-        lastRedirectToastRef.current = toastKey;
-      }
-    } else if (path.includes('/generate') && (!workflowState.hasIngested || !workflowState.hasQueried)) {
-      navigate('/dashboard/query', { replace: true });
-      const toastKey = 'redirect-generate';
-      if (lastRedirectToastRef.current !== toastKey) {
-        addToast('Please query evidence first before generating a pack', 'warning');
-        lastRedirectToastRef.current = toastKey;
-      }
-    } else {
-      lastRedirectToastRef.current = null; // Reset when valid route
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, workflowState.hasIngested, workflowState.hasQueried]);
 
   const checkIngestionStatus = async () => {
     try {
@@ -148,28 +121,15 @@ const DashboardLayout: React.FC = () => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               
-              // Determine if tab is locked
-              let isLocked = false;
-              if (tab.id === 'query' && !workflowState.hasIngested) {
-                isLocked = true;
-              } else if (tab.id === 'generate' && (!workflowState.hasIngested || !workflowState.hasQueried)) {
-                isLocked = true;
-              }
-              
-              const TabComponent = isLocked ? 'div' : Link;
-              const tabProps = isLocked ? {} : { to: tab.path };
-              
               return (
-                <TabComponent
+                <Link
                   key={tab.id}
-                  {...tabProps}
+                  to={tab.path}
                   className={`
                     relative px-8 py-5 text-sm font-medium transition-colors whitespace-nowrap outline-none flex items-center gap-2
-                    ${isActive ? 'text-purple-600' : isLocked ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}
+                    ${isActive ? 'text-purple-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}
                   `}
-                  title={isLocked ? 'Complete previous steps to unlock' : ''}
                 >
-                  {isLocked && <Lock className="w-3 h-3" />}
                   <Icon className="w-4 h-4" />
                   {tab.label}
                   {isActive && (
@@ -178,7 +138,7 @@ const DashboardLayout: React.FC = () => {
                       className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-600 to-pink-600"
                     />
                   )}
-                </TabComponent>
+                </Link>
               );
             })}
           </div>
