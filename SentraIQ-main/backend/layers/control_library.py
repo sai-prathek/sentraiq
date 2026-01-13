@@ -46,48 +46,48 @@ class SwiftArchitectureType(str, Enum):
 SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
     "SWIFT-1.1": {
         "control_id": "SWIFT-1.1",
-        "name": "Restrict Internet Access",
-        "description": "Restrict logical access to the SWIFT environment to internet-facing entry points",
+        "name": "SWIFT Environment Protection",
+        "description": "Protect the SWIFT environment from unauthorized access and threats",
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
-        "keywords": ["internet", "access", "restrict", "network", "firewall", "dmz"],
+        "keywords": ["swift", "environment", "protection", "secure zone", "isolation"],
         "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.HYBRID],
         "assessment_questions": [
-            "Is internet access to SWIFT environment restricted?",
-            "Are there documented network segmentation controls?",
-            "Are firewall rules reviewed quarterly?"
+            "Is the SWIFT environment protected and isolated?",
+            "Are secure zones properly configured?",
+            "Is environment access restricted and monitored?"
         ],
-        "evidence_types": ["network_logs", "firewall_configs", "network_diagrams"]
+        "evidence_types": ["network_diagrams", "security_configs", "access_logs"]
     },
     "SWIFT-1.2": {
         "control_id": "SWIFT-1.2",
-        "name": "Segregate Critical Systems",
-        "description": "Segregate critical systems from general IT environment",
+        "name": "Operating System Privileged Account Control",
+        "description": "Control and monitor privileged accounts on operating systems",
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
-        "keywords": ["segregation", "network", "segmentation", "critical", "isolation"],
-        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.HYBRID],
+        "keywords": ["privileged", "account", "operating system", "access control", "admin"],
+        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.HYBRID, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
-            "Are critical SWIFT systems segregated from general IT?",
-            "Is network segmentation documented and tested?",
-            "Are access controls between segments enforced?"
+            "Are privileged accounts controlled and monitored?",
+            "Is privileged access reviewed regularly?",
+            "Are privileged account activities logged?"
         ],
-        "evidence_types": ["network_diagrams", "access_logs", "configurations"]
+        "evidence_types": ["access_logs", "privileged_account_reviews", "configurations"]
     },
     "SWIFT-2.1": {
         "control_id": "SWIFT-2.1",
-        "name": "Password Policy",
-        "description": "Enforce strong password policy for operator accounts",
+        "name": "Internal Data Flow Security",
+        "description": "Secure data flow within the internal network",
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
-        "keywords": ["password", "policy", "complexity", "authentication", "operator"],
-        "infrastructure_applicable": [InfrastructureType.SWIFT_TERMINAL, InfrastructureType.CLOUD_A4],
+        "keywords": ["data flow", "internal", "network", "security", "communication"],
+        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.HYBRID],
         "assessment_questions": [
-            "Is password policy enforced (min 12 chars, complexity)?",
-            "Are passwords changed every 90 days?",
-            "Is password history enforced (last 10 passwords)?"
+            "Is internal data flow secured?",
+            "Are network communications encrypted?",
+            "Is data flow monitored and logged?"
         ],
-        "evidence_types": ["policy_documents", "configurations", "audit_logs"]
+        "evidence_types": ["network_logs", "encryption_configs", "monitoring_reports"]
     },
     "SWIFT-2.7": {
         "control_id": "SWIFT-2.7",
@@ -106,33 +106,34 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
     },
     "SWIFT-2.8": {
         "control_id": "SWIFT-2.8",
-        "name": "Multi-Factor Authentication",
-        "description": "Enforce MFA for all operator accounts",
+        "name": "Critical Outsourced Service Provider Selection",
+        "description": "Select and manage critical outsourced service providers",
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
-        "keywords": ["mfa", "two-factor", "2fa", "authentication", "duo", "token", "hardware"],
-        "infrastructure_applicable": [InfrastructureType.SWIFT_TERMINAL, InfrastructureType.CLOUD_A4],
+        "keywords": ["service provider", "outsourcing", "vendor", "selection", "management"],
+        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.HYBRID, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
-            "Is MFA enforced for all SWIFT operator accounts?",
-            "Are MFA challenges logged and monitored?",
-            "Is MFA hardware token management documented?"
+            "Are service providers selected based on security criteria?",
+            "Are service provider controls reviewed?",
+            "Are service provider agreements documented?"
         ],
-        "evidence_types": ["mfa_logs", "configurations", "policy_documents"]
+        "evidence_types": ["vendor_assessments", "service_agreements", "review_reports"]
     },
     "SWIFT-3.1": {
         "control_id": "SWIFT-3.1",
         "name": "Physical Security",
-        "description": "Physical security controls for SWIFT infrastructure",
+        "description": "Physical security controls for SWIFT infrastructure including data centers, server rooms, and connector environments",
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
-        "keywords": ["physical", "security", "data center", "server room", "access control"],
-        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM],
+        "keywords": ["physical", "security", "data center", "server room", "access control", "connector"],
+        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.HYBRID],
         "assessment_questions": [
             "Are physical access controls implemented?",
             "Is the data center/server room secured?",
-            "Are physical access logs maintained?"
+            "Are physical access logs maintained?",
+            "Is connector server room secured (if applicable)?"
         ],
-        "evidence_types": ["access_logs", "security_policies", "cctv_reports"]
+        "evidence_types": ["access_logs", "security_policies", "cctv_reports", "physical_security_assessments"]
     },
     "SWIFT-1.3": {
         "control_id": "SWIFT-1.3",
@@ -156,7 +157,7 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
         "keywords": ["internet", "access", "restrict", "network", "firewall"],
-        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.HYBRID],
+        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.HYBRID, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
             "Is internet access to SWIFT environment restricted?",
             "Are firewall rules documented and reviewed?",
@@ -167,17 +168,18 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
     "SWIFT-1.5": {
         "control_id": "SWIFT-1.5",
         "name": "Customer Environment Protection (Vendor Managed)",
-        "description": "Protect customer environment when using vendor-managed services",
+        "description": "Protect customer environment when using vendor-managed services, particularly for connector/middleware environments",
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
-        "keywords": ["vendor", "managed", "service provider", "customer environment"],
-        "infrastructure_applicable": [InfrastructureType.CLOUD_A4],
+        "keywords": ["vendor", "managed", "service provider", "customer environment", "connector", "middleware"],
+        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.HYBRID],
         "assessment_questions": [
             "Are vendor-managed services properly secured?",
             "Is customer environment isolated?",
-            "Are vendor controls reviewed?"
+            "Are vendor controls reviewed?",
+            "Is connector/middleware environment protected?"
         ],
-        "evidence_types": ["vendor_agreements", "security_assessments", "contracts"]
+        "evidence_types": ["vendor_agreements", "security_assessments", "contracts", "connector_configs"]
     },
     "SWIFT-2.2": {
         "control_id": "SWIFT-2.2",
@@ -209,12 +211,12 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
         ],
         "evidence_types": ["hardening_reports", "configuration_files", "baseline_documents"]
     },
-    "SWIFT-2.4": {
-        "control_id": "SWIFT-2.4",
+    "SWIFT-2.4A": {
+        "control_id": "SWIFT-2.4A",
         "name": "Back Office Data Flow Security",
         "description": "Secure data flow between SWIFT environment and back office systems",
         "framework": Framework.SWIFT_CSP,
-        "type": ControlType.MANDATORY,
+        "type": ControlType.ADVISORY,
         "keywords": ["back office", "data flow", "integration", "secure", "communication"],
         "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM],
         "assessment_questions": [
@@ -224,12 +226,12 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
         ],
         "evidence_types": ["integration_diagrams", "network_logs", "security_reports"]
     },
-    "SWIFT-2.5": {
-        "control_id": "SWIFT-2.5",
+    "SWIFT-2.5A": {
+        "control_id": "SWIFT-2.5A",
         "name": "External Transmission Data Protection",
         "description": "Protect data in transit to external parties",
         "framework": Framework.SWIFT_CSP,
-        "type": ControlType.MANDATORY,
+        "type": ControlType.ADVISORY,
         "keywords": ["transmission", "encryption", "tls", "ssl", "data protection", "external"],
         "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
@@ -245,7 +247,7 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
         "description": "Ensure operator sessions are confidential and secure",
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
-        "keywords": ["operator", "session", "confidentiality", "encryption", "gui"],
+        "keywords": ["operator", "session", "confidentiality", "encryption", "gui", "browser"],
         "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
             "Are operator sessions encrypted?",
@@ -320,7 +322,7 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
         "description": "Enforce multi-factor authentication for SWIFT access",
         "framework": Framework.SWIFT_CSP,
         "type": ControlType.MANDATORY,
-        "keywords": ["mfa", "multi-factor", "authentication", "2fa", "token"],
+        "keywords": ["mfa", "multi-factor", "authentication", "2fa", "token", "portal"],
         "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
             "Is MFA enforced for SWIFT access?",
@@ -359,12 +361,12 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
         ],
         "evidence_types": ["token_inventory", "assignment_logs", "management_policies"]
     },
-    "SWIFT-5.3": {
-        "control_id": "SWIFT-5.3",
+    "SWIFT-5.3A": {
+        "control_id": "SWIFT-5.3A",
         "name": "Personnel Vetting",
         "description": "Vet personnel with access to SWIFT systems",
         "framework": Framework.SWIFT_CSP,
-        "type": ControlType.MANDATORY,
+        "type": ControlType.ADVISORY,
         "keywords": ["personnel", "vetting", "background", "check", "screening"],
         "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
@@ -449,12 +451,12 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
         ],
         "evidence_types": ["audit_logs", "monitoring_reports", "siem_dashboards"]
     },
-    "SWIFT-6.5": {
-        "control_id": "SWIFT-6.5",
+    "SWIFT-6.5A": {
+        "control_id": "SWIFT-6.5A",
         "name": "Intrusion Detection",
         "description": "Detect intrusions in SWIFT environment",
         "framework": Framework.SWIFT_CSP,
-        "type": ControlType.MANDATORY,
+        "type": ControlType.ADVISORY,
         "keywords": ["intrusion", "detection", "ids", "ips", "edr", "threat"],
         "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
@@ -494,27 +496,28 @@ SWIFT_CONTROLS: Dict[str, Dict[str, Any]] = {
         ],
         "evidence_types": ["training_records", "awareness_materials", "completion_certificates"]
     },
-    "SWIFT-7.3": {
-        "control_id": "SWIFT-7.3",
+    "SWIFT-7.3A": {
+        "control_id": "SWIFT-7.3A",
         "name": "Penetration Testing",
-        "description": "Perform penetration testing of SWIFT infrastructure",
+        "description": "Perform penetration testing of SWIFT infrastructure including endpoints, connectors, and user PCs",
         "framework": Framework.SWIFT_CSP,
-        "type": ControlType.MANDATORY,
-        "keywords": ["penetration", "testing", "pentest", "security", "assessment"],
-        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM],
+        "type": ControlType.ADVISORY,
+        "keywords": ["penetration", "testing", "pentest", "security", "assessment", "endpoints", "user pc"],
+        "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
             "Is penetration testing performed?",
             "Are test results reviewed?",
-            "Are findings remediated?"
+            "Are findings remediated?",
+            "Is user PC security tested (for Architecture B)?"
         ],
-        "evidence_types": ["pentest_reports", "remediation_plans", "test_results"]
+        "evidence_types": ["pentest_reports", "remediation_plans", "test_results", "endpoint_testing"]
     },
-    "SWIFT-7.4": {
-        "control_id": "SWIFT-7.4",
+    "SWIFT-7.4A": {
+        "control_id": "SWIFT-7.4A",
         "name": "Scenario Based Risk Assessment",
         "description": "Perform scenario-based risk assessments",
         "framework": Framework.SWIFT_CSP,
-        "type": ControlType.MANDATORY,
+        "type": ControlType.ADVISORY,
         "keywords": ["risk", "assessment", "scenario", "threat", "analysis"],
         "infrastructure_applicable": [InfrastructureType.CLOUD_A4, InfrastructureType.ON_PREM, InfrastructureType.SWIFT_TERMINAL],
         "assessment_questions": [
@@ -592,17 +595,20 @@ SOC2_CONTROLS: Dict[str, Dict[str, Any]] = {
 
 # Control Overlap Mapping: Maps controls that satisfy multiple frameworks
 CONTROL_OVERLAPS: Dict[str, List[str]] = {
-    # SWIFT-2.8 (MFA) overlaps with SOC2-CC6.2 (MFA)
-    "SWIFT-2.8": ["SOC2-CC6.2"],
-    "SOC2-CC6.2": ["SWIFT-2.8"],
+    # SWIFT-4.2 (MFA) overlaps with SOC2-CC6.2 (MFA)
+    "SWIFT-4.2": ["SOC2-CC6.2"],
+    "SOC2-CC6.2": ["SWIFT-4.2"],
     
-    # SWIFT-3.1 (Audit Logging) overlaps with SOC2-CC7.1 (System Monitoring)
-    "SWIFT-3.1": ["SOC2-CC7.1"],
-    "SOC2-CC7.1": ["SWIFT-3.1"],
+    # SWIFT-6.4 (Logging and Monitoring) overlaps with SOC2-CC7.1 (System Monitoring)
+    "SWIFT-6.4": ["SOC2-CC7.1"],
+    "SOC2-CC7.1": ["SWIFT-6.4"],
     
-    # SWIFT-2.1 (Password Policy) overlaps with SOC2-CC6.1 (Logical Access)
-    "SWIFT-2.1": ["SOC2-CC6.1"],
-    "SOC2-CC6.1": ["SWIFT-2.1"],
+    # SWIFT-5.1 (Logical Access Control) overlaps with SOC2-CC6.1 (Logical Access)
+    "SWIFT-5.1": ["SOC2-CC6.1"],
+    "SOC2-CC6.1": ["SWIFT-5.1"],
+    
+    # SWIFT-4.1 (Password Policy) overlaps with SOC2-CC6.1 (Logical Access)
+    "SWIFT-4.1": ["SOC2-CC6.1"],
 }
 
 # Infrastructure to Control Mapping
@@ -740,11 +746,11 @@ def get_control_applicability_by_architecture(control_id: str, architecture_type
     Get control applicability for a specific SWIFT architecture type
     
     Args:
-        control_id: Control ID (e.g., "1.1", "2.7")
+        control_id: Control ID (e.g., "1.1", "2.7", "2.4A")
         architecture_type: SWIFT architecture type (A1, A2, A3, A4, B)
     
     Returns:
-        Dictionary with is_applicable and scope, or None if not found
+        Dictionary with is_applicable, scope, and advisory, or None if not found
     """
     if not SWIFT_CSP_MAPPING:
         return None
@@ -756,7 +762,16 @@ def get_control_applicability_by_architecture(control_id: str, architecture_type
         for control in domain.get("controls", []):
             if control.get("control_id") == control_id:
                 mapping = control.get("mapping", {})
-                return mapping.get(arch_id)
+                arch_mapping = mapping.get(arch_id, {})
+                
+                # Determine if control is advisory:
+                # 1. If control_id ends with "A", it's advisory
+                # 2. If the mapping has advisory: true, it's advisory
+                is_advisory = control_id.endswith("A") or arch_mapping.get("advisory", False)
+                
+                result = arch_mapping.copy()
+                result["advisory"] = is_advisory
+                return result
     
     return None
 
@@ -769,7 +784,7 @@ def get_applicable_controls_by_architecture(architecture_type: SwiftArchitecture
         architecture_type: SWIFT architecture type (A1, A2, A3, A4, B)
     
     Returns:
-        List of control dictionaries with applicability information
+        List of control dictionaries with applicability information including advisory status
     """
     if not SWIFT_CSP_MAPPING:
         return []
@@ -784,13 +799,20 @@ def get_applicable_controls_by_architecture(architecture_type: SwiftArchitecture
             arch_mapping = mapping.get(arch_id, {})
             
             if arch_mapping.get("is_applicable", False):
+                control_id = control.get("control_id")
+                # Determine if control is advisory:
+                # 1. If control_id ends with "A", it's advisory
+                # 2. If the mapping has advisory: true, it's advisory
+                is_advisory = control_id.endswith("A") or arch_mapping.get("advisory", False)
+                
                 control_info = {
-                    "control_id": control.get("control_id"),
+                    "control_id": control_id,
                     "control_name": control.get("control_name"),
                     "domain": domain.get("domain"),
                     "is_applicable": True,
                     "scope": arch_mapping.get("scope", ""),
-                    "architecture_type": arch_id
+                    "architecture_type": arch_id,
+                    "advisory": is_advisory
                 }
                 applicable_controls.append(control_info)
     
@@ -805,7 +827,7 @@ def get_controls_by_swift_architecture(architecture_type: SwiftArchitectureType)
         architecture_type: SWIFT architecture type (A1, A2, A3, A4, B)
     
     Returns:
-        List of enriched control dictionaries
+        List of enriched control dictionaries with advisory status
     """
     applicable_controls = get_applicable_controls_by_architecture(architecture_type)
     all_controls = get_all_controls()
@@ -814,20 +836,25 @@ def get_controls_by_swift_architecture(architecture_type: SwiftArchitectureType)
     enriched_controls = []
     for control_info in applicable_controls:
         control_id = control_info.get("control_id")
-        # Try to find matching control in library (format: "SWIFT-1.1" or "1.1")
+        # Try to find matching control in library (format: "SWIFT-1.1" or "SWIFT-2.4A")
         swift_control_id = f"SWIFT-{control_id}"
         
         if swift_control_id in all_controls:
             # Merge library data with architecture-specific data
             enriched = all_controls[swift_control_id].copy()
+            # Override type if advisory flag is set (from JSON mapping)
+            if control_info.get("advisory", False):
+                enriched["type"] = ControlType.ADVISORY
             enriched.update({
                 "architecture_scope": control_info.get("scope"),
                 "architecture_type": control_info.get("architecture_type"),
-                "domain": control_info.get("domain")
+                "domain": control_info.get("domain"),
+                "advisory": control_info.get("advisory", False)
             })
             enriched_controls.append(enriched)
         else:
-            # Control not in library yet, return basic info
+            # Control not in library yet, return basic info with advisory status
+            control_info["type"] = ControlType.ADVISORY if control_info.get("advisory", False) else ControlType.MANDATORY
             enriched_controls.append(control_info)
     
     return enriched_controls

@@ -551,50 +551,68 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                                   </td>
                                 </tr>
                                 {/* Controls in Domain */}
-                                {domain.controls?.map((control: any, controlIdx: number) => (
-                                  <tr
-                                    key={`${domainIdx}-${controlIdx}`}
-                                    className={controlIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-                                  >
-                                    <td className="border border-gray-200 px-4 py-2">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-mono text-sm font-semibold text-gray-700">
-                                          {control.control_id}
-                                        </span>
-                                        <span className="text-sm text-gray-900">
-                                          {control.control_name}
-                                        </span>
-                                      </div>
-                                    </td>
-                                    {swiftArchitectureTypes.map((arch) => {
-                                      const mapping = control.mapping?.[arch.id];
-                                      const isApplicable = mapping?.is_applicable || false;
-                                      return (
-                                        <td
-                                          key={arch.id}
-                                          className={`
-                                            border border-gray-200 px-4 py-2 text-center cursor-pointer transition-colors
-                                            ${swiftArchitectureType === arch.id
-                                              ? 'bg-blue-50 hover:bg-blue-100'
-                                              : 'hover:bg-gray-100'
-                                            }
-                                          `}
-                                          onClick={() => {
-                                            setSwiftArchitectureType(arch.id);
-                                            localStorage.setItem('swiftArchitectureType', arch.id);
-                                          }}
-                                          title={isApplicable ? `${mapping?.scope || 'Applicable'}` : 'Not Applicable'}
-                                        >
-                                          {isApplicable ? (
-                                            <div className="w-3 h-3 bg-gray-900 rounded-full mx-auto"></div>
-                                          ) : (
-                                            <span className="text-gray-300">—</span>
-                                          )}
-                                        </td>
-                                      );
-                                    })}
-                                  </tr>
-                                ))}
+                                {domain.controls?.map((control: any, controlIdx: number) => {
+                                  // Check if entire control is advisory (ends with "A")
+                                  const isEntireControlAdvisory = control.control_id?.endsWith('A');
+                                  
+                                  return (
+                                    <tr
+                                      key={`${domainIdx}-${controlIdx}`}
+                                      className={`
+                                        ${isEntireControlAdvisory ? 'bg-gray-100' : 'bg-white'}
+                                      `}
+                                    >
+                                      <td className={`border border-gray-200 px-4 py-2 ${isEntireControlAdvisory ? 'bg-gray-100' : 'bg-white'}`}>
+                                        <div className="flex items-center gap-2">
+                                          <span className={`font-mono text-sm font-semibold ${isEntireControlAdvisory ? 'text-gray-600' : 'text-gray-700'}`}>
+                                            {control.control_id}
+                                          </span>
+                                          <span className={`text-sm ${isEntireControlAdvisory ? 'text-gray-600' : 'text-gray-900'}`}>
+                                            {control.control_name}
+                                          </span>
+                                        </div>
+                                      </td>
+                                      {swiftArchitectureTypes.map((arch) => {
+                                        const mapping = control.mapping?.[arch.id];
+                                        const isApplicable = mapping?.is_applicable || false;
+                                        // Cell is advisory if: mapping has advisory: true AND control doesn't end with "A"
+                                        // This means only that specific architecture mapping is advisory, not the entire control
+                                        const isCellAdvisory = !isEntireControlAdvisory && mapping?.advisory === true;
+                                        const isSelected = swiftArchitectureType === arch.id;
+                                        
+                                        return (
+                                          <td
+                                            key={arch.id}
+                                            className={`
+                                              border border-gray-200 px-4 py-2 text-center cursor-pointer transition-colors
+                                              ${isCellAdvisory 
+                                                ? 'bg-gray-200' 
+                                                : isEntireControlAdvisory 
+                                                  ? 'bg-gray-100' 
+                                                  : isSelected 
+                                                    ? 'bg-blue-50 hover:bg-blue-100' 
+                                                    : 'hover:bg-gray-100'
+                                              }
+                                            `}
+                                            onClick={() => {
+                                              setSwiftArchitectureType(arch.id);
+                                              localStorage.setItem('swiftArchitectureType', arch.id);
+                                            }}
+                                            title={isApplicable 
+                                              ? `${mapping?.scope || 'Applicable'}${isCellAdvisory || isEntireControlAdvisory ? ' (Advisory)' : ''}` 
+                                              : isCellAdvisory ? 'Not Applicable (Advisory)' : 'Not Applicable'}
+                                          >
+                                            {isApplicable ? (
+                                              <div className="w-3 h-3 bg-gray-900 rounded-full mx-auto"></div>
+                                            ) : (
+                                              <span className="text-gray-300">—</span>
+                                            )}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  );
+                                })}
                               </React.Fragment>
                             ))}
                           </tbody>

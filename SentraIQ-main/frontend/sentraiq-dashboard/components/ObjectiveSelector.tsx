@@ -484,16 +484,16 @@ const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComple
                   {/* Advisory Controls */}
                   {advisoryControls.length > 0 && (
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-yellow-600" />
+                      <h4 className="font-semibold text-gray-600 mb-2 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-gray-500" />
                         Advisory Controls ({advisoryControls.length})
                       </h4>
                       <div className="space-y-2">
                         {advisoryControls.map(control => (
-                          <div key={control.control_id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                          <div key={control.control_id} className="bg-gray-50 border border-gray-300 rounded-lg p-3 opacity-75">
                             <div>
-                              <span className="font-medium text-gray-900">{control.control_id}: {control.name}</span>
-                              <p className="text-sm text-gray-600 mt-1">{control.description}</p>
+                              <span className="font-medium text-gray-600">{control.control_id}: {control.name}</span>
+                              <p className="text-sm text-gray-500 mt-1">{control.description}</p>
                             </div>
                           </div>
                         ))}
