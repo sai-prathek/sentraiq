@@ -6,6 +6,8 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 8081,
+    hmr: false, // Disable Hot Module Replacement
+    watch: null, // Disable file watching
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://49.50.99.89:8080',

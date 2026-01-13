@@ -8,6 +8,8 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        hmr: false, // Disable Hot Module Replacement
+        watch: null, // Disable file watching
       },
       // Support client-side routing - fallback to index.html for all routes
       preview: {
