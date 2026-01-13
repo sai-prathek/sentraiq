@@ -7,8 +7,8 @@ import Stepper from './Stepper';
 import ObjectiveSelector, { ObjectiveSelection } from './ObjectiveSelector';
 import AssessmentQuestions, { AssessmentAnswer } from './AssessmentQuestions';
 import IngestTab from './IngestTab';
-import QueryTab from './QueryTab';
 import RequirementsTab from './RequirementsTab';
+import ControlStatusTable from './ControlStatusTable';
 import { api } from '../services/api';
 import { EvidenceItem, GeneratedPack, DashboardOutletContext } from '../types';
 
@@ -26,7 +26,7 @@ const STEPS = [
   { id: 3, label: 'Requirements', description: 'Review evidence requirements' },
   { id: 4, label: 'Manage Evidence', description: 'Add and review evidence files' },
   { id: 5, label: 'Assessment Questions', description: 'Answer compliance questions' },
-  { id: 6, label: 'Enhance Pack', description: 'Query evidence (optional)' },
+  { id: 6, label: 'Control Status', description: 'Review control compliance status' },
   { id: 7, label: 'Create Pack', description: 'Generate assurance pack' },
   { id: 8, label: 'View Report', description: 'Download compliance report' },
 ];
@@ -217,11 +217,11 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     }
   }, [generatedPack]);
 
-  // Track evidence count when entering Step 6 or Step 7 (to distinguish assessment vs enhanced evidence)
+  // Track evidence count when entering Step 7 (to distinguish assessment evidence)
   useEffect(() => {
-    // If user enters Step 6 or Step 7 and we haven't tracked the baseline yet,
+    // If user enters Step 7 and we haven't tracked the baseline yet,
     // capture the current evidence count (this is from auto-assessment in Step 5)
-    if ((currentStep === 6 || currentStep === 7) && evidenceCountBeforeEnhance === 0) {
+    if (currentStep === 7 && evidenceCountBeforeEnhance === 0) {
       setEvidenceCountBeforeEnhance(selectedEvidence.length);
     }
   }, [currentStep, selectedEvidence.length, evidenceCountBeforeEnhance]);
@@ -303,7 +303,13 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     } else if (step === 5 && data) {
       setAssessmentAnswers(data);
       localStorage.setItem('assessmentAnswers', JSON.stringify(data));
-      // Evidence count will be tracked when entering Step 5 via useEffect
+      // Move to Control Status step after assessment
+      setCurrentStep(6);
+      return;
+    } else if (step === 6) {
+      // Control Status step completed - go to Create Pack
+      setCurrentStep(7);
+      return;
     }
     
     // Move to next step
@@ -324,9 +330,8 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     
     if (step <= maxCompletedStep + 1) {
       // If user is navigating back before Step 5 (Assessment Questions), clear assessment answers
-      // and any evidence that was added to the pack (both assessment
-      // and enhancement), so that when they re-run the assessment and
-      // enhancement it starts fresh.
+      // and any evidence that was added to the pack, so that when they re-run the assessment
+      // it starts fresh.
       const assessmentStep = isSwiftSelected ? 5 : 5;
       
       if (step < assessmentStep) {
@@ -338,8 +343,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
         }
 
         // Clear all evidence currently in the pack and reset the baseline
-        // so that Step 6 correctly treats Step 4 evidence as the new base
-        // and Step 5 evidence as enhanced items for the new run.
         onClearSelectedEvidence();
         setEvidenceCountBeforeEnhance(0);
       }
@@ -349,8 +352,8 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
 
   const getMaxCompletedStep = (): Step => {
     if (generatedPack) return 8;
-    if (selectedEvidence.length > 0 || assessmentAnswers.length > 0) return 6;
-    if (assessmentAnswers.length > 0) return 5;
+    if (selectedEvidence.length > 0 || assessmentAnswers.length > 0) return 7;
+    if (assessmentAnswers.length > 0) return 6;
     const isSwiftSelected = objectiveSelection?.frameworks?.some(f => f.id === 'SWIFT_CSP');
     if (isSwiftSelected && swiftArchitectureType) return 4;
     if (isSwiftSelected) return 2;
@@ -819,13 +822,13 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
               </div>
             )}
 
-            {/* Step 6: Enhance Pack (Query Evidence) */}
+            {/* Step 6: Control Status */}
             {currentStep === 6 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                 <div className="mb-6 flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 6: Enhance Pack (Optional)</h2>
-                    <p className="text-gray-600">Use query evidence to find and add additional evidence items</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 6: Control Status</h2>
+                    <p className="text-gray-600">Review control compliance status based on your assessment answers</p>
                   </div>
                 </div>
                 
@@ -847,10 +850,13 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   </button>
                 </div>
                 
-                <QueryTab
-                  onToast={onToast}
-                  selectedEvidence={selectedEvidence}
-                  onAddEvidenceToPack={addEvidenceToPack}
+                <ControlStatusTable
+                  assessmentAnswers={assessmentAnswers}
+                  swiftArchitectureType={swiftArchitectureType}
+                  controlApplicabilityMatrix={controlApplicabilityMatrix}
+                  swiftArchitectureTypes={swiftArchitectureTypes}
+                  onBack={() => setCurrentStep(5)}
+                  onComplete={() => handleStepComplete(6)}
                 />
               </div>
             )}
@@ -922,7 +928,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                           Assessment Evidence ({evidenceCountBeforeEnhance} items)
                         </h3>
                         <p className="text-sm text-blue-700 mb-3">
-                          Evidence items automatically identified during the compliance assessment (Step 5)
+                          Evidence items automatically identified during the compliance assessment
                         </p>
                         <div className="space-y-2 max-h-32 overflow-y-auto">
                           {selectedEvidence.slice(0, evidenceCountBeforeEnhance).map((item, idx) => (
@@ -957,7 +963,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                           Enhanced Evidence Items ({selectedEvidence.length - evidenceCountBeforeEnhance} items)
                         </h3>
                         <p className="text-sm text-green-700 mb-3">
-                          Additional evidence items added via Query Evidence feature (Step 6)
+                          Additional evidence items added manually
                         </p>
                         <div className="space-y-2 max-h-32 overflow-y-auto">
                           {selectedEvidence.slice(evidenceCountBeforeEnhance).map((item, idx) => (

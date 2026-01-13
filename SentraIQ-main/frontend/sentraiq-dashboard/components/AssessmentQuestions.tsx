@@ -2519,7 +2519,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({
               }
             `}
           >
-            Continue to Query Evidence
+            Continue to Control Status
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
