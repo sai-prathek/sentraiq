@@ -96,6 +96,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       localStorage.removeItem('assessmentAnswers');
       localStorage.removeItem('swiftArchitectureType');
       localStorage.removeItem('selectedFramework');
+      localStorage.removeItem('selectedFrameworkVersion');
     } catch (e) {
       console.warn('Failed to clear localStorage:', e);
     }
@@ -277,8 +278,16 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       const frameworkIds = data.frameworks.map((f: any) => f.id);
       localStorage.setItem('selectedFramework', frameworkIds[0] || 'SWIFT_CSP');
       
-      // Pre-fill query
-      const frameworkNames = data.frameworks.map((f: any) => f.name).join(' + ');
+      // Store framework version if available
+      const firstFramework = data.frameworks[0];
+      if (firstFramework?.version) {
+        localStorage.setItem('selectedFrameworkVersion', firstFramework.version);
+      }
+      
+      // Pre-fill query with framework name and version
+      const frameworkNames = data.frameworks.map((f: any) => {
+        return f.version ? `${f.name} (${f.version})` : f.name;
+      }).join(' + ');
       setQuery(`Compliance evidence for ${data.infrastructure?.name || 'your environment'} - ${frameworkNames}`);
       
       // If SWIFT is selected, go to architecture selection (step 2), otherwise skip to evidence (step 4)
@@ -766,7 +775,9 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     <p className="text-gray-600">Add and review evidence files for your compliance pack</p>
                     {objectiveSelection && objectiveSelection.frameworks.length > 0 && (
                       <p className="text-sm text-blue-700 mt-1">
-                        Framework: {objectiveSelection.frameworks.map(f => f.name).join(', ')}
+                        Framework: {objectiveSelection.frameworks.map(f => 
+                          f.version ? `${f.name} (${f.version})` : f.name
+                        ).join(', ')}
                         {swiftArchitectureType && (
                           <span className="ml-2">
                             • Architecture: {swiftArchitectureTypes.find(a => a.id === swiftArchitectureType)?.name || swiftArchitectureType}
@@ -814,6 +825,8 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                 </div>
                 <ComplianceAssessment
                   framework={localStorage.getItem('selectedFramework') || 'SWIFT_CSP'}
+                  frameworkName={objectiveSelection?.frameworks?.[0]?.name}
+                  frameworkVersion={objectiveSelection?.frameworks?.[0]?.version}
                   onComplete={(answers) => handleStepComplete(5, answers)}
                   onBack={() => setCurrentStep(4)}
                   swiftArchitectureType={swiftArchitectureType}
@@ -906,7 +919,9 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                       <div>
                         <span className="text-blue-700">Frameworks:</span>
                         <p className="font-medium text-blue-900">
-                          {objectiveSelection.frameworks.map(f => f.name).join(', ')}
+                          {objectiveSelection.frameworks.map(f => 
+                            f.version ? `${f.name} (${f.version})` : f.name
+                          ).join(', ')}
                         </p>
                       </div>
                       <div>

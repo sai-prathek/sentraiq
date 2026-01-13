@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Cloud, Server, Network, Shield, CheckCircle, AlertCircle, ArrowRight, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Cloud, Server, Network, Shield, CheckCircle, AlertCircle, ArrowRight, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface InfrastructureType {
@@ -13,6 +13,7 @@ export interface Framework {
   id: string;
   name: string;
   description: string;
+  version?: string;
 }
 
 export interface Control {
@@ -34,6 +35,27 @@ interface ObjectiveSelectorProps {
   onSelectionComplete: (selection: ObjectiveSelection) => void;
 }
 
+// Framework versions mapping
+const FRAMEWORK_VERSIONS: Record<string, string[]> = {
+  'SWIFT CSP': [
+    'CSCF v2026 (Applicable starting 2026)',
+    'CSCF v2025 (Valid for 2025 attestation)',
+    'CSCF v2024 (Valid for 2024 attestation)'
+  ],
+  'SOC 2': [
+    '2017 Trust Services Criteria (with 2022 Revised Points of Focus)'
+  ],
+  'ISO/IEC 27001': [
+    'ISO/IEC 27001:2022',
+    'ISO/IEC 27001:2013 (Valid until transition deadline: Oct 31, 2025)'
+  ],
+  'PCI DSS': [
+    'v4.0.1 (Released June 2024)',
+    'v4.0 (Released March 2022)',
+    'v3.2.1 (Retired March 31, 2024)'
+  ]
+};
+
 const FRAMEWORK_OPTIONS: Framework[] = [
   {
     id: 'SWIFT_CSP',
@@ -47,12 +69,12 @@ const FRAMEWORK_OPTIONS: Framework[] = [
   },
   {
     id: 'ISO27001_2022',
-    name: 'ISO/IEC 27001:2022',
+    name: 'ISO/IEC 27001',
     description: 'Information Security Management System (ISMS)'
   },
   {
     id: 'PCI_DSS',
-    name: 'PCI DSS v4.0',
+    name: 'PCI DSS',
     description: 'Payment Card Industry Data Security Standard'
   }
 ];
@@ -371,18 +393,74 @@ const getControlsForInfrastructure = (infraId: string, frameworkIds: string[]): 
 
 const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComplete }) => {
   const [selectedFramework, setSelectedFramework] = useState<Framework | null>(null);
+  const [selectedVersion, setSelectedVersion] = useState<Record<string, string>>({});
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      Object.entries(dropdownRefs.current).forEach(([frameworkId, ref]) => {
+        if (ref && !ref.contains(event.target as Node) && openDropdown === frameworkId) {
+          setOpenDropdown(null);
+        }
+      });
+    };
+
+    if (openDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [openDropdown]);
 
   const handleFrameworkSelect = (framework: Framework) => {
     // If clicking the same framework, deselect it
     if (selectedFramework?.id === framework.id) {
       setSelectedFramework(null);
+      setSelectedVersion(prev => {
+        const newVersions = { ...prev };
+        delete newVersions[framework.id];
+        return newVersions;
+      });
     } else {
       setSelectedFramework(framework);
+      // Auto-select first version if only one available
+      const versions = FRAMEWORK_VERSIONS[framework.name] || [];
+      if (versions.length === 1 && !selectedVersion[framework.id]) {
+        setSelectedVersion(prev => ({
+          ...prev,
+          [framework.id]: versions[0]
+        }));
+      }
     }
+  };
+
+  const handleVersionChange = (frameworkId: string, version: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent framework card click
+    setSelectedVersion(prev => ({
+      ...prev,
+      [frameworkId]: version
+    }));
+    setOpenDropdown(null);
+  };
+
+  const toggleDropdown = (frameworkId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent framework card click
+    setOpenDropdown(openDropdown === frameworkId ? null : frameworkId);
   };
 
   const handleContinue = () => {
     if (!selectedFramework) return;
+    
+    const version = selectedVersion[selectedFramework.id];
+    if (!version) return;
+    
+    const frameworkWithVersion: Framework = {
+      ...selectedFramework,
+      version: version
+    };
     
     const { controls, sharedControls } = getControlsForInfrastructure(
       'default',
@@ -391,7 +469,7 @@ const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComple
     
     onSelectionComplete({
       infrastructure: null,
-      frameworks: [selectedFramework],
+      frameworks: [frameworkWithVersion],
       controls,
       sharedControls
     });
@@ -404,57 +482,110 @@ const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComple
   const mandatoryControls = controls.filter(c => c.type === 'mandatory');
   const advisoryControls = controls.filter(c => c.type === 'advisory');
 
+  const canContinue = selectedFramework && selectedVersion[selectedFramework.id];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {FRAMEWORK_OPTIONS.map((framework) => {
-              const isSelected = selectedFramework?.id === framework.id;
+        {FRAMEWORK_OPTIONS.map((framework) => {
+          const isSelected = selectedFramework?.id === framework.id;
+          const availableVersions = FRAMEWORK_VERSIONS[framework.name] || [];
+          const currentVersion = selectedVersion[framework.id];
+          const isDropdownOpen = openDropdown === framework.id;
+          
+          return (
+            <div
+              key={framework.id}
+              className={`
+                relative p-6 rounded-lg border-2 transition-all
+                ${isSelected 
+                  ? 'border-blue-900 bg-blue-50 shadow-md' 
+                  : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                }
+              `}
+            >
+              <button
+                onClick={() => handleFrameworkSelect(framework)}
+                className="w-full text-left"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1">{framework.name}</h3>
+                    <p className="text-sm text-gray-600">{framework.description}</p>
+                  </div>
+                  {isSelected && (
+                    <CheckCircle className="w-5 h-5 text-blue-900 flex-shrink-0 ml-2" />
+                  )}
+                </div>
+              </button>
               
-              return (
-                <motion.button
-                  key={framework.id}
-                  onClick={() => handleFrameworkSelect(framework)}
-                  className={`
-                    p-6 rounded-lg border-2 transition-all text-left
-                    ${isSelected 
-                      ? 'border-blue-900 bg-blue-50 shadow-md' 
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                    }
-                  `}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">{framework.name}</h3>
-                      <p className="text-sm text-gray-600">{framework.description}</p>
-                    </div>
-                    {isSelected && (
-                      <CheckCircle className="w-5 h-5 text-blue-900" />
+              {/* Version Dropdown */}
+              {isSelected && availableVersions.length > 0 && (
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Select Version
+                  </label>
+                  <div 
+                    className="relative"
+                    ref={(el) => {
+                      dropdownRefs.current[framework.id] = el;
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => toggleDropdown(framework.id, e)}
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+                    >
+                      <span className={currentVersion ? 'text-gray-900' : 'text-gray-500'}>
+                        {currentVersion || 'Select version...'}
+                      </span>
+                      <ChevronDown 
+                        className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                    
+                    {isDropdownOpen && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                        {availableVersions.map((version) => (
+                          <button
+                            key={version}
+                            type="button"
+                            onClick={(e) => handleVersionChange(framework.id, version, e)}
+                            className={`
+                              w-full px-3 py-2 text-left text-sm hover:bg-blue-50 transition-colors
+                              ${currentVersion === version ? 'bg-blue-100 text-blue-900 font-medium' : 'text-gray-900'}
+                            `}
+                          >
+                            {version}
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
-                </motion.button>
-              );
-            })}
-        </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Continue Button */}
-        {selectedFramework && (
-          <div className="mt-6 flex justify-end">
-            <motion.button
-              onClick={handleContinue}
-              className="px-6 py-3 bg-blue-900 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Continue to Pack Generation
-              <ArrowRight className="w-4 h-4" />
-            </motion.button>
-          </div>
-        )}
+      {/* Continue Button */}
+      {canContinue && (
+        <div className="mt-6 flex justify-end">
+          <motion.button
+            onClick={handleContinue}
+            className="px-6 py-3 bg-blue-900 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Continue to Pack Generation
+            <ArrowRight className="w-4 h-4" />
+          </motion.button>
+        </div>
+      )}
     </motion.div>
   );
 };

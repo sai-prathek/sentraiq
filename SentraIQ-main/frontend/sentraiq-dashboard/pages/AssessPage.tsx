@@ -20,11 +20,29 @@ const AssessPage: React.FC = () => {
 
   // Get framework from localStorage or default to SWIFT_CSP
   const framework = localStorage.getItem('selectedFramework') || 'SWIFT_CSP';
+  
+  // Get framework name and version from objectiveSelection
+  let frameworkName: string | undefined;
+  let frameworkVersion: string | undefined;
+  try {
+    const objectiveSelection = localStorage.getItem('objectiveSelection');
+    if (objectiveSelection) {
+      const selection = JSON.parse(objectiveSelection);
+      if (selection.frameworks && selection.frameworks.length > 0) {
+        frameworkName = selection.frameworks[0].name;
+        frameworkVersion = selection.frameworks[0].version;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to parse objective selection:', e);
+  }
 
   return (
     <div className="min-h-full">
       <ComplianceAssessment
         framework={framework}
+        frameworkName={frameworkName}
+        frameworkVersion={frameworkVersion}
         onComplete={handleComplete}
         onBack={handleBack}
       />

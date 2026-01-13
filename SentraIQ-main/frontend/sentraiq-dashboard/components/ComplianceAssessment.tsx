@@ -21,6 +21,8 @@ export interface AssessmentAnswer {
 
 interface ComplianceAssessmentProps {
   framework: string;
+  frameworkName?: string;
+  frameworkVersion?: string;
   onComplete: (answers: AssessmentAnswer[]) => void;
   onBack: () => void;
   swiftArchitectureType?: string | null;
@@ -1623,6 +1625,8 @@ const PCI_DSS_QUESTIONS = [
 
 const ComplianceAssessment: React.FC<ComplianceAssessmentProps> = ({ 
   framework, 
+  frameworkName,
+  frameworkVersion,
   onComplete, 
   onBack,
   swiftArchitectureType,
@@ -2530,13 +2534,17 @@ const ComplianceAssessment: React.FC<ComplianceAssessmentProps> = ({
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {framework === 'SOC2'
-                ? 'SOC 2 Compliance Assessment'
-                : framework === 'ISO27001_2022'
-                  ? 'ISO/IEC 27001:2022 Compliance Assessment'
-                  : framework === 'PCI_DSS'
-                    ? 'PCI DSS v4.0 Compliance Assessment'
-                    : 'SWIFT CSP v2025 Compliance Assessment'}
+              {frameworkName && frameworkVersion
+                ? `${frameworkName} (${frameworkVersion}) Compliance Assessment`
+                : frameworkName
+                  ? `${frameworkName} Compliance Assessment`
+                  : framework === 'SOC2'
+                    ? 'SOC 2 Compliance Assessment'
+                    : framework === 'ISO27001_2022'
+                      ? 'ISO/IEC 27001:2022 Compliance Assessment'
+                      : framework === 'PCI_DSS'
+                        ? 'PCI DSS v4.0 Compliance Assessment'
+                        : 'SWIFT CSP v2025 Compliance Assessment'}
             </h2>
             <p className="text-gray-600">
               Answer the following questions to create your compliance assurance pack
