@@ -92,4 +92,5 @@ export interface DashboardOutletContext {
   clearSelectedEvidence: () => void;
   workflowState: WorkflowState;
   setWorkflowState: React.Dispatch<React.SetStateAction<WorkflowState>>;
+  generateTabClickCount?: number;
 }

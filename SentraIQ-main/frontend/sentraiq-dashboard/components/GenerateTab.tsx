@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, Download, CheckCircle, ShieldCheck, AlertCircle, FileText, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useLocation } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
 import Stepper from './Stepper';
 import ObjectiveSelector, { ObjectiveSelection } from './ObjectiveSelector';
@@ -34,7 +34,10 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   selectedEvidence,
   onClearSelectedEvidence,
 }) => {
-  const { addEvidenceToPack } = useOutletContext<DashboardOutletContext>();
+  const { addEvidenceToPack, generateTabClickCount } = useOutletContext<DashboardOutletContext>();
+  const location = useLocation();
+  const prevLocationRef = useRef<string>(location.pathname);
+  const prevClickCountRef = useRef<number>(0);
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [generatedPack, setGeneratedPack] = useState<GeneratedPack | null>(null);
@@ -56,6 +59,67 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   const [query, setQuery] = useState('');
   const [controlId, setControlId] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+  // Reset function
+  const resetFlow = React.useCallback(() => {
+    // Reset all state to initial values
+    setCurrentStep(1);
+    setGeneratedPack(null);
+    setPdfUrl(null);
+    setLoadingPdf(false);
+    setObjectiveSelection(null);
+    setAssessmentAnswers([]);
+    setRegulatoryUpdates(null);
+    setSwiftArchitectureType(null);
+    setControlApplicabilityMatrix(null);
+    setEvidenceCountBeforeEnhance(0);
+    setQuery('');
+    setControlId('');
+    
+    // Set default date range
+    const end = new Date();
+    const start = new Date();
+    start.setMonth(end.getMonth() - 3);
+    setDateRange({
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0]
+    });
+    
+    // Clear selected evidence
+    onClearSelectedEvidence();
+    
+    // Clear localStorage data
+    try {
+      localStorage.removeItem('objectiveSelection');
+      localStorage.removeItem('assessmentAnswers');
+      localStorage.removeItem('swiftArchitectureType');
+      localStorage.removeItem('selectedFramework');
+    } catch (e) {
+      console.warn('Failed to clear localStorage:', e);
+    }
+  }, [onClearSelectedEvidence]);
+
+  // Reset flow when Generate Assurance Pack tab is clicked
+  useEffect(() => {
+    if (generateTabClickCount !== undefined && generateTabClickCount > prevClickCountRef.current) {
+      resetFlow();
+      prevClickCountRef.current = generateTabClickCount;
+    }
+  }, [generateTabClickCount, resetFlow]);
+
+  // Reset flow when navigating to Generate Assurance Pack tab from a different page
+  useEffect(() => {
+    const isOnGeneratePage = location.pathname.includes('/generate');
+    const wasOnDifferentPage = !prevLocationRef.current.includes('/generate');
+    
+    // Only reset if we're navigating TO the generate page from a different page
+    if (isOnGeneratePage && wasOnDifferentPage) {
+      resetFlow();
+    }
+    
+    // Update previous location
+    prevLocationRef.current = location.pathname;
+  }, [location.pathname, resetFlow]);
 
   // Load saved data on mount
   useEffect(() => {

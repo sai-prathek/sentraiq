@@ -15,6 +15,7 @@ const DashboardLayout: React.FC = () => {
     hasIngested: false,
     hasQueried: false,
   });
+  const [generateTabClickCount, setGenerateTabClickCount] = useState(0);
 
   // Check workflow state on mount (for tracking purposes only, no restrictions)
   useEffect(() => {
@@ -129,6 +130,12 @@ const DashboardLayout: React.FC = () => {
                 <Link
                   key={tab.id}
                   to={tab.path}
+                  onClick={() => {
+                    // Reset generate flow when Generate Assurance Pack tab is clicked
+                    if (tab.id === 'generate') {
+                      setGenerateTabClickCount(prev => prev + 1);
+                    }
+                  }}
                   className={`
                     relative flex items-center gap-3 px-4 py-3.5 rounded-lg transition-all duration-200 group
                     ${isActive 
@@ -167,6 +174,7 @@ const DashboardLayout: React.FC = () => {
                     clearSelectedEvidence,
                     workflowState,
                     setWorkflowState,
+                    generateTabClickCount,
                   }}
                 />
               </div>
