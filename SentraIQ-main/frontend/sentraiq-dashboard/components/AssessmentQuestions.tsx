@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, ArrowRight, ArrowLeft, FileCheck, Sparkles, Clock, FileX } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { CheckCircle, AlertCircle, ArrowRight, ArrowLeft, FileCheck, Sparkles, Clock, FileX, Database, FileText } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { EvidenceItem } from '../types';
+import EvidenceDetailModal from './EvidenceDetailModal';
 
 export interface AssessmentAnswer {
   questionId: string;
@@ -1624,6 +1625,8 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
   const [autoAnswering, setAutoAnswering] = useState(false);
   const [autoAnswerProgress, setAutoAnswerProgress] = useState({ current: 0, total: 0 });
   const [autoAnswerStarted, setAutoAnswerStarted] = useState(false);
+  const [currentEvidence, setCurrentEvidence] = useState<EvidenceItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const questions =
     framework === 'SOC2'
@@ -1782,96 +1785,384 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
     const mockEvidence: Record<string, EvidenceItem[]> = {
       // Section 1 - Secure Your Environment
       '1.1.d.1': [
-        { id: '1', type: 'Log', filename: 'swift_access_control.log', preview: 'Local operator access logs', relevance: 92, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '2', type: 'Document', filename: 'access_control_policy.pdf', preview: 'Access control policy document', relevance: 88, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '1', 
+          type: 'Log', 
+          filename: 'swift_access_control.log', 
+          preview: '2024-01-15 14:32:18 [AUTH] User: admin@swift.local authenticated via MFA. Session ID: sess_abc123. IP: 10.0.1.45. Access granted to secure zone SWIFT-CORE-01. Role: Local Operator. Access duration: 4h 23m.', 
+          relevance: 92, 
+          control_id: 'SWIFT-1.1', 
+          timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '2', 
+          type: 'Document', 
+          filename: 'access_control_policy.pdf', 
+          preview: 'Section 3.2: Local Operator Access Control. All local operators must authenticate using multi-factor authentication (MFA) before accessing the secure zone. Access is logged and monitored in real-time. Session timeouts are enforced after 8 hours of inactivity. Access rights are reviewed quarterly by the security team.', 
+          relevance: 88, 
+          control_id: 'SWIFT-1.1', 
+          timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '1.1.d.2': [
-        { id: '3', type: 'Log', filename: 'remote_access_audit.log', preview: 'Remote operator access audit logs', relevance: 90, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '3', 
+          type: 'Log', 
+          filename: 'remote_access_audit.log', 
+          preview: '2024-01-10 09:15:42 [REMOTE] Remote operator teleworker-usr-789 connected via VPN. MFA verified. Source IP: 203.0.113.45 (whitelisted). Access granted to SWIFT-CORE-02. Session encrypted with TLS 1.3. On-call staff member: John Doe (ID: emp_456).', 
+          relevance: 90, 
+          control_id: 'SWIFT-1.1', 
+          timestamp: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '1.1.e': [
-        { id: '4', type: 'Document', filename: 'network_segmentation.pdf', preview: 'Network segmentation documentation', relevance: 85, control_id: 'SWIFT-1.1', timestamp: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '4', 
+          type: 'Document', 
+          filename: 'network_segmentation.pdf', 
+          preview: 'Network Architecture Document v2.1: The SWIFT secure zone (VLAN 100) is physically and logically separated from general enterprise IT services (VLAN 200-500). Firewall rules enforce strict isolation. No direct network paths exist between secure zone and enterprise networks. All inter-zone communication requires explicit approval and is logged.', 
+          relevance: 85, 
+          control_id: 'SWIFT-1.1', 
+          timestamp: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '1.2': [
-        { id: '5', type: 'Log', filename: 'privileged_account_audit.log', preview: 'Privileged account usage logs', relevance: 95, control_id: 'SWIFT-1.2', timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '6', type: 'Document', filename: 'privileged_access_policy.pdf', preview: 'Privileged access control policy', relevance: 91, control_id: 'SWIFT-1.2', timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '5', 
+          type: 'Log', 
+          filename: 'privileged_account_audit.log', 
+          preview: '2024-01-20 11:08:33 [PRIV] Privileged account swift-admin-01 used for system configuration change. User: Jane Smith. Action: Modified firewall rule FW-001. Approval: Approved by Security Manager (ticket #INC-7892). Session recorded and archived. Total privileged accounts active: 3 (within limit of 5).', 
+          relevance: 95, 
+          control_id: 'SWIFT-1.2', 
+          timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '6', 
+          type: 'Document', 
+          filename: 'privileged_access_policy.pdf', 
+          preview: 'Privileged Account Management Policy: Maximum of 5 privileged accounts allowed for operating systems in SWIFT environment. All privileged account usage requires approval workflow. Accounts are reviewed monthly. Privileged sessions are recorded and cannot be deleted. Account access is restricted to business hours only.', 
+          relevance: 91, 
+          control_id: 'SWIFT-1.2', 
+          timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '1.3': [
-        { id: '7', type: 'Document', filename: 'virtualization_audit_report.pdf', preview: 'Virtualization platform audit shows missing security controls and unpatched vulnerabilities', relevance: 45, control_id: 'SWIFT-1.3', timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '8', type: 'Log', filename: 'vm_security_gaps.log', preview: 'VM security configuration gaps identified - missing hardening controls', relevance: 40, control_id: 'SWIFT-1.3', timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '7', 
+          type: 'Document', 
+          filename: 'virtualization_audit_report.pdf', 
+          preview: 'Virtualization Security Audit Report Q4 2023: CRITICAL FINDINGS - Missing security controls detected on hypervisor platform. 3 VMs running unpatched ESXi 6.7 (CVE-2023-XXXX). Management console access not restricted to dedicated network segment. Missing host-based firewall rules. Remediation required within 30 days.', 
+          relevance: 45, 
+          control_id: 'SWIFT-1.3', 
+          timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '8', 
+          type: 'Log', 
+          filename: 'vm_security_gaps.log', 
+          preview: '2024-01-18 16:22:11 [SECURITY] VM Security Scan Results: VM-APP-03: Missing hardening controls (CIS Benchmark score: 45/100). VM-DB-01: Unsecured management interface detected. VM-WEB-02: Outdated security patches (last patch: 2023-08-15). Total gaps: 12. Status: NON-COMPLIANT.', 
+          relevance: 40, 
+          control_id: 'SWIFT-1.3', 
+          timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '1.4': [
-        { id: '8', type: 'Log', filename: 'internet_access_control.log', preview: 'Internet access restriction logs', relevance: 89, control_id: 'SWIFT-1.4', timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '8', 
+          type: 'Log', 
+          filename: 'internet_access_control.log', 
+          preview: '2024-01-21 08:45:22 [FIREWALL] Internet access request DENIED. Source: SWIFT-CORE-01 (10.0.1.10). Destination: api.github.com (140.82.112.3). Reason: Internet access restricted per SWIFT CSCF policy. Allowed destinations: SWIFT network endpoints only. Request logged for audit.', 
+          relevance: 89, 
+          control_id: 'SWIFT-1.4', 
+          timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       // Section 2 - Know and Limit Access
       '2.1': [
-        { id: '10', type: 'Log', filename: 'data_flow_security.log', preview: 'Internal data flow security logs', relevance: 93, control_id: 'SWIFT-2.1', timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '10', 
+          type: 'Log', 
+          filename: 'data_flow_security.log', 
+          preview: '2024-01-22 13:27:55 [DATAFLOW] Internal data transfer: SWIFT-CORE-01 → SWIFT-DB-01. Protocol: TLS 1.3. Encryption: AES-256-GCM. Integrity check: SHA-256 HMAC verified. Data size: 2.3 MB. Transfer successful. All data flows encrypted and authenticated per policy.', 
+          relevance: 93, 
+          control_id: 'SWIFT-2.1', 
+          timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '2.2': [
-        { id: '11', type: 'Log', filename: 'security_updates.log', preview: 'Security patch application logs', relevance: 94, control_id: 'SWIFT-2.2', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '12', type: 'Document', filename: 'patch_management_policy.pdf', preview: 'Patch management policy', relevance: 90, control_id: 'SWIFT-2.2', timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '11', 
+          type: 'Log', 
+          filename: 'security_updates.log', 
+          preview: '2024-01-25 02:15:00 [PATCH] Security update applied: Windows Server 2022 KB5034204 (Critical). System: SWIFT-CORE-01. Patch tested in staging environment. Installation successful. Reboot completed. Verification: All services operational. Next scheduled patch cycle: 2024-02-08.', 
+          relevance: 94, 
+          control_id: 'SWIFT-2.2', 
+          timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '12', 
+          type: 'Document', 
+          filename: 'patch_management_policy.pdf', 
+          preview: 'Security Update Management Policy v3.0: Critical security patches must be applied within 7 days of release. Patches are tested in isolated staging environment before production deployment. All patch applications are logged and verified. Monthly patch review meetings ensure compliance with SWIFT CSCF requirements.', 
+          relevance: 90, 
+          control_id: 'SWIFT-2.2', 
+          timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '2.3': [
-        { id: '13', type: 'Document', filename: 'hardening_assessment.pdf', preview: 'System hardening assessment reveals multiple unhardened systems and missing security configurations', relevance: 35, control_id: 'SWIFT-2.3', timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '14', type: 'Log', filename: 'hardening_failures.log', preview: 'System hardening checklist shows 60% of systems not properly hardened', relevance: 38, control_id: 'SWIFT-2.3', timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '13', 
+          type: 'Document', 
+          filename: 'hardening_assessment.pdf', 
+          preview: 'System Hardening Assessment Report: NON-COMPLIANT - 8 out of 12 systems fail hardening benchmarks. Missing configurations: Unnecessary services enabled (FTP, Telnet), default passwords not changed, audit logging incomplete, firewall rules not applied. Remediation deadline: 2024-02-15. Risk level: HIGH.', 
+          relevance: 35, 
+          control_id: 'SWIFT-2.3', 
+          timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '14', 
+          type: 'Log', 
+          filename: 'hardening_failures.log', 
+          preview: '2024-01-16 10:30:45 [HARDEN] Hardening Compliance Scan: SWIFT-CORE-01: FAIL (Score: 45/100). SWIFT-DB-01: FAIL (Score: 52/100). SWIFT-WEB-01: PASS (Score: 88/100). Overall compliance: 40% (5/12 systems compliant). Action required: Immediate remediation.', 
+          relevance: 38, 
+          control_id: 'SWIFT-2.3', 
+          timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '2.6': [
-        { id: '14', type: 'Log', filename: 'operator_session_logs.log', preview: 'Operator session encryption logs', relevance: 91, control_id: 'SWIFT-2.6', timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '14', 
+          type: 'Log', 
+          filename: 'operator_session_logs.log', 
+          preview: '2024-01-19 09:12:33 [SESSION] Operator session established: User: admin@swift.local. Session ID: sess_xyz789. Encryption: TLS 1.3 with perfect forward secrecy. Cipher: AES-256-GCM. Session integrity verified. All operator communications encrypted and logged per SWIFT CSCF 2.6.', 
+          relevance: 91, 
+          control_id: 'SWIFT-2.6', 
+          timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '2.7': [
-        { id: '15', type: 'Log', filename: 'vulnerability_scan_results.log', preview: 'Vulnerability scanning results', relevance: 96, control_id: 'SWIFT-2.7', timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '16', type: 'Document', filename: 'vuln_scanning_policy.pdf', preview: 'Vulnerability scanning policy', relevance: 92, control_id: 'SWIFT-2.7', timestamp: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '15', 
+          type: 'Log', 
+          filename: 'vulnerability_scan_results.log', 
+          preview: '2024-01-23 03:00:00 [VULN-SCAN] Weekly vulnerability scan completed. Scanned: 12 systems. Critical: 0, High: 2, Medium: 8, Low: 15. All critical vulnerabilities remediated. High severity items scheduled for patch deployment (ticket #INC-8012). Scan compliance: 100%.', 
+          relevance: 96, 
+          control_id: 'SWIFT-2.7', 
+          timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '16', 
+          type: 'Document', 
+          filename: 'vuln_scanning_policy.pdf', 
+          preview: 'Vulnerability Scanning Policy: Automated vulnerability scans performed weekly on all SWIFT systems. External scans conducted monthly by third-party vendor. Critical vulnerabilities must be patched within 7 days. All scan results are reviewed by security team and tracked in vulnerability management system.', 
+          relevance: 92, 
+          control_id: 'SWIFT-2.7', 
+          timestamp: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '2.9': [
-        { id: '17', type: 'Log', filename: 'transaction_monitoring.log', preview: 'Transaction business control logs', relevance: 89, control_id: 'SWIFT-2.9', timestamp: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '17', 
+          type: 'Log', 
+          filename: 'transaction_monitoring.log', 
+          preview: '2024-01-14 14:55:12 [TX-MONITOR] SWIFT transaction processed: MT103 payment. Amount: EUR 125,000.00. Sender: BANK-A. Receiver: BANK-B. Dual authorization verified (User1 + User2). Transaction limits checked: PASS. Business controls enforced. Transaction approved and logged.', 
+          relevance: 89, 
+          control_id: 'SWIFT-2.9', 
+          timestamp: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '2.10': [
-        { id: '18', type: 'Document', filename: 'app_security_review.pdf', preview: 'Application security review indicates missing application hardening procedures and unsecured interfaces', relevance: 42, control_id: 'SWIFT-2.10', timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '18', 
+          type: 'Document', 
+          filename: 'app_security_review.pdf', 
+          preview: 'Application Security Review Q4 2023: GAPS IDENTIFIED - Application hardening procedures not documented. 3 applications have unsecured REST API interfaces (no authentication). Missing input validation on payment processing module. Security headers not configured. Remediation plan required by 2024-02-20.', 
+          relevance: 42, 
+          control_id: 'SWIFT-2.10', 
+          timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       // Section 3 - Physical Security
       '3.1': [
-        { id: '19', type: 'Document', filename: 'physical_security_audit.pdf', preview: 'Physical security controls documentation', relevance: 88, control_id: 'SWIFT-3.1', timestamp: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '19', 
+          type: 'Document', 
+          filename: 'physical_security_audit.pdf', 
+          preview: 'Physical Security Audit Report: Data center access controlled via badge readers and biometric authentication. CCTV coverage: 100% of critical areas. Visitor logs maintained. Environmental controls: Temperature 20-22°C, Humidity 45-55%. Fire suppression system tested quarterly. All physical security controls operational and compliant.', 
+          relevance: 88, 
+          control_id: 'SWIFT-3.1', 
+          timestamp: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       // Section 4 - Authentication and Access Control
       '4.1': [
-        { id: '20', type: 'Document', filename: 'password_policy.pdf', preview: 'Password policy document', relevance: 93, control_id: 'SWIFT-4.1', timestamp: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '21', type: 'Log', filename: 'password_compliance.log', preview: 'Password policy enforcement logs', relevance: 90, control_id: 'SWIFT-4.1', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '20', 
+          type: 'Document', 
+          filename: 'password_policy.pdf', 
+          preview: 'Password Policy v4.2: Minimum length: 16 characters. Complexity: Upper, lower, numbers, special characters required. Password history: 12 previous passwords cannot be reused. Maximum age: 90 days. Password attempts: 5 failed attempts lock account for 30 minutes. Policy enforced via Active Directory GPO.', 
+          relevance: 93, 
+          control_id: 'SWIFT-4.1', 
+          timestamp: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '21', 
+          type: 'Log', 
+          filename: 'password_compliance.log', 
+          preview: '2024-01-24 11:20:15 [PASSWORD] Password policy compliance check: 145/150 accounts compliant (96.7%). 5 accounts flagged for password expiration (due within 7 days). Enforcement: Automatic password reset notifications sent. All non-compliant accounts will be locked per policy.', 
+          relevance: 90, 
+          control_id: 'SWIFT-4.1', 
+          timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '4.2': [
-        { id: '22', type: 'Log', filename: 'mfa_authentication.log', preview: 'MFA authentication logs', relevance: 97, control_id: 'SWIFT-4.2', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '23', type: 'Document', filename: 'mfa_policy.pdf', preview: 'Multi-factor authentication policy', relevance: 95, control_id: 'SWIFT-4.2', timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '22', 
+          type: 'Log', 
+          filename: 'mfa_authentication.log', 
+          preview: '2024-01-27 08:45:22 [MFA] Multi-factor authentication successful: User: jane.smith@swift.local. Method: TOTP (Google Authenticator). Primary auth: Password. Secondary auth: 6-digit code verified. Session established. MFA compliance: 100% (all users enrolled).', 
+          relevance: 97, 
+          control_id: 'SWIFT-4.2', 
+          timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '23', 
+          type: 'Document', 
+          filename: 'mfa_policy.pdf', 
+          preview: 'Multi-Factor Authentication Policy: MFA required for all user accounts accessing SWIFT systems. Supported methods: TOTP apps, hardware tokens, SMS (backup only). MFA must be used for initial login and re-authentication every 8 hours. Exemptions require CISO approval. Policy compliance: 100%.', 
+          relevance: 95, 
+          control_id: 'SWIFT-4.2', 
+          timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       // Section 5 - Access Management
       '5.1': [
-        { id: '24', type: 'Document', filename: 'logical_access_control.pdf', preview: 'Logical access control policy', relevance: 91, control_id: 'SWIFT-5.1', timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '24', 
+          type: 'Document', 
+          filename: 'logical_access_control.pdf', 
+          preview: 'Logical Access Control Policy: Role-based access control (RBAC) implemented. Access rights granted based on job function and least privilege principle. Access reviews conducted quarterly. All access changes require manager approval. Access logs maintained for 7 years. Unused accounts deactivated after 90 days of inactivity.', 
+          relevance: 91, 
+          control_id: 'SWIFT-5.1', 
+          timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '5.2': [
-        { id: '25', type: 'Log', filename: 'token_audit.log', preview: 'Token management audit shows missing token tracking, unaccounted tokens, and improper token lifecycle management', relevance: 30, control_id: 'SWIFT-5.2', timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '26', type: 'Document', filename: 'token_gaps.pdf', preview: 'Token management policy gaps identified - no proper tracking or management procedures', relevance: 35, control_id: 'SWIFT-5.2', timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '25', 
+          type: 'Log', 
+          filename: 'token_audit.log', 
+          preview: '2024-01-19 15:33:18 [TOKEN-AUDIT] Token management audit FAILED: 12 tokens unaccounted. Token lifecycle tracking incomplete. 3 expired tokens still active. No token rotation policy documented. Token inventory missing for 5 API services. Status: NON-COMPLIANT. Remediation required.', 
+          relevance: 30, 
+          control_id: 'SWIFT-5.2', 
+          timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '26', 
+          type: 'Document', 
+          filename: 'token_gaps.pdf', 
+          preview: 'Token Management Gap Analysis: CRITICAL GAPS - No centralized token registry. Token expiration not enforced. Missing token rotation procedures. No audit trail for token usage. Token revocation process undefined. Recommendation: Implement token management system and establish token lifecycle procedures.', 
+          relevance: 35, 
+          control_id: 'SWIFT-5.2', 
+          timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '5.4': [
-        { id: '26', type: 'Document', filename: 'password_storage_policy.pdf', preview: 'Password storage security policy', relevance: 89, control_id: 'SWIFT-5.4', timestamp: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '26', 
+          type: 'Document', 
+          filename: 'password_storage_policy.pdf', 
+          preview: 'Password Repository Protection Policy: All passwords stored using bcrypt hashing (cost factor 12). Salt values unique per password. Password repository access restricted to security team only. Repository encrypted at rest (AES-256). Access logs maintained. Repository backed up securely. Compliance: 100%.', 
+          relevance: 89, 
+          control_id: 'SWIFT-5.4', 
+          timestamp: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       // Section 6 - Protection and Integrity
       '6.1': [
-        { id: '27', type: 'Log', filename: 'malware_protection.log', preview: 'Malware protection scan logs', relevance: 92, control_id: 'SWIFT-6.1', timestamp: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '27', 
+          type: 'Log', 
+          filename: 'malware_protection.log', 
+          preview: '2024-01-20 04:00:00 [ANTIVIRUS] Daily malware scan completed: 12 systems scanned, 0 threats detected. Signature database: Updated (version 2024.01.20.001). Real-time protection: ACTIVE. Quarantine: 0 items. All systems protected. Next scan: 2024-01-21 04:00:00.', 
+          relevance: 92, 
+          control_id: 'SWIFT-6.1', 
+          timestamp: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '6.2': [
-        { id: '28', type: 'Document', filename: 'software_integrity_audit.pdf', preview: 'Software integrity verification audit shows missing integrity checks, unsigned binaries, and no verification procedures', relevance: 25, control_id: 'SWIFT-6.2', timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '29', type: 'Log', filename: 'integrity_failures.log', preview: 'Software integrity checks failed - multiple unsigned components detected', relevance: 28, control_id: 'SWIFT-6.2', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '28', 
+          type: 'Document', 
+          filename: 'software_integrity_audit.pdf', 
+          preview: 'Software Integrity Audit Report: CRITICAL FINDINGS - No integrity verification procedures documented. 8 unsigned binaries detected in production. No code signing certificates in use. Missing file integrity monitoring (FIM) system. No baseline established for software components. Immediate remediation required.', 
+          relevance: 25, 
+          control_id: 'SWIFT-6.2', 
+          timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '29', 
+          type: 'Log', 
+          filename: 'integrity_failures.log', 
+          preview: '2024-01-25 14:18:42 [INTEGRITY] Software integrity check FAILED: /opt/swift/bin/payment-processor: No signature found. /usr/local/lib/swift-core.so: Hash mismatch. /var/swift/config/app.conf: Modified without approval. Total failures: 11. Status: NON-COMPLIANT.', 
+          relevance: 28, 
+          control_id: 'SWIFT-6.2', 
+          timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '6.3': [
-        { id: '29', type: 'Log', filename: 'database_integrity.log', preview: 'Database integrity check logs', relevance: 90, control_id: 'SWIFT-6.3', timestamp: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '29', 
+          type: 'Log', 
+          filename: 'database_integrity.log', 
+          preview: '2024-01-18 23:00:00 [DB-INTEGRITY] Database integrity check completed: Database: swift_transactions_db. Tables checked: 45. Checksums verified: 100% match. No corruption detected. Referential integrity: PASS. Transaction log integrity: VERIFIED. All database integrity checks passed.', 
+          relevance: 90, 
+          control_id: 'SWIFT-6.3', 
+          timestamp: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '6.4': [
-        { id: '30', type: 'Log', filename: 'security_monitoring.log', preview: 'Security event logging and monitoring', relevance: 94, control_id: 'SWIFT-6.4', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-        { id: '31', type: 'Document', filename: 'logging_policy.pdf', preview: 'Logging and monitoring policy', relevance: 91, control_id: 'SWIFT-6.4', timestamp: new Date(Date.now() - 17 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '30', 
+          type: 'Log', 
+          filename: 'security_monitoring.log', 
+          preview: '2024-01-28 12:45:33 [SIEM] Security event logged: Event ID: SEC-2024-001234. Type: Authentication success. User: admin@swift.local. Source IP: 10.0.1.45. Timestamp: 2024-01-28T12:45:33Z. All security events logged to SIEM. Real-time monitoring: ACTIVE. Alert threshold: 5 failed attempts.', 
+          relevance: 94, 
+          control_id: 'SWIFT-6.4', 
+          timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() 
+        },
+        { 
+          id: '31', 
+          type: 'Document', 
+          filename: 'logging_policy.pdf', 
+          preview: 'Logging and Monitoring Policy: All security events logged to centralized SIEM. Log retention: 7 years. Real-time monitoring for authentication failures, privilege escalations, and data access. Alerts configured for suspicious activities. Logs are tamper-proof and archived. Compliance: 100%.', 
+          relevance: 91, 
+          control_id: 'SWIFT-6.4', 
+          timestamp: new Date(Date.now() - 17 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       // Section 7 - Incident Response and Training
       '7.1': [
-        { id: '32', type: 'Document', filename: 'incident_response_plan.pdf', preview: 'Cyber incident response plan documentation', relevance: 89, control_id: 'SWIFT-7.1', timestamp: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '32', 
+          type: 'Document', 
+          filename: 'incident_response_plan.pdf', 
+          preview: 'Cyber Incident Response Plan v3.1: Incident response team defined (CISO, Security Analysts, IT Operations). Escalation procedures documented. Communication plan includes stakeholders and regulatory notifications. Containment procedures for different incident types. Recovery and post-incident review processes. Plan tested quarterly.', 
+          relevance: 89, 
+          control_id: 'SWIFT-7.1', 
+          timestamp: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       '7.2': [
-        { id: '33', type: 'Document', filename: 'security_training.pdf', preview: 'Security awareness training documentation', relevance: 87, control_id: 'SWIFT-7.2', timestamp: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString() }
+        { 
+          id: '33', 
+          type: 'Document', 
+          filename: 'security_training.pdf', 
+          preview: 'Security Awareness Training Records Q3 2023: All 150 employees completed annual security awareness training. Topics covered: Phishing, password security, data handling, incident reporting. Training completion: 100%. Quiz scores: Average 87%. Training materials updated quarterly. Next training: Q1 2024.', 
+          relevance: 87, 
+          control_id: 'SWIFT-7.2', 
+          timestamp: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString() 
+        }
       ],
       // SOC 2 mock evidence (recent timestamps within 90 days, compliance-focused narratives)
       'CC1.1.1': [
@@ -2377,33 +2668,91 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
                               })}
                             </div>
 
-                            {/* Evidence Items */}
+                            {/* Evidence Items - Card Format */}
                             {currentAnswer?.evidence && currentAnswer.evidence.length > 0 && (
-                              <div className="mb-3 p-3 bg-blue-50 rounded-lg">
-                                <div className="text-xs font-semibold text-blue-900 mb-2">
+                              <div className="mb-3">
+                                <div className="text-xs font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                  <FileCheck className="w-4 h-4" />
                                   Evidence Found ({currentAnswer.evidence.length}):
                                 </div>
-                                <div className="space-y-1 max-h-32 overflow-y-auto">
-                                  {currentAnswer.evidence.slice(0, 5).map((item, idx) => (
-                                    <div key={idx} className="text-xs text-gray-700 flex items-center gap-2">
-                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${item.type === 'Log' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
-                                        }`}>
-                                        {item.type}
-                                      </span>
-                                      <span className="flex-1 truncate">{item.filename}</span>
-                                      <span className="text-gray-500">{item.relevance}%</span>
-                                      {isEvidenceOutdated(item.timestamp) && (
-                                        <div title="Outdated">
-                                          <Clock className="w-3 h-3 text-orange-500" />
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
-                                  {currentAnswer.evidence.length > 5 && (
-                                    <div className="text-xs text-gray-500 italic">
-                                      ... and {currentAnswer.evidence.length - 5} more
-                                    </div>
-                                  )}
+                                <div className="space-y-3 max-h-96 overflow-y-auto">
+                                  <AnimatePresence>
+                                    {currentAnswer.evidence.map((item, idx) => {
+                                      const isOutdated = isEvidenceOutdated(item.timestamp);
+                                      return (
+                                        <motion.div
+                                          key={`${item.id}-${item.type}-${idx}`}
+                                          initial={{ opacity: 0, y: 10 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          exit={{ opacity: 0, y: -10 }}
+                                          transition={{ delay: idx * 0.05 }}
+                                          className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group"
+                                          onClick={() => {
+                                            setCurrentEvidence(item);
+                                            setIsModalOpen(true);
+                                          }}
+                                        >
+                                          <div className="flex justify-between items-start gap-4">
+                                            <div className="flex gap-3 flex-1 min-w-0">
+                                              {/* Icon */}
+                                              <div className={`p-2 rounded-lg flex-shrink-0 ${item.type === 'Log' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'}`}>
+                                                {item.type === 'Log' ? (
+                                                  <Database className="w-5 h-5" />
+                                                ) : (
+                                                  <FileText className="w-5 h-5" />
+                                                )}
+                                              </div>
+                                              
+                                              {/* Content */}
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                  <h5 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors truncate">
+                                                    {item.filename}
+                                                  </h5>
+                                                  {item.control_id && (
+                                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200 font-mono flex-shrink-0">
+                                                      {item.control_id}
+                                                    </span>
+                                                  )}
+                                                  {isOutdated && (
+                                                    <div className="flex items-center gap-1 text-orange-600 flex-shrink-0" title="Outdated evidence (older than 90 days)">
+                                                      <Clock className="w-3 h-3" />
+                                                      <span className="text-xs">Outdated</span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                                
+                                                {/* Preview */}
+                                                <p className="text-sm text-gray-600 font-mono bg-gray-50 p-2 rounded border border-gray-100 mb-2 line-clamp-2">
+                                                  {item.preview}
+                                                </p>
+                                                
+                                                {/* Metadata */}
+                                                <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap">
+                                                  <span>{new Date(item.timestamp).toLocaleString()}</span>
+                                                  <span>ID: {item.id}</span>
+                                                  {item.control_id && (
+                                                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-mono">
+                                                      Control: {item.control_id}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                            
+                                            {/* Relevance Score */}
+                                            <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                                              <div className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded-md text-xs font-bold">
+                                                <Sparkles className="w-3 h-3" />
+                                                {item.relevance}%
+                                              </div>
+                                              <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-900 transition-colors" />
+                                            </div>
+                                          </div>
+                                        </motion.div>
+                                      );
+                                    })}
+                                  </AnimatePresence>
                                 </div>
                               </div>
                             )}
@@ -2468,6 +2817,18 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Evidence Detail Modal */}
+      <EvidenceDetailModal
+        evidence={currentEvidence}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddToSelection={(item) => {
+          // Evidence can be added to pack from the modal
+          console.log('Evidence added to pack:', item);
+        }}
+        isAlreadySelected={false}
+      />
     </div>
   );
 };
