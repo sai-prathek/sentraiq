@@ -23,6 +23,8 @@ interface AssessmentQuestionsProps {
   framework: string;
   onComplete: (answers: AssessmentAnswer[]) => void;
   onBack: () => void;
+  swiftArchitectureType?: string | null;
+  controlApplicabilityMatrix?: any;
 }
 
 const SWIFT_QUESTIONS = [
@@ -1619,7 +1621,13 @@ const PCI_DSS_QUESTIONS = [
   }
 ]
 
-const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, onComplete, onBack }) => {
+const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ 
+  framework, 
+  onComplete, 
+  onBack,
+  swiftArchitectureType,
+  controlApplicabilityMatrix
+}) => {
   const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>({});
   const [currentSection, setCurrentSection] = useState<string>('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -1632,7 +1640,35 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
   // Access shared pack list so assessment evidence is persisted across steps
   const { addEvidenceToPack } = useOutletContext<DashboardOutletContext>();
 
-  const questions =
+  // Helper function to extract control ID from question ID (e.g., "1.1.a.1" -> "1.1")
+  const getControlIdFromQuestionId = (questionId: string): string | null => {
+    const parts = questionId.split('.');
+    if (parts.length >= 2) {
+      return `${parts[0]}.${parts[1]}`;
+    }
+    return null;
+  };
+
+  // Helper function to check if a control is applicable to the selected architecture
+  const isControlApplicable = (controlId: string): boolean => {
+    if (!swiftArchitectureType || !controlApplicabilityMatrix) {
+      return true; // If no architecture selected, show all questions
+    }
+
+    // Search through control applicability matrix
+    for (const domain of controlApplicabilityMatrix.control_applicability_matrix || []) {
+      for (const control of domain.controls || []) {
+        if (control.control_id === controlId) {
+          const mapping = control.mapping?.[swiftArchitectureType];
+          return mapping?.is_applicable || false;
+        }
+      }
+    }
+    return false;
+  };
+
+  // Get all questions, then filter for SWIFT if architecture is selected
+  let allQuestions =
     framework === 'SOC2'
       ? SOC2_QUESTIONS
       : framework === 'ISO27001_2022'
@@ -1641,9 +1677,18 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
           ? PCI_DSS_QUESTIONS
           : SWIFT_QUESTIONS;
 
+  // Filter SWIFT questions based on architecture type
+  const questions = framework === 'SWIFT_CSP' && swiftArchitectureType && controlApplicabilityMatrix
+    ? allQuestions.filter((q) => {
+        const controlId = getControlIdFromQuestionId(q.id);
+        if (!controlId) return true; // Include questions without valid control IDs
+        return isControlApplicable(controlId);
+      })
+    : allQuestions;
+
   const sections = Array.from(new Set(questions.map(q => q.section)));
 
-  // Initialize current section and expanded sections when framework or questions change
+  // Initialize current section and expanded sections when framework, architecture, or questions change
   useEffect(() => {
     if (sections.length > 0) {
       const firstSection = sections[0];
@@ -1651,7 +1696,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
       // Keep all sections closed by default
       setExpandedSections(new Set());
     }
-  }, [framework, sections.length]);
+  }, [framework, swiftArchitectureType, sections.length]);
 
   // Hydrate answers from localStorage when the component mounts or framework changes.
   // This lets auto-answered results persist when navigating forward/backward between
@@ -2453,9 +2498,36 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* Action Buttons - Above all components */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+          <button
+            onClick={handleComplete}
+            disabled={answered !== total}
+            className={`
+              flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors
+              ${answered === total
+                ? 'bg-blue-900 text-white hover:bg-blue-800'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }
+            `}
+          >
+            Continue to Query Evidence
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {framework === 'SOC2'
@@ -2475,6 +2547,10 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
             <div className="text-2xl font-bold text-blue-900">{answered}/{total}</div>
           </div>
         </div>
+      </div>
+
+      {/* Content */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
 
         {/* Auto-Answer Button */}
         <div className="mb-4">
@@ -2530,32 +2606,6 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
             <AlertCircle className="w-4 h-4 text-yellow-600" />
             <span className="text-gray-700">Remaining: {total - answered}</span>
           </div>
-        </div>
-
-        {/* Action Buttons - Moved to top for easier accessibility */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Evidence Ingestion
-          </button>
-
-          <button
-            onClick={handleComplete}
-            disabled={answered !== total}
-            className={`
-              flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors
-              ${answered === total
-                ? 'bg-blue-900 text-white hover:bg-blue-800'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }
-            `}
-          >
-            Continue to Query Evidence
-            <ArrowRight className="w-4 h-4" />
-          </button>
         </div>
       </div>
 

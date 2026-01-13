@@ -1,0 +1,426 @@
+{
+  "framework": "SWIFT CSP v2024",
+  "version": "1.4",
+  "last_updated": "2026-01-13",
+  "swift_architecture_types": [
+    {
+      "id": "A1",
+      "name": "Architecture Type A1",
+      "description": "User owns the messaging interface and communication interface, located on user premises.",
+      "logic_summary": "Full Scope. All controls applicable."
+    },
+    {
+      "id": "A2",
+      "name": "Architecture Type A2",
+      "description": "User owns messaging interface (on premises); communication interface is with a Service Provider.",
+      "logic_summary": "High Scope. Most controls applicable, except those specific to the communication interface itself."
+    },
+    {
+      "id": "A3",
+      "name": "Architecture Type A3",
+      "description": "User uses a Service Provider for both messaging and communication interfaces (e.g. Alliance Cloud). Local footprint is minimal (endpoints).",
+      "logic_summary": "Reduced Scope. Heavy reliance on Service Provider controls. Focus on endpoints and user access."
+    },
+    {
+      "id": "A4",
+      "name": "Architecture Type A4",
+      "description": "User connects via a connector (middleware) or back-office system to a Service Provider.",
+      "logic_summary": "Middleware Focused. Controls apply to the connector/middleware environment."
+    },
+    {
+      "id": "B",
+      "name": "Architecture Type B",
+      "description": "User has no local SWIFT infrastructure; uses a Service Provider's application (GUI) directly.",
+      "logic_summary": "Minimum Scope. Focus on user PC security, identity management, and business processes."
+    }
+  ],
+  "control_applicability_matrix": [
+    {
+      "domain": "1. Secure Your Environment",
+      "controls": [
+        {
+          "control_id": "1.1",
+          "control_name": "SWIFT Environment Protection",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Secure Zone" },
+            "A2": { "is_applicable": true, "scope": "Full Secure Zone" },
+            "A3": { "is_applicable": true, "scope": "Endpoints & Connector" },
+            "A4": { "is_applicable": true, "scope": "Connector/Middleware Zone" },
+            "B": { "is_applicable": false, "scope": "N/A" }
+          }
+        },
+        {
+          "control_id": "1.2",
+          "control_name": "Operating System Privileged Account Control",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Stack" },
+            "A2": { "is_applicable": true, "scope": "Full Stack" },
+            "A3": { "is_applicable": true, "scope": "Endpoints" },
+            "A4": { "is_applicable": true, "scope": "Connector/Middleware" },
+            "B": { "is_applicable": true, "scope": "User PC" }
+          }
+        },
+        {
+          "control_id": "1.3",
+          "control_name": "Virtualisation Platform Protection",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Local Hypervisors" },
+            "A2": { "is_applicable": true, "scope": "Local Hypervisors" },
+            "A3": { "is_applicable": false, "scope": "N/A (Provider Managed)" },
+            "A4": { "is_applicable": true, "scope": "Connector Hypervisors" },
+            "B": { "is_applicable": false, "scope": "N/A" }
+          }
+        },
+        {
+          "control_id": "1.4",
+          "control_name": "Restriction of Internet Access",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Secure Zone" },
+            "A2": { "is_applicable": true, "scope": "Secure Zone" },
+            "A3": { "is_applicable": true, "scope": "Endpoints" },
+            "A4": { "is_applicable": true, "scope": "Connector Zone" },
+            "B": { "is_applicable": true, "scope": "User PC" }
+          }
+        },
+        {
+          "control_id": "1.5",
+          "control_name": "Customer Environment Protection (Vendor Managed)",
+          "mapping": {
+            "A1": { "is_applicable": false, "scope": "N/A" },
+            "A2": { "is_applicable": false, "scope": "N/A" },
+            "A3": { "is_applicable": true, "scope": "Customer Side Controls" },
+            "A4": { "is_applicable": false, "scope": "N/A" },
+            "B": { "is_applicable": false, "scope": "N/A" }
+          }
+        }
+      ]
+    },
+    {
+      "domain": "2. Know and Limit Access",
+      "controls": [
+        {
+          "control_id": "2.1",
+          "control_name": "Internal Data Flow Security",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Network" },
+            "A2": { "is_applicable": true, "scope": "Full Network" },
+            "A3": { "is_applicable": true, "scope": "Endpoint-to-Internet" },
+            "A4": { "is_applicable": true, "scope": "Connector Network" },
+            "B": { "is_applicable": true, "scope": "PC Network" }
+          }
+        },
+        {
+          "control_id": "2.2",
+          "control_name": "Security Updates",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Stack" },
+            "A2": { "is_applicable": true, "scope": "Full Stack" },
+            "A3": { "is_applicable": true, "scope": "Endpoints" },
+            "A4": { "is_applicable": true, "scope": "Connector/Middleware" },
+            "B": { "is_applicable": true, "scope": "User PC" }
+          }
+        },
+        {
+          "control_id": "2.3",
+          "control_name": "System Hardening",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Stack" },
+            "A2": { "is_applicable": true, "scope": "Full Stack" },
+            "A3": { "is_applicable": true, "scope": "Endpoints" },
+            "A4": { "is_applicable": true, "scope": "Connector/Middleware" },
+            "B": { "is_applicable": true, "scope": "User PC" }
+          }
+        },
+        {
+          "control_id": "2.4",
+          "control_name": "Back Office Data Flow Security",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Secure Zone to BO" },
+            "A2": { "is_applicable": true, "scope": "Secure Zone to BO" },
+            "A3": { "is_applicable": true, "scope": "Connector to BO" },
+            "A4": { "is_applicable": true, "scope": "Connector to BO" },
+            "B": { "is_applicable": false, "scope": "N/A" }
+          }
+        },
+        {
+          "control_id": "2.5",
+          "control_name": "External Transmission Data Protection",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Operator to SWIFT" },
+            "A2": { "is_applicable": true, "scope": "Operator to Provider" },
+            "A3": { "is_applicable": true, "scope": "User to Provider" },
+            "A4": { "is_applicable": true, "scope": "Connector to Provider" },
+            "B": { "is_applicable": true, "scope": "User to Provider (HTTPS)" }
+          }
+        },
+        {
+          "control_id": "2.6",
+          "control_name": "Operator Session Confidentiality",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Local GUI" },
+            "A2": { "is_applicable": true, "scope": "Local GUI" },
+            "A3": { "is_applicable": true, "scope": "Browser Session" },
+            "A4": { "is_applicable": true, "scope": "Admin Console" },
+            "B": { "is_applicable": true, "scope": "Browser Session" }
+          }
+        },
+        {
+          "control_id": "2.7",
+          "control_name": "Vulnerability Scanning",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Stack" },
+            "A2": { "is_applicable": true, "scope": "Full Stack" },
+            "A3": { "is_applicable": true, "scope": "Endpoints" },
+            "A4": { "is_applicable": true, "scope": "Connector/Middleware" },
+            "B": { "is_applicable": true, "scope": "User PC" }
+          }
+        },
+        {
+          "control_id": "2.8",
+          "control_name": "Critical Outsourced Service Provider Selection",
+          "mapping": {
+            "A1": { "is_applicable": false, "scope": "N/A (No Provider)" },
+            "A2": { "is_applicable": true, "scope": "Connectivity Provider" },
+            "A3": { "is_applicable": true, "scope": "Service Provider" },
+            "A4": { "is_applicable": true, "scope": "Service Provider" },
+            "B": { "is_applicable": true, "scope": "Service Provider" }
+          }
+        },
+        {
+          "control_id": "2.9",
+          "control_name": "Transaction Business Controls",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Business Process" },
+            "A2": { "is_applicable": true, "scope": "Business Process" },
+            "A3": { "is_applicable": true, "scope": "Business Process" },
+            "A4": { "is_applicable": true, "scope": "Business Process" },
+            "B": { "is_applicable": true, "scope": "Business Process" }
+          }
+        },
+        {
+          "control_id": "2.10",
+          "control_name": "Application Hardening",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Local SWIFT Interface App" },
+            "A2": { "is_applicable": true, "scope": "Local SWIFT Interface App" },
+            "A3": { "is_applicable": false, "scope": "N/A (Provider Managed)" },
+            "A4": { "is_applicable": true, "scope": "Middleware Application" },
+            "B": { "is_applicable": false, "scope": "N/A" }
+          }
+        },
+        {
+          "control_id": "2.11A",
+          "control_name": "RMA Business Controls",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "RMA Workflow" },
+            "A2": { "is_applicable": true, "scope": "RMA Workflow" },
+            "A3": { "is_applicable": true, "scope": "RMA Workflow (if utilized)" },
+            "A4": { "is_applicable": true, "scope": "RMA Workflow (if utilized)" },
+            "B": { "is_applicable": true, "scope": "RMA Workflow (if utilized)" }
+          }
+        }
+      ]
+    },
+    {
+      "domain": "3. Detect and Respond",
+      "controls": [
+        {
+          "control_id": "3.1",
+          "control_name": "Physical Security",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Data Center/Server Room" },
+            "A2": { "is_applicable": true, "scope": "Data Center/Server Room" },
+            "A3": { "is_applicable": false, "scope": "N/A (Provider Managed)" },
+            "A4": { "is_applicable": true, "scope": "Server Room (Connector)" },
+            "B": { "is_applicable": false, "scope": "N/A" }
+          }
+        }
+      ]
+    },
+    {
+      "domain": "4. Identity and Access Management",
+      "controls": [
+        {
+          "control_id": "4.1",
+          "control_name": "Password Policy",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Local Systems" },
+            "A2": { "is_applicable": true, "scope": "Local Systems" },
+            "A3": { "is_applicable": true, "scope": "Endpoint/Portal" },
+            "A4": { "is_applicable": true, "scope": "Middleware/Portal" },
+            "B": { "is_applicable": true, "scope": "Portal Access" }
+          }
+        },
+        {
+          "control_id": "4.2",
+          "control_name": "Multi-Factor Authentication",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Operator & Admin Access" },
+            "A2": { "is_applicable": true, "scope": "Operator & Admin Access" },
+            "A3": { "is_applicable": true, "scope": "Portal Access" },
+            "A4": { "is_applicable": true, "scope": "Admin Access" },
+            "B": { "is_applicable": true, "scope": "Portal Access" }
+          }
+        }
+      ]
+    },
+    {
+      "domain": "5. External Dependencies",
+      "controls": [
+        {
+          "control_id": "5.1",
+          "control_name": "Logical Access Control",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Stack" },
+            "A2": { "is_applicable": true, "scope": "Full Stack" },
+            "A3": { "is_applicable": true, "scope": "Endpoint & Portal" },
+            "A4": { "is_applicable": true, "scope": "Middleware & Portal" },
+            "B": { "is_applicable": true, "scope": "Portal" }
+          }
+        },
+        {
+          "control_id": "5.2",
+          "control_name": "Token Management",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Local Hardware Tokens" },
+            "A2": { "is_applicable": true, "scope": "Local Hardware Tokens" },
+            "A3": { "is_applicable": true, "scope": "MFA Tokens" },
+            "A4": { "is_applicable": true, "scope": "Admin Tokens" },
+            "B": { "is_applicable": true, "scope": "MFA Tokens" }
+          }
+        },
+        {
+          "control_id": "5.3",
+          "control_name": "Personnel Vetting",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "All Staff" },
+            "A2": { "is_applicable": true, "scope": "All Staff" },
+            "A3": { "is_applicable": true, "scope": "Operators/Admins" },
+            "A4": { "is_applicable": true, "scope": "Operators/Admins" },
+            "B": { "is_applicable": true, "scope": "Operators" }
+          }
+        },
+        {
+          "control_id": "5.4",
+          "control_name": "Physical and Logical Data Protection",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Stack" },
+            "A2": { "is_applicable": true, "scope": "Full Stack" },
+            "A3": { "is_applicable": true, "scope": "Endpoints" },
+            "A4": { "is_applicable": true, "scope": "Connector" },
+            "B": { "is_applicable": true, "scope": "User PC" }
+          }
+        }
+      ]
+    },
+    {
+      "domain": "6. Information Risk Management",
+      "controls": [
+        {
+          "control_id": "6.1",
+          "control_name": "Malware Protection",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Stack" },
+            "A2": { "is_applicable": true, "scope": "Full Stack" },
+            "A3": { "is_applicable": true, "scope": "Endpoints" },
+            "A4": { "is_applicable": true, "scope": "Connector/Middleware" },
+            "B": { "is_applicable": true, "scope": "User PC" }
+          }
+        },
+        {
+          "control_id": "6.2",
+          "control_name": "Software Integrity",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Local SWIFT SW" },
+            "A2": { "is_applicable": true, "scope": "Local SWIFT SW" },
+            "A3": { "is_applicable": true, "scope": "Client Software" },
+            "A4": { "is_applicable": true, "scope": "Connector SW" },
+            "B": { "is_applicable": true, "scope": "Browser/OS" }
+          }
+        },
+        {
+          "control_id": "6.3",
+          "control_name": "Database Integrity",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Local DB" },
+            "A2": { "is_applicable": true, "scope": "Local DB" },
+            "A3": { "is_applicable": false, "scope": "N/A" },
+            "A4": { "is_applicable": true, "scope": "Connector DB" },
+            "B": { "is_applicable": false, "scope": "N/A" }
+          }
+        },
+        {
+          "control_id": "6.4",
+          "control_name": "Logging and Monitoring",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Stack" },
+            "A2": { "is_applicable": true, "scope": "Full Stack" },
+            "A3": { "is_applicable": true, "scope": "Endpoints/Portal" },
+            "A4": { "is_applicable": true, "scope": "Connector" },
+            "B": { "is_applicable": true, "scope": "User PC/Portal" }
+          }
+        },
+        {
+          "control_id": "6.5",
+          "control_name": "Intrusion Detection",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Network" },
+            "A2": { "is_applicable": true, "scope": "Full Network" },
+            "A3": { "is_applicable": true, "scope": "Endpoint EDR" },
+            "A4": { "is_applicable": true, "scope": "Connector Network" },
+            "B": { "is_applicable": true, "scope": "User PC EDR" }
+          }
+        }
+      ]
+    },
+    {
+      "domain": "7. Incident Response and Business Continuity",
+      "controls": [
+        {
+          "control_id": "7.1",
+          "control_name": "Cyber Incident Response Planning",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Scope" },
+            "A2": { "is_applicable": true, "scope": "Full Scope" },
+            "A3": { "is_applicable": true, "scope": "Endpoint/Account Scope" },
+            "A4": { "is_applicable": true, "scope": "Connector Scope" },
+            "B": { "is_applicable": true, "scope": "User/Account Scope" }
+          }
+        },
+        {
+          "control_id": "7.2",
+          "control_name": "Security Training and Awareness",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "All Staff" },
+            "A2": { "is_applicable": true, "scope": "All Staff" },
+            "A3": { "is_applicable": true, "scope": "Operators/Admins" },
+            "A4": { "is_applicable": true, "scope": "Operators/Admins" },
+            "B": { "is_applicable": true, "scope": "Operators" }
+          }
+        },
+        {
+          "control_id": "7.3",
+          "control_name": "Penetration Testing",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Infrastructure" },
+            "A2": { "is_applicable": true, "scope": "Full Infrastructure" },
+            "A3": { "is_applicable": true, "scope": "Endpoints (Optional)" },
+            "A4": { "is_applicable": true, "scope": "Connector Infrastructure" },
+            "B": { "is_applicable": false, "scope": "N/A" }
+          }
+        },
+        {
+          "control_id": "7.4",
+          "control_name": "Scenario Based Risk Assessment",
+          "mapping": {
+            "A1": { "is_applicable": true, "scope": "Full Environment" },
+            "A2": { "is_applicable": true, "scope": "Full Environment" },
+            "A3": { "is_applicable": true, "scope": "Limited Environment" },
+            "A4": { "is_applicable": true, "scope": "Connector Environment" },
+            "B": { "is_applicable": true, "scope": "Limited Environment" }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -520,4 +520,36 @@ export const api = {
       throw new Error(error.response?.data?.detail || 'Failed to check regulatory updates');
     }
   },
+
+  getSwiftArchitectureTypes: async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/assurance/swift/architecture-types`);
+      return response.data.architecture_types || [];
+    } catch (error: any) {
+      console.error('Error fetching SWIFT architecture types:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch SWIFT architecture types');
+    }
+  },
+
+  getSwiftControlsByArchitecture: async (architectureType: string) => {
+    try {
+      const response = await axios.get(`${API_BASE}/assurance/swift/controls-by-architecture`, {
+        params: { architecture_type: architectureType }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching SWIFT controls by architecture:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch SWIFT controls');
+    }
+  },
+
+  getSwiftControlApplicabilityMatrix: async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/assurance/swift/control-applicability-matrix`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching SWIFT control applicability matrix:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch control applicability matrix');
+    }
+  },
 };

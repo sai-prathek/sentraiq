@@ -11,7 +11,8 @@ from backend.database import get_session
 from backend.layers.telescope import Telescope, ai_cache
 from backend.layers.control_library import (
     get_all_controls, get_controls_by_infrastructure, get_controls_by_framework,
-    get_shared_controls, get_mandatory_vs_advisory, Framework, InfrastructureType
+    get_shared_controls, get_mandatory_vs_advisory, Framework, InfrastructureType,
+    get_swift_architecture_types, get_controls_by_swift_architecture, SwiftArchitectureType
 )
 from backend.models.schemas import (
     TelescopeQueryRequest, TelescopeQueryResponse, EvidenceItem,
@@ -455,3 +456,76 @@ async def check_regulatory_updates(
         "total_updates": len(updates),
         "note": "This is a mocked response for demo purposes. In production, this would use Gemini API with Google Search Grounding to monitor official regulatory bulletins."
     }
+
+
+@router.get("/swift/architecture-types")
+async def get_swift_architecture_types_endpoint():
+    """
+    Get all SWIFT CSP architecture types (A1, A2, A3, A4, B)
+    """
+    try:
+        architecture_types = get_swift_architecture_types()
+        return {
+            "architecture_types": architecture_types,
+            "count": len(architecture_types)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get SWIFT architecture types: {str(e)}")
+
+
+@router.get("/swift/controls-by-architecture")
+async def get_swift_controls_by_architecture(
+    architecture_type: str
+):
+    """
+    Get controls applicable to a specific SWIFT architecture type
+    
+    Args:
+        architecture_type: SWIFT architecture type (A1, A2, A3, A4, B)
+    """
+    try:
+        try:
+            arch_enum = SwiftArchitectureType(architecture_type.upper())
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid architecture type: {architecture_type}. Must be one of: A1, A2, A3, A4, B"
+            )
+        
+        controls = get_controls_by_swift_architecture(arch_enum)
+        return {
+            "architecture_type": architecture_type.upper(),
+            "controls": controls,
+            "count": len(controls)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get controls: {str(e)}")
+
+
+@router.get("/swift/control-applicability-matrix")
+async def get_swift_control_applicability_matrix():
+    """
+    Get the full control applicability matrix for SWIFT CSP
+    Returns domains, controls, and their applicability across all architecture types
+    """
+    try:
+        from backend.layers.control_library import SWIFT_CSP_MAPPING
+        
+        if not SWIFT_CSP_MAPPING:
+            return {
+                "framework": "SWIFT CSP v2024",
+                "version": "1.4",
+                "control_applicability_matrix": [],
+                "swift_architecture_types": []
+            }
+        
+        return {
+            "framework": SWIFT_CSP_MAPPING.get("framework", "SWIFT CSP v2024"),
+            "version": SWIFT_CSP_MAPPING.get("version", "1.4"),
+            "control_applicability_matrix": SWIFT_CSP_MAPPING.get("control_applicability_matrix", []),
+            "swift_architecture_types": SWIFT_CSP_MAPPING.get("swift_architecture_types", [])
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get control applicability matrix: {str(e)}")
