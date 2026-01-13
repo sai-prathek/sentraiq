@@ -5,7 +5,7 @@ import { useOutletContext, useLocation } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
 import Stepper from './Stepper';
 import ObjectiveSelector, { ObjectiveSelection } from './ObjectiveSelector';
-import AssessmentQuestions, { AssessmentAnswer } from './AssessmentQuestions';
+import ComplianceAssessment, { AssessmentAnswer } from './ComplianceAssessment';
 import IngestTab from './IngestTab';
 import RequirementsTab from './RequirementsTab';
 import ControlStatusTable from './ControlStatusTable';
@@ -25,7 +25,7 @@ const STEPS = [
   { id: 2, label: 'Select SWIFT Architecture', description: 'Choose your SWIFT architecture type' },
   { id: 3, label: 'Requirements', description: 'Review evidence requirements' },
   { id: 4, label: 'Manage Evidence', description: 'Add and review evidence files' },
-  { id: 5, label: 'Assessment Questions', description: 'Answer compliance questions' },
+  { id: 5, label: 'Compliance Assessment', description: 'Answer compliance questions' },
   { id: 6, label: 'Control Status', description: 'Review control compliance status' },
   { id: 7, label: 'Create Pack', description: 'Generate assurance pack' },
   { id: 8, label: 'View Report', description: 'Download compliance report' },
@@ -329,7 +329,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     }
     
     if (step <= maxCompletedStep + 1) {
-      // If user is navigating back before Step 5 (Assessment Questions), clear assessment answers
+      // If user is navigating back before Step 5 (Compliance Assessment), clear assessment answers
       // and any evidence that was added to the pack, so that when they re-run the assessment
       // it starts fresh.
       const assessmentStep = isSwiftSelected ? 5 : 5;
@@ -793,7 +793,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     onClick={() => handleStepComplete(4)}
                     className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
                   >
-                    Continue to Assessment Questions
+                    Continue to Compliance Assessment
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -805,14 +805,14 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
               </div>
             )}
 
-            {/* Step 5: Assessment Questions */}
+            {/* Step 5: Compliance Assessment */}
             {currentStep === 5 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 5: Assessment Questions</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 5: Compliance Assessment</h2>
                   <p className="text-gray-600">Answer compliance assessment questions to create initial pack</p>
                 </div>
-                <AssessmentQuestions
+                <ComplianceAssessment
                   framework={localStorage.getItem('selectedFramework') || 'SWIFT_CSP'}
                   onComplete={(answers) => handleStepComplete(5, answers)}
                   onBack={() => setCurrentStep(4)}

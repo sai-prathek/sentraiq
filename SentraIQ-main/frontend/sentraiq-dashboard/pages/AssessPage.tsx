@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import AssessmentQuestions, { AssessmentAnswer } from '../components/AssessmentQuestions';
+import ComplianceAssessment, { AssessmentAnswer } from '../components/ComplianceAssessment';
 import { DashboardOutletContext } from '../types';
 
 const AssessPage: React.FC = () => {
@@ -23,7 +23,7 @@ const AssessPage: React.FC = () => {
 
   return (
     <div className="min-h-full">
-      <AssessmentQuestions
+      <ComplianceAssessment
         framework={framework}
         onComplete={handleComplete}
         onBack={handleBack}

@@ -19,7 +19,7 @@ export interface AssessmentAnswer {
   autoAnswered?: boolean;
 }
 
-interface AssessmentQuestionsProps {
+interface ComplianceAssessmentProps {
   framework: string;
   onComplete: (answers: AssessmentAnswer[]) => void;
   onBack: () => void;
@@ -1621,7 +1621,7 @@ const PCI_DSS_QUESTIONS = [
   }
 ]
 
-const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ 
+const ComplianceAssessment: React.FC<ComplianceAssessmentProps> = ({ 
   framework, 
   onComplete, 
   onBack,
@@ -2531,12 +2531,12 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {framework === 'SOC2'
-                ? 'SOC 2 Assessment Questions'
+                ? 'SOC 2 Compliance Assessment'
                 : framework === 'ISO27001_2022'
-                  ? 'ISO/IEC 27001:2022 Assessment Questions'
+                  ? 'ISO/IEC 27001:2022 Compliance Assessment'
                   : framework === 'PCI_DSS'
-                    ? 'PCI DSS v4.0 Assessment Questions'
-                    : 'SWIFT CSCF v2023 Assessment Questions'}
+                    ? 'PCI DSS v4.0 Compliance Assessment'
+                    : 'SWIFT CSP v2025 Compliance Assessment'}
             </h2>
             <p className="text-gray-600">
               Answer the following questions to create your compliance assurance pack
@@ -2919,4 +2919,4 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({
   );
 };
 
-export default AssessmentQuestions;
+export default ComplianceAssessment;

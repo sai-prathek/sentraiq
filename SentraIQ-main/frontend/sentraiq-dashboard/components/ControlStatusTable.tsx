@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { CheckCircle, XCircle, Minus, Shield } from 'lucide-react';
-import { AssessmentAnswer } from './AssessmentQuestions';
+import { AssessmentAnswer } from './ComplianceAssessment';
 
 interface ControlStatusTableProps {
   assessmentAnswers: AssessmentAnswer[];

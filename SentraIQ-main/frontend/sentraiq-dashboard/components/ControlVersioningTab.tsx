@@ -918,7 +918,7 @@ const ControlVersioningTab: React.FC<ControlVersioningTabProps> = ({ onToast }) 
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Assessment Questions
+                  Compliance Assessment Questions
                 </label>
                 {newVersionData.assessment_questions.map((q, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
