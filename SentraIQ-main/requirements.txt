@@ -10,6 +10,7 @@ greenlet==3.2.4
 
 # PDF Processing
 pymupdf==1.24.14
+reportlab==4.0.7
 
 # AI - Natural Language Query Parsing
 openai>=1.55.3

@@ -27,6 +27,40 @@ const QueryTab: React.FC<QueryTabProps> = ({
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [gapAnalysis, setGapAnalysis] = useState<any>(null);
 
+  const getExampleQueriesForFramework = (frameworkId: string | null): string[] => {
+    switch (frameworkId) {
+      case 'SOC2':
+        return [
+          'Show evidence for SOC2-CC6.1 logical access controls',
+          'Find logs related to privileged access and MFA failures',
+          'Show monitoring and incident response evidence for SOC2-CC7.x',
+          'List policies and board minutes supporting SOC2 control environment (CC1.x)',
+        ];
+      case 'ISO27001_2022':
+        return [
+          'Show evidence for ISO-A.5.1 information security policies',
+          'Find user access management evidence for ISO-A.8.2 and A.8.3',
+          'Show monitoring and logging evidence for ISO-A.8.16',
+          'List vulnerability management and patching evidence for ISO-A.12.6',
+        ];
+      case 'PCI_DSS':
+        return [
+          'Show evidence for PCI-8.3.1 MFA for remote access',
+          'Find network security logs for PCI-1.2.1 and PCI-10.2.1',
+          'Show encryption and key management evidence for PCI-3.5.1',
+          'List vulnerability scans and penetration tests for PCI-11.3.1',
+        ];
+      case 'SWIFT_CSP':
+      default:
+        return [
+          'Show proof of MFA enforcement on SWIFT operators',
+          'Find SWIFT transaction logs with anomalies in Q3',
+          'Get evidence of quarterly vulnerability scanning for SWIFT infrastructure',
+          'Show access control and logging evidence for the SWIFT secure zone',
+        ];
+    }
+  };
+
   const handleSearch = async (searchQuery: string = query) => {
     if (!searchQuery.trim()) return;
     setQuery(searchQuery);
@@ -40,7 +74,13 @@ const QueryTab: React.FC<QueryTabProps> = ({
       
       // Extract items, AI summary, and gap analysis from response
       const items = Array.isArray(data) ? data : [];
-      setResults(items);
+
+      // Cap the results to a maximum of 4 items per query,
+      // but allow overlap with items already in the pack so
+      // users can still see them when asking new questions.
+      const limited = items.slice(0, 4);
+
+      setResults(limited);
       
       if (data.ai_summary) {
         setAiSummary(data.ai_summary);
@@ -62,14 +102,12 @@ const QueryTab: React.FC<QueryTabProps> = ({
     }
   };
 
-  const exampleQueries = [
-    "Show me all MFA authentication logs for privileged users",
-    "Find failed login attempts from external IP addresses",
-    "Get all encryption policies and related audit logs",
-    "Show me SWIFT transaction logs with anomalies",
-    "Find evidence for PCI-DSS requirement 8.3",
-    "List all documents mentioning data retention policies"
-  ];
+  const selectedFrameworkId =
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('selectedFramework')
+      : null;
+
+  const exampleQueries = getExampleQueriesForFramework(selectedFrameworkId);
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-8 min-h-[500px]">
@@ -99,6 +137,20 @@ const QueryTab: React.FC<QueryTabProps> = ({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery('');
+                setResults(null);
+                setAiSummary(null);
+                setGapAnalysis(null);
+              }}
+              className="mr-2 px-3 py-2.5 text-sm text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              Clear
+            </button>
+          )}
           <button
             onClick={() => handleSearch()}
             disabled={loading}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, AlertCircle, ArrowRight, ArrowLeft, FileCheck, Sparkles, Clock, FileX, Database, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useOutletContext } from 'react-router-dom';
 import { api } from '../services/api';
-import { EvidenceItem } from '../types';
+import { EvidenceItem, DashboardOutletContext } from '../types';
 import EvidenceDetailModal from './EvidenceDetailModal';
 
 export interface AssessmentAnswer {
@@ -1628,6 +1629,9 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
   const [currentEvidence, setCurrentEvidence] = useState<EvidenceItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Access shared pack list so assessment evidence is persisted across steps
+  const { addEvidenceToPack } = useOutletContext<DashboardOutletContext>();
+
   const questions =
     framework === 'SOC2'
       ? SOC2_QUESTIONS
@@ -1639,11 +1643,42 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
 
   const sections = Array.from(new Set(questions.map(q => q.section)));
 
+  // Initialize current section and expanded sections when framework or questions change
   useEffect(() => {
     if (sections.length > 0) {
       const firstSection = sections[0];
       setCurrentSection(firstSection);
       setExpandedSections(new Set([firstSection]));
+    }
+  }, [framework, sections.length]);
+
+  // Hydrate answers from localStorage when the component mounts or framework changes.
+  // This lets auto-answered results persist when navigating forward/backward between
+  // Steps 3+ without resetting, while GenerateTab clears localStorage when the user
+  // navigates back before Step 3.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // Only hydrate if we don't already have answers in state
+    if (Object.keys(answers).length > 0) return;
+
+    try {
+      const stored = window.localStorage.getItem('assessmentAnswers');
+      if (!stored) return;
+
+      const parsed = JSON.parse(stored) as AssessmentAnswer[];
+      if (!Array.isArray(parsed) || parsed.length === 0) return;
+
+      const record: Record<string, AssessmentAnswer> = {};
+      parsed.forEach((ans) => {
+        if (!ans || !ans.questionId) return;
+        record[ans.questionId] = ans;
+      });
+
+      if (Object.keys(record).length > 0) {
+        setAnswers(record);
+      }
+    } catch (e) {
+      console.warn('Failed to hydrate assessment answers from localStorage:', e);
     }
   }, [framework]);
 
@@ -2350,6 +2385,10 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
 
         // Analyze evidence
         const analysis = analyzeEvidence(evidenceItems, question.question, question.id);
+
+        // Add all evidence items for this question into the shared pack list.
+        // Deduplication is handled by DashboardLayout's addEvidenceToPack implementation.
+        evidenceItems.forEach((item) => addEvidenceToPack(item));
 
         // Update answer
         newAnswers[question.id] = {

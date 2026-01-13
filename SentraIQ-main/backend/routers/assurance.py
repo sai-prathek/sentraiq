@@ -247,34 +247,56 @@ async def list_assurance_packs(
 @router.get("/report/{pack_id}")
 async def get_pack_report(
     pack_id: str,
+    format: Optional[str] = "markdown",
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Get markdown report for an assurance pack
+    Get report for an assurance pack (markdown or PDF)
     
     The report includes:
     - Pack overview and metadata
-    - Query information (if available)
+    - Assessment questions and answers
     - Selected evidence items
     - Evidence files included
-    - Audit findings
+    - Gap analysis
     - Integrity verification
+    
+    Args:
+        pack_id: Pack ID
+        format: Report format - "markdown" (default) or "pdf"
     """
-    from fastapi.responses import Response
+    from fastapi.responses import Response, FileResponse
     
     try:
-        report = await Telescope.generate_pack_report(
-            session=session,
-            pack_id=pack_id
-        )
-        
-        return Response(
-            content=report,
-            media_type="text/markdown",
-            headers={
-                "Content-Disposition": f'inline; filename="{pack_id}_report.md"'
-            }
-        )
+        if format.lower() == "pdf":
+            # Generate PDF report
+            pdf_path = await Telescope.generate_pack_pdf_report(
+                session=session,
+                pack_id=pack_id
+            )
+            
+            if not pdf_path.exists():
+                raise HTTPException(status_code=500, detail="PDF file was not created")
+            
+            return FileResponse(
+                path=pdf_path,
+                filename=f"{pack_id}_report.pdf",
+                media_type="application/pdf"
+            )
+        else:
+            # Generate markdown report (default)
+            report = await Telescope.generate_pack_report(
+                session=session,
+                pack_id=pack_id
+            )
+            
+            return Response(
+                content=report,
+                media_type="text/markdown",
+                headers={
+                    "Content-Disposition": f'inline; filename="{pack_id}_report.md"'
+                }
+            )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:

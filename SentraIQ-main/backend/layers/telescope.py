@@ -1123,6 +1123,7 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
                 'log_ids': explicit_log_ids or [],
                 'document_ids': explicit_document_ids or []
             },
+            'assessment_answers': assessment_answers or [],
             'disclaimer': (
                 'This assurance pack supports attestation readiness by providing '
                 'structured, time-bound evidence. It does not constitute certification, '
@@ -1213,6 +1214,65 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         else:
             pack_hash = calculate_content_hash(zip_path.read_bytes())
             print(f"   Used content-based hash (size: {zip_size / 1024 / 1024:.2f} MB)")
+        
+        # Update manifest with final pack hash
+        manifest['pack_hash'] = pack_hash
+        
+        # Generate PDF report and include in pack (after hash is calculated)
+        pdf_path = None
+        try:
+            print(f"📄 Generating PDF report...")
+            # Create a temporary AssurancePack object for PDF generation
+            temp_pack = type('AssurancePack', (), {
+                'pack_id': pack_id,
+                'control_id': control_id,
+                'query': query,
+                'time_range_start': time_range_start,
+                'time_range_end': time_range_end,
+                'evidence_count': copy_result['success_count'],
+                'pack_hash': pack_hash,  # Now we have the actual hash
+                'created_at': datetime.utcnow()
+            })()
+            
+            # Generate PDF report using manifest data (with actual hash)
+            pdf_path = Telescope._generate_pdf_from_manifest(
+                pack_id=pack_id,
+                pack=temp_pack,
+                manifest=manifest
+            )
+            
+            # Add PDF to pack directory and re-create ZIP to include it
+            if pdf_path and pdf_path.exists():
+                print(f"📦 Adding PDF report to pack ZIP...")
+                # Copy PDF to pack directory
+                pack_pdf_path = pack_dir / f"{pack_id}_report.pdf"
+                shutil.copy2(pdf_path, pack_pdf_path)
+                
+                # Re-create ZIP to include PDF
+                zip_path.unlink()  # Remove old ZIP
+                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    for root, dirs, files in os.walk(pack_dir):
+                        root_path = Path(root)
+                        for file in files:
+                            file_path = root_path / file
+                            arcname = file_path.relative_to(pack_dir)
+                            zipf.write(file_path, arcname)
+                print(f"✅ PDF report added to pack ZIP")
+                
+                # Recalculate hash since ZIP changed
+                zip_size = zip_path.stat().st_size
+                if zip_size > 10 * 1024 * 1024:
+                    pack_hash = calculate_file_hash(zip_path)
+                else:
+                    pack_hash = calculate_content_hash(zip_path.read_bytes())
+                manifest['pack_hash'] = pack_hash
+                manifest['pack_size_bytes'] = zip_size
+                manifest['pack_size_mb'] = round(zip_size / 1024 / 1024, 2)
+        except Exception as pdf_error:
+            print(f"⚠️  Warning: Failed to generate PDF report: {pdf_error}")
+            import traceback
+            traceback.print_exc()
+            # Continue without PDF - pack generation should still succeed
 
         # Clean up unzipped directory
         try:
@@ -1221,10 +1281,10 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         except Exception as e:
             print(f"⚠️  Warning: Failed to clean up temporary directory: {e}")
 
-        # Update manifest with final pack info
-        manifest['pack_hash'] = pack_hash
-        manifest['pack_size_bytes'] = zip_size
-        manifest['pack_size_mb'] = round(zip_size / 1024 / 1024, 2)
+        # Update manifest with final pack info (hash and size already updated above if PDF was added)
+        if 'pack_size_bytes' not in manifest:
+            manifest['pack_size_bytes'] = zip_size
+            manifest['pack_size_mb'] = round(zip_size / 1024 / 1024, 2)
 
         # Save to database with transaction handling
         print(f"💾 Saving pack to database...")
@@ -1649,3 +1709,943 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         report_lines.append("")
         
         return "\n".join(report_lines)
+
+    @staticmethod
+    def _generate_pdf_from_manifest(
+        pack_id: str,
+        pack: 'AssurancePack',
+        manifest: Dict[str, Any]
+    ) -> Path:
+        """
+        Generate PDF report directly from pack data (used during pack creation).
+        This avoids needing the pack to be in the database first.
+        """
+        try:
+            from reportlab.lib.pagesizes import letter
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.units import inch
+            from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+            from reportlab.platypus import (
+                SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
+                KeepTogether, HRFlowable
+            )
+            from reportlab.lib import colors
+        except ImportError:
+            raise ImportError("reportlab is required for PDF generation. Install with: pip install reportlab")
+        
+        # Create PDF file path
+        pdf_path = settings.ASSURANCE_PACKS_PATH / f"{pack_id}_report.pdf"
+        
+        # Create PDF document
+        doc = SimpleDocTemplate(
+            str(pdf_path),
+            pagesize=letter,
+            rightMargin=0.75*inch,
+            leftMargin=0.75*inch,
+            topMargin=0.75*inch,
+            bottomMargin=0.75*inch
+        )
+        
+        # Container for content
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Define custom styles (same as in generate_pack_pdf_report)
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#1e3a8a'),
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+        
+        heading1_style = ParagraphStyle(
+            'CustomHeading1',
+            parent=styles['Heading1'],
+            fontSize=16,
+            textColor=colors.HexColor('#1e3a8a'),
+            spaceAfter=12,
+            spaceBefore=12,
+            fontName='Helvetica-Bold'
+        )
+        
+        heading2_style = ParagraphStyle(
+            'CustomHeading2',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=10,
+            spaceBefore=10,
+            fontName='Helvetica-Bold'
+        )
+        
+        body_style = ParagraphStyle(
+            'CustomBody',
+            parent=styles['BodyText'],
+            fontSize=11,
+            textColor=colors.black,
+            spaceAfter=8,
+            fontName='Helvetica',
+            leading=14,
+            alignment=TA_JUSTIFY
+        )
+        
+        code_style = ParagraphStyle(
+            'CodeStyle',
+            parent=styles['Code'],
+            fontSize=9,
+            textColor=colors.HexColor('#374151'),
+            fontName='Courier',
+            backColor=colors.HexColor('#f3f4f6'),
+            leftIndent=12,
+            rightIndent=12,
+            spaceAfter=6
+        )
+        
+        # Get data from manifest
+        files_info = manifest.get('files', []) or manifest.get('copied', []) or []
+        assessment_answers = manifest.get('assessment_answers', []) or []
+        query_results = manifest.get('query_results', {})
+        gap_analysis = manifest.get('gap_analysis', {})
+        
+        # TITLE PAGE
+        story.append(Spacer(1, 1*inch))
+        story.append(Paragraph("COMPLIANCE ASSURANCE", title_style))
+        story.append(Paragraph("EVIDENCE REPORT", title_style))
+        story.append(Spacer(1, 0.5*inch))
+        
+        report_title = pack.query if pack.query else f"Evidence Pack - {pack.control_id or 'General'}"
+        story.append(Paragraph(f"<b>{report_title}</b>", body_style))
+        story.append(Spacer(1, 0.3*inch))
+        
+        story.append(Paragraph(
+            f"<b>Report Period:</b> {pack.time_range_start.strftime('%B %d, %Y')} to {pack.time_range_end.strftime('%B %d, %Y')}",
+            body_style
+        ))
+        if pack.control_id:
+            story.append(Paragraph(f"<b>Control ID:</b> {pack.control_id}", body_style))
+        story.append(Paragraph(
+            f"<b>Generated:</b> {pack.created_at.strftime('%B %d, %Y at %H:%M UTC')}",
+            body_style
+        ))
+        story.append(Paragraph(
+            f"<b>Pack ID:</b> {pack_id}",
+            body_style
+        ))
+        story.append(Spacer(1, 0.3*inch))
+        story.append(Paragraph(
+            "<i>DOCUMENT CLASSIFICATION: INTERNAL - COMPLIANCE EVIDENCE</i>",
+            body_style
+        ))
+        
+        story.append(PageBreak())
+        
+        # EXECUTIVE SUMMARY (same structure as generate_pack_pdf_report)
+        story.append(Paragraph("EXECUTIVE SUMMARY", heading1_style))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+        story.append(Spacer(1, 0.2*inch))
+        
+        if query_results and query_results.get('ai_summary'):
+            story.append(Paragraph(query_results['ai_summary'], body_style))
+        else:
+            summary_text = (
+                f"This compliance assurance evidence report presents a comprehensive collection of "
+                f"evidence items gathered for the period from {pack.time_range_start.strftime('%B %d, %Y')} "
+                f"to {pack.time_range_end.strftime('%B %d, %Y')}. "
+            )
+            if pack.control_id:
+                summary_text += f"The evidence pack addresses compliance requirements for control {pack.control_id}. "
+            summary_text += (
+                f"A total of {pack.evidence_count} evidence items have been compiled and verified "
+                f"to support attestation readiness and regulatory compliance."
+            )
+            story.append(Paragraph(summary_text, body_style))
+        
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Assessment Summary Statistics
+        if assessment_answers:
+            yes_count = len([a for a in assessment_answers if a.get('answer') == 'yes'])
+            partial_count = len([a for a in assessment_answers if a.get('answer') == 'partial'])
+            no_count = len([a for a in assessment_answers if a.get('answer') == 'no'])
+            
+            summary_data = [
+                ['Metric', 'Count', 'Percentage'],
+                ['Fully Compliant (Yes)', str(yes_count), f"{(yes_count/len(assessment_answers)*100):.1f}%"],
+                ['Partially Compliant (Partial)', str(partial_count), f"{(partial_count/len(assessment_answers)*100):.1f}%"],
+                ['Non-Compliant (No)', str(no_count), f"{(no_count/len(assessment_answers)*100):.1f}%"],
+                ['Total Questions', str(len(assessment_answers)), '100%']
+            ]
+            
+            summary_table = Table(summary_data, colWidths=[3*inch, 1.5*inch, 1.5*inch])
+            summary_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a8a')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8f9fa')),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d1d5db')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f3f4f6')])
+            ]))
+            story.append(summary_table)
+            story.append(Spacer(1, 0.3*inch))
+        
+        story.append(PageBreak())
+        
+        # ASSESSMENT QUESTIONS AND ANSWERS (same as generate_pack_pdf_report)
+        if assessment_answers:
+            story.append(Paragraph("ASSESSMENT QUESTIONS AND RESPONSES", heading1_style))
+            story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+            story.append(Spacer(1, 0.2*inch))
+            
+            story.append(Paragraph(
+                f"This pack addresses {len(assessment_answers)} compliance assessment questions "
+                f"based on the selected framework requirements. Each question includes evidence "
+                f"items that support the assessment answer.",
+                body_style
+            ))
+            story.append(Spacer(1, 0.2*inch))
+            
+            # Group by answer type
+            yes_answers = [a for a in assessment_answers if a.get('answer') == 'yes']
+            partial_answers = [a for a in assessment_answers if a.get('answer') == 'partial']
+            no_answers = [a for a in assessment_answers if a.get('answer') == 'no']
+            
+            # Fully Compliant Section
+            if yes_answers:
+                story.append(Paragraph("Fully Compliant Questions", heading2_style))
+                for answer in yes_answers[:20]:
+                    qid = answer.get('questionId', 'N/A')
+                    question = answer.get('question', 'N/A')
+                    evidence_count = len(answer.get('evidence', []))
+                    
+                    story.append(Paragraph(
+                        f"<b>✓ {qid}:</b> {question}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Answer:</b> Yes | <b>Evidence Items:</b> {evidence_count}",
+                        body_style
+                    ))
+                    if answer.get('reason'):
+                        story.append(Paragraph(
+                            f"<i>Reason:</i> {answer.get('reason')}",
+                            body_style
+                        ))
+                    story.append(Spacer(1, 0.15*inch))
+                
+                if len(yes_answers) > 20:
+                    story.append(Paragraph(
+                        f"... and {len(yes_answers) - 20} more fully compliant questions",
+                        body_style
+                    ))
+                story.append(Spacer(1, 0.2*inch))
+            
+            # Partially Compliant Section
+            if partial_answers:
+                story.append(Paragraph("Partially Compliant Questions (Evidence Gaps)", heading2_style))
+                for answer in partial_answers:
+                    qid = answer.get('questionId', 'N/A')
+                    question = answer.get('question', 'N/A')
+                    evidence_count = len(answer.get('evidence', []))
+                    gap_type = answer.get('gapType', '')
+                    gap_reason = answer.get('gapReason', '')
+                    
+                    story.append(Paragraph(
+                        f"<b>~ {qid}:</b> {question}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Answer:</b> Partial | <b>Evidence Items:</b> {evidence_count}",
+                        body_style
+                    ))
+                    if gap_type:
+                        gap_type_text = gap_type.replace('_', ' ').title()
+                        story.append(Paragraph(
+                            f"<b>Gap Type:</b> {gap_type_text}",
+                            body_style
+                        ))
+                    if gap_reason:
+                        story.append(Paragraph(
+                            f"<i>Gap Reason:</i> {gap_reason}",
+                            body_style
+                        ))
+                    if answer.get('reason'):
+                        story.append(Paragraph(
+                            f"<i>Assessment Reason:</i> {answer.get('reason')}",
+                            body_style
+                        ))
+                    story.append(Spacer(1, 0.15*inch))
+                story.append(Spacer(1, 0.2*inch))
+            
+            # Non-Compliant Section
+            if no_answers:
+                story.append(Paragraph("Non-Compliant Questions", heading2_style))
+                for answer in no_answers:
+                    qid = answer.get('questionId', 'N/A')
+                    question = answer.get('question', 'N/A')
+                    evidence_count = len(answer.get('evidence', []))
+                    
+                    story.append(Paragraph(
+                        f"<b>✗ {qid}:</b> {question}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Answer:</b> No | <b>Evidence Items:</b> {evidence_count}",
+                        body_style
+                    ))
+                    if answer.get('reason'):
+                        story.append(Paragraph(
+                            f"<i>Reason:</i> {answer.get('reason')}",
+                            body_style
+                        ))
+                    story.append(Spacer(1, 0.15*inch))
+                story.append(Spacer(1, 0.2*inch))
+            
+            story.append(PageBreak())
+        
+        # EVIDENCE INVENTORY (same structure)
+        story.append(Paragraph("EVIDENCE INVENTORY", heading1_style))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+        story.append(Spacer(1, 0.2*inch))
+        
+        story.append(Paragraph(
+            f"<b>Total Evidence Items:</b> {pack.evidence_count}",
+            body_style
+        ))
+        story.append(Paragraph(
+            f"<b>Total Pack Size:</b> {manifest.get('pack_size_mb', 0):.2f} MB",
+            body_style
+        ))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Separate logs and documents
+        logs_included = [f for f in files_info if 'log' in str(f.get('type', '')).lower() or 'logs' in str(f.get('dest_path', '')).lower()]
+        docs_included = [f for f in files_info if 'document' in str(f.get('type', '')).lower() or 'document' in str(f.get('dest_path', '')).lower()]
+        
+        if logs_included:
+            story.append(Paragraph(f"System Logs and Audit Trails ({len(logs_included)} items)", heading2_style))
+            for log_file in logs_included[:50]:
+                filename = log_file.get('filename', 'N/A')
+                size_mb = (log_file.get('size_bytes', 0) / 1024 / 1024) if log_file.get('size_bytes') else 0
+                file_hash = log_file.get('hash', 'N/A')
+                story.append(Paragraph(
+                    f"• <b>{filename}</b> ({size_mb:.2f} MB) - Hash: {file_hash[:16]}...",
+                    body_style
+                ))
+            if len(logs_included) > 50:
+                story.append(Paragraph(f"... and {len(logs_included) - 50} more log files", body_style))
+            story.append(Spacer(1, 0.2*inch))
+        
+        if docs_included:
+            story.append(Paragraph(f"Policy Documents and Compliance Artifacts ({len(docs_included)} items)", heading2_style))
+            for doc_file in docs_included[:50]:
+                filename = doc_file.get('filename', 'N/A')
+                size_mb = (doc_file.get('size_bytes', 0) / 1024 / 1024) if doc_file.get('size_bytes') else 0
+                file_hash = doc_file.get('hash', 'N/A')
+                story.append(Paragraph(
+                    f"• <b>{filename}</b> ({size_mb:.2f} MB) - Hash: {file_hash[:16]}...",
+                    body_style
+                ))
+            if len(docs_included) > 50:
+                story.append(Paragraph(f"... and {len(docs_included) - 50} more document files", body_style))
+            story.append(Spacer(1, 0.2*inch))
+        
+        story.append(PageBreak())
+        
+        # GAP ANALYSIS
+        if gap_analysis and gap_analysis.get('gap_count', 0) > 0:
+            story.append(Paragraph("COMPLIANCE GAP ANALYSIS", heading1_style))
+            story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+            story.append(Spacer(1, 0.2*inch))
+            
+            gaps = gap_analysis.get('gaps', [])
+            temporal_gaps = gap_analysis.get('temporal_gaps', [])
+            coverage_gaps = gap_analysis.get('coverage_gaps', [])
+            
+            story.append(Paragraph(
+                f"<b>Total Gaps Identified:</b> {len(gaps)}",
+                body_style
+            ))
+            story.append(Paragraph(
+                f"  • Temporal Gaps: {len(temporal_gaps)}",
+                body_style
+            ))
+            story.append(Paragraph(
+                f"  • Coverage Gaps: {len(coverage_gaps)}",
+                body_style
+            ))
+            story.append(Spacer(1, 0.2*inch))
+            
+            if temporal_gaps:
+                story.append(Paragraph("Temporal Gaps (Evidence Freshness Issues)", heading2_style))
+                for gap in temporal_gaps[:10]:
+                    story.append(Paragraph(
+                        f"<b>Control:</b> {gap.get('control_id', 'N/A')}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Issue:</b> {gap.get('description', 'N/A')}",
+                        body_style
+                    ))
+                    if gap.get('days_overdue'):
+                        story.append(Paragraph(
+                            f"<b>Days Overdue:</b> {gap['days_overdue']}",
+                            body_style
+                        ))
+                    story.append(Spacer(1, 0.15*inch))
+                story.append(Spacer(1, 0.2*inch))
+            
+            if coverage_gaps:
+                story.append(Paragraph("Coverage Gaps (Missing Evidence)", heading2_style))
+                for gap in coverage_gaps[:10]:
+                    story.append(Paragraph(
+                        f"<b>Control:</b> {gap.get('control_id', 'N/A')}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Issue:</b> {gap.get('description', 'N/A')}",
+                        body_style
+                    ))
+                    story.append(Spacer(1, 0.15*inch))
+                story.append(Spacer(1, 0.2*inch))
+            
+            story.append(PageBreak())
+        
+        # INTEGRITY AND VERIFICATION
+        story.append(Paragraph("INTEGRITY AND VERIFICATION", heading1_style))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+        story.append(Spacer(1, 0.2*inch))
+        
+        story.append(Paragraph(
+            "All evidence items included in this pack have been cryptographically verified.",
+            body_style
+        ))
+        story.append(Spacer(1, 0.1*inch))
+        story.append(Paragraph(
+            f"<b>Pack Integrity Hash (SHA-256):</b>",
+            body_style
+        ))
+        story.append(Paragraph(
+            pack.pack_hash if hasattr(pack, 'pack_hash') and pack.pack_hash != 'temp' else "Calculating...",
+            code_style
+        ))
+        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph(
+            "This hash value can be used to verify the integrity of the evidence pack. "
+            "Any modification to the pack contents will result in a different hash value, "
+            "ensuring the immutability and authenticity of the evidence collection.",
+            body_style
+        ))
+        
+        story.append(PageBreak())
+        
+        # CONCLUSION
+        story.append(Paragraph("CONCLUSION", heading1_style))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+        story.append(Spacer(1, 0.2*inch))
+        
+        story.append(Paragraph(
+            f"This evidence pack provides comprehensive documentation to support compliance attestation "
+            f"for the specified time period. All evidence items have been collected, verified, and "
+            f"cryptographically secured to ensure their integrity and authenticity.",
+            body_style
+        ))
+        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph(
+            "The evidence pack is suitable for submission to auditors, regulatory bodies, or internal "
+            "compliance review processes. The cryptographic hash provided in the Integrity section can be used to "
+            "verify the integrity of the pack at any time.",
+            body_style
+        ))
+        
+        # Build PDF
+        doc.build(story)
+        
+        return pdf_path
+
+    @staticmethod
+    async def generate_pack_pdf_report(
+        session: AsyncSession,
+        pack_id: str
+    ) -> Path:
+        """
+        Generate a comprehensive PDF report for an assurance pack.
+        
+        Includes:
+        - All assessment answers with evidence mapping
+        - All evidence items (from both assessment and query)
+        - Control-by-control breakdown
+        - Gap analysis
+        - Evidence details
+        
+        Args:
+            session: Database session
+            pack_id: Pack ID to generate report for
+            
+        Returns:
+            Path to generated PDF file
+        """
+        try:
+            from reportlab.lib.pagesizes import letter
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.units import inch
+            from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+            from reportlab.platypus import (
+                SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
+                KeepTogether, HRFlowable
+            )
+            from reportlab.lib import colors
+        except ImportError:
+            raise ImportError("reportlab is required for PDF generation. Install with: pip install reportlab")
+        
+        from sqlalchemy import select
+        from backend.database import AssurancePack
+        
+        # Fetch pack from database
+        stmt = select(AssurancePack).where(AssurancePack.pack_id == pack_id)
+        result = await session.execute(stmt)
+        pack = result.scalar_one_or_none()
+        
+        if not pack:
+            raise ValueError(f"Pack {pack_id} not found")
+        
+        # Get manifest data
+        manifest = pack.meta_data or {}
+        files_info = manifest.get('files', []) or manifest.get('copied', []) or []
+        assessment_answers = manifest.get('assessment_answers', []) or []
+        query_results = manifest.get('query_results', {})
+        gap_analysis = manifest.get('gap_analysis', {})
+        
+        # Create PDF file path
+        pdf_path = settings.ASSURANCE_PACKS_PATH / f"{pack_id}_report.pdf"
+        
+        # Create PDF document
+        doc = SimpleDocTemplate(
+            str(pdf_path),
+            pagesize=letter,
+            rightMargin=0.75*inch,
+            leftMargin=0.75*inch,
+            topMargin=0.75*inch,
+            bottomMargin=0.75*inch
+        )
+        
+        # Container for content
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Define custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#1e3a8a'),  # Blue-900
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+        
+        heading1_style = ParagraphStyle(
+            'CustomHeading1',
+            parent=styles['Heading1'],
+            fontSize=16,
+            textColor=colors.HexColor('#1e3a8a'),
+            spaceAfter=12,
+            spaceBefore=12,
+            fontName='Helvetica-Bold'
+        )
+        
+        heading2_style = ParagraphStyle(
+            'CustomHeading2',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=10,
+            spaceBefore=10,
+            fontName='Helvetica-Bold'
+        )
+        
+        body_style = ParagraphStyle(
+            'CustomBody',
+            parent=styles['BodyText'],
+            fontSize=11,
+            textColor=colors.black,
+            spaceAfter=8,
+            fontName='Helvetica',
+            leading=14,
+            alignment=TA_JUSTIFY
+        )
+        
+        code_style = ParagraphStyle(
+            'CodeStyle',
+            parent=styles['Code'],
+            fontSize=9,
+            textColor=colors.HexColor('#374151'),
+            fontName='Courier',
+            backColor=colors.HexColor('#f3f4f6'),
+            leftIndent=12,
+            rightIndent=12,
+            spaceAfter=6
+        )
+        
+        # TITLE PAGE
+        story.append(Spacer(1, 1*inch))
+        story.append(Paragraph("COMPLIANCE ASSURANCE", title_style))
+        story.append(Paragraph("EVIDENCE REPORT", title_style))
+        story.append(Spacer(1, 0.5*inch))
+        
+        report_title = pack.query if pack.query else f"Evidence Pack - {pack.control_id or 'General'}"
+        story.append(Paragraph(f"<b>{report_title}</b>", body_style))
+        story.append(Spacer(1, 0.3*inch))
+        
+        story.append(Paragraph(
+            f"<b>Report Period:</b> {pack.time_range_start.strftime('%B %d, %Y')} to {pack.time_range_end.strftime('%B %d, %Y')}",
+            body_style
+        ))
+        if pack.control_id:
+            story.append(Paragraph(f"<b>Control ID:</b> {pack.control_id}", body_style))
+        story.append(Paragraph(
+            f"<b>Generated:</b> {pack.created_at.strftime('%B %d, %Y at %H:%M UTC')}",
+            body_style
+        ))
+        story.append(Paragraph(
+            f"<b>Pack ID:</b> {pack_id}",
+            body_style
+        ))
+        story.append(Spacer(1, 0.3*inch))
+        story.append(Paragraph(
+            "<i>DOCUMENT CLASSIFICATION: INTERNAL - COMPLIANCE EVIDENCE</i>",
+            body_style
+        ))
+        
+        story.append(PageBreak())
+        
+        # EXECUTIVE SUMMARY
+        story.append(Paragraph("EXECUTIVE SUMMARY", heading1_style))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+        story.append(Spacer(1, 0.2*inch))
+        
+        if query_results and query_results.get('ai_summary'):
+            story.append(Paragraph(query_results['ai_summary'], body_style))
+        else:
+            summary_text = (
+                f"This compliance assurance evidence report presents a comprehensive collection of "
+                f"evidence items gathered for the period from {pack.time_range_start.strftime('%B %d, %Y')} "
+                f"to {pack.time_range_end.strftime('%B %d, %Y')}. "
+            )
+            if pack.control_id:
+                summary_text += f"The evidence pack addresses compliance requirements for control {pack.control_id}. "
+            summary_text += (
+                f"A total of {pack.evidence_count} evidence items have been compiled and verified "
+                f"to support attestation readiness and regulatory compliance."
+            )
+            story.append(Paragraph(summary_text, body_style))
+        
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Assessment Summary Statistics
+        if assessment_answers:
+            yes_count = len([a for a in assessment_answers if a.get('answer') == 'yes'])
+            partial_count = len([a for a in assessment_answers if a.get('answer') == 'partial'])
+            no_count = len([a for a in assessment_answers if a.get('answer') == 'no'])
+            
+            summary_data = [
+                ['Metric', 'Count', 'Percentage'],
+                ['Fully Compliant (Yes)', str(yes_count), f"{(yes_count/len(assessment_answers)*100):.1f}%"],
+                ['Partially Compliant (Partial)', str(partial_count), f"{(partial_count/len(assessment_answers)*100):.1f}%"],
+                ['Non-Compliant (No)', str(no_count), f"{(no_count/len(assessment_answers)*100):.1f}%"],
+                ['Total Questions', str(len(assessment_answers)), '100%']
+            ]
+            
+            summary_table = Table(summary_data, colWidths=[3*inch, 1.5*inch, 1.5*inch])
+            summary_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a8a')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8f9fa')),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d1d5db')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f3f4f6')])
+            ]))
+            story.append(summary_table)
+            story.append(Spacer(1, 0.3*inch))
+        
+        story.append(PageBreak())
+        
+        # ASSESSMENT QUESTIONS AND ANSWERS
+        if assessment_answers:
+            story.append(Paragraph("ASSESSMENT QUESTIONS AND RESPONSES", heading1_style))
+            story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+            story.append(Spacer(1, 0.2*inch))
+            
+            story.append(Paragraph(
+                f"This pack addresses {len(assessment_answers)} compliance assessment questions "
+                f"based on the selected framework requirements. Each question includes evidence "
+                f"items that support the assessment answer.",
+                body_style
+            ))
+            story.append(Spacer(1, 0.2*inch))
+            
+            # Group by answer type for better organization
+            yes_answers = [a for a in assessment_answers if a.get('answer') == 'yes']
+            partial_answers = [a for a in assessment_answers if a.get('answer') == 'partial']
+            no_answers = [a for a in assessment_answers if a.get('answer') == 'no']
+            
+            # Fully Compliant Section
+            if yes_answers:
+                story.append(Paragraph("Fully Compliant Questions", heading2_style))
+                for answer in yes_answers[:20]:  # Limit to first 20 to avoid huge PDFs
+                    qid = answer.get('questionId', 'N/A')
+                    question = answer.get('question', 'N/A')
+                    evidence_count = len(answer.get('evidence', []))
+                    
+                    story.append(Paragraph(
+                        f"<b>✓ {qid}:</b> {question}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Answer:</b> Yes | <b>Evidence Items:</b> {evidence_count}",
+                        body_style
+                    ))
+                    if answer.get('reason'):
+                        story.append(Paragraph(
+                            f"<i>Reason:</i> {answer.get('reason')}",
+                            body_style
+                        ))
+                    story.append(Spacer(1, 0.15*inch))
+                
+                if len(yes_answers) > 20:
+                    story.append(Paragraph(
+                        f"... and {len(yes_answers) - 20} more fully compliant questions",
+                        body_style
+                    ))
+                story.append(Spacer(1, 0.2*inch))
+            
+            # Partially Compliant Section
+            if partial_answers:
+                story.append(Paragraph("Partially Compliant Questions (Evidence Gaps)", heading2_style))
+                for answer in partial_answers:
+                    qid = answer.get('questionId', 'N/A')
+                    question = answer.get('question', 'N/A')
+                    evidence_count = len(answer.get('evidence', []))
+                    gap_type = answer.get('gapType', '')
+                    gap_reason = answer.get('gapReason', '')
+                    
+                    story.append(Paragraph(
+                        f"<b>~ {qid}:</b> {question}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Answer:</b> Partial | <b>Evidence Items:</b> {evidence_count}",
+                        body_style
+                    ))
+                    if gap_type:
+                        gap_type_text = gap_type.replace('_', ' ').title()
+                        story.append(Paragraph(
+                            f"<b>Gap Type:</b> {gap_type_text}",
+                            body_style
+                        ))
+                    if gap_reason:
+                        story.append(Paragraph(
+                            f"<i>Gap Reason:</i> {gap_reason}",
+                            body_style
+                        ))
+                    if answer.get('reason'):
+                        story.append(Paragraph(
+                            f"<i>Assessment Reason:</i> {answer.get('reason')}",
+                            body_style
+                        ))
+                    story.append(Spacer(1, 0.15*inch))
+                story.append(Spacer(1, 0.2*inch))
+            
+            # Non-Compliant Section
+            if no_answers:
+                story.append(Paragraph("Non-Compliant Questions", heading2_style))
+                for answer in no_answers:
+                    qid = answer.get('questionId', 'N/A')
+                    question = answer.get('question', 'N/A')
+                    evidence_count = len(answer.get('evidence', []))
+                    
+                    story.append(Paragraph(
+                        f"<b>✗ {qid}:</b> {question}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Answer:</b> No | <b>Evidence Items:</b> {evidence_count}",
+                        body_style
+                    ))
+                    if answer.get('reason'):
+                        story.append(Paragraph(
+                            f"<i>Reason:</i> {answer.get('reason')}",
+                            body_style
+                        ))
+                    story.append(Spacer(1, 0.15*inch))
+                story.append(Spacer(1, 0.2*inch))
+            
+            story.append(PageBreak())
+        
+        # EVIDENCE INVENTORY
+        story.append(Paragraph("EVIDENCE INVENTORY", heading1_style))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+        story.append(Spacer(1, 0.2*inch))
+        
+        story.append(Paragraph(
+            f"<b>Total Evidence Items:</b> {pack.evidence_count}",
+            body_style
+        ))
+        story.append(Paragraph(
+            f"<b>Total Pack Size:</b> {manifest.get('pack_size_mb', 0):.2f} MB",
+            body_style
+        ))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Separate logs and documents
+        logs_included = [f for f in files_info if 'log' in str(f.get('type', '')).lower() or 'logs' in str(f.get('dest_path', '')).lower()]
+        docs_included = [f for f in files_info if 'document' in str(f.get('type', '')).lower() or 'document' in str(f.get('dest_path', '')).lower()]
+        
+        if logs_included:
+            story.append(Paragraph(f"System Logs and Audit Trails ({len(logs_included)} items)", heading2_style))
+            for log_file in logs_included[:50]:  # Limit to first 50
+                filename = log_file.get('filename', 'N/A')
+                size_mb = (log_file.get('size_bytes', 0) / 1024 / 1024) if log_file.get('size_bytes') else 0
+                file_hash = log_file.get('hash', 'N/A')
+                story.append(Paragraph(
+                    f"• <b>{filename}</b> ({size_mb:.2f} MB) - Hash: {file_hash[:16]}...",
+                    body_style
+                ))
+            if len(logs_included) > 50:
+                story.append(Paragraph(f"... and {len(logs_included) - 50} more log files", body_style))
+            story.append(Spacer(1, 0.2*inch))
+        
+        if docs_included:
+            story.append(Paragraph(f"Policy Documents and Compliance Artifacts ({len(docs_included)} items)", heading2_style))
+            for doc_file in docs_included[:50]:  # Limit to first 50
+                filename = doc_file.get('filename', 'N/A')
+                size_mb = (doc_file.get('size_bytes', 0) / 1024 / 1024) if doc_file.get('size_bytes') else 0
+                file_hash = doc_file.get('hash', 'N/A')
+                story.append(Paragraph(
+                    f"• <b>{filename}</b> ({size_mb:.2f} MB) - Hash: {file_hash[:16]}...",
+                    body_style
+                ))
+            if len(docs_included) > 50:
+                story.append(Paragraph(f"... and {len(docs_included) - 50} more document files", body_style))
+            story.append(Spacer(1, 0.2*inch))
+        
+        story.append(PageBreak())
+        
+        # GAP ANALYSIS
+        if gap_analysis and gap_analysis.get('gap_count', 0) > 0:
+            story.append(Paragraph("COMPLIANCE GAP ANALYSIS", heading1_style))
+            story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+            story.append(Spacer(1, 0.2*inch))
+            
+            gaps = gap_analysis.get('gaps', [])
+            temporal_gaps = gap_analysis.get('temporal_gaps', [])
+            coverage_gaps = gap_analysis.get('coverage_gaps', [])
+            
+            story.append(Paragraph(
+                f"<b>Total Gaps Identified:</b> {len(gaps)}",
+                body_style
+            ))
+            story.append(Paragraph(
+                f"  • Temporal Gaps: {len(temporal_gaps)}",
+                body_style
+            ))
+            story.append(Paragraph(
+                f"  • Coverage Gaps: {len(coverage_gaps)}",
+                body_style
+            ))
+            story.append(Spacer(1, 0.2*inch))
+            
+            if temporal_gaps:
+                story.append(Paragraph("Temporal Gaps (Evidence Freshness Issues)", heading2_style))
+                for gap in temporal_gaps[:10]:
+                    story.append(Paragraph(
+                        f"<b>Control:</b> {gap.get('control_id', 'N/A')}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Issue:</b> {gap.get('description', 'N/A')}",
+                        body_style
+                    ))
+                    if gap.get('days_overdue'):
+                        story.append(Paragraph(
+                            f"<b>Days Overdue:</b> {gap['days_overdue']}",
+                            body_style
+                        ))
+                    story.append(Spacer(1, 0.15*inch))
+                story.append(Spacer(1, 0.2*inch))
+            
+            if coverage_gaps:
+                story.append(Paragraph("Coverage Gaps (Missing Evidence)", heading2_style))
+                for gap in coverage_gaps[:10]:
+                    story.append(Paragraph(
+                        f"<b>Control:</b> {gap.get('control_id', 'N/A')}",
+                        body_style
+                    ))
+                    story.append(Paragraph(
+                        f"<b>Issue:</b> {gap.get('description', 'N/A')}",
+                        body_style
+                    ))
+                    story.append(Spacer(1, 0.15*inch))
+                story.append(Spacer(1, 0.2*inch))
+            
+            story.append(PageBreak())
+        
+        # INTEGRITY AND VERIFICATION
+        story.append(Paragraph("INTEGRITY AND VERIFICATION", heading1_style))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+        story.append(Spacer(1, 0.2*inch))
+        
+        story.append(Paragraph(
+            "All evidence items included in this pack have been cryptographically verified.",
+            body_style
+        ))
+        story.append(Spacer(1, 0.1*inch))
+        story.append(Paragraph(
+            f"<b>Pack Integrity Hash (SHA-256):</b>",
+            body_style
+        ))
+        story.append(Paragraph(
+            pack.pack_hash,
+            code_style
+        ))
+        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph(
+            "This hash value can be used to verify the integrity of the evidence pack. "
+            "Any modification to the pack contents will result in a different hash value, "
+            "ensuring the immutability and authenticity of the evidence collection.",
+            body_style
+        ))
+        
+        story.append(PageBreak())
+        
+        # CONCLUSION
+        story.append(Paragraph("CONCLUSION", heading1_style))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.HexColor('#1e3a8a')))
+        story.append(Spacer(1, 0.2*inch))
+        
+        story.append(Paragraph(
+            f"This evidence pack provides comprehensive documentation to support compliance attestation "
+            f"for the specified time period. All evidence items have been collected, verified, and "
+            f"cryptographically secured to ensure their integrity and authenticity.",
+            body_style
+        ))
+        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph(
+            "The evidence pack is suitable for submission to auditors, regulatory bodies, or internal "
+            "compliance review processes. The cryptographic hash provided in the Integrity section can be used to "
+            "verify the integrity of the pack at any time.",
+            body_style
+        ))
+        
+        # Build PDF
+        doc.build(story)
+        
+        return pdf_path
