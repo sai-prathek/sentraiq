@@ -44,6 +44,16 @@ const FRAMEWORK_OPTIONS: Framework[] = [
     id: 'SOC2',
     name: 'SOC 2',
     description: 'Service Organization Control 2'
+  },
+  {
+    id: 'ISO27001_2022',
+    name: 'ISO/IEC 27001:2022',
+    description: 'Information Security Management System (ISMS)'
+  },
+  {
+    id: 'PCI_DSS',
+    name: 'PCI DSS v4.0',
+    description: 'Payment Card Industry Data Security Standard'
   }
 ];
 

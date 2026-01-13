@@ -638,6 +638,985 @@ const SOC2_QUESTIONS = [
   }
 ]
 
+const ISO27001_QUESTIONS = [
+  {
+    "id": "A.5.1",
+    "section": "5. Organizational Controls",
+    "subsection": "Policies for information security",
+    "question": "Has the organization defined, approved, and published information security policies to relevant personnel?",
+    "guideline": "Control 5.1"
+  },
+  {
+    "id": "A.5.2",
+    "section": "5. Organizational Controls",
+    "subsection": "Information security roles and responsibilities",
+    "question": "Has the organization defined and allocated information security roles and responsibilities?",
+    "guideline": "Control 5.2"
+  },
+  {
+    "id": "A.5.3",
+    "section": "5. Organizational Controls",
+    "subsection": "Segregation of duties",
+    "question": "Has the organization segregated conflicting duties and areas of responsibility to reduce the risk of unauthorized modification or misuse of assets?",
+    "guideline": "Control 5.3"
+  },
+  {
+    "id": "A.5.4",
+    "section": "5. Organizational Controls",
+    "subsection": "Management responsibilities",
+    "question": "Does management require all personnel to apply information security in accordance with the established policies and procedures?",
+    "guideline": "Control 5.4"
+  },
+  {
+    "id": "A.5.5",
+    "section": "5. Organizational Controls",
+    "subsection": "Contact with authorities",
+    "question": "Has the organization established and maintained contact with relevant authorities?",
+    "guideline": "Control 5.5"
+  },
+  {
+    "id": "A.5.6",
+    "section": "5. Organizational Controls",
+    "subsection": "Contact with special interest groups",
+    "question": "Has the organization established and maintained contact with special interest groups or other specialist security forums?",
+    "guideline": "Control 5.6"
+  },
+  {
+    "id": "A.5.7",
+    "section": "5. Organizational Controls",
+    "subsection": "Threat intelligence",
+    "question": "Does the organization collect and analyze information about information security threats to produce threat intelligence?",
+    "guideline": "Control 5.7"
+  },
+  {
+    "id": "A.5.8",
+    "section": "5. Organizational Controls",
+    "subsection": "Information security in project management",
+    "question": "Is information security integrated into project management methodologies?",
+    "guideline": "Control 5.8"
+  },
+  {
+    "id": "A.5.9",
+    "section": "5. Organizational Controls",
+    "subsection": "Inventory of information and other associated assets",
+    "question": "Has the organization developed and maintained an inventory of information and other associated assets?",
+    "guideline": "Control 5.9"
+  },
+  {
+    "id": "A.5.10",
+    "section": "5. Organizational Controls",
+    "subsection": "Acceptable use of information and other associated assets",
+    "question": "Has the organization identified, documented, and implemented rules for the acceptable use of information and associated assets?",
+    "guideline": "Control 5.10"
+  },
+  {
+    "id": "A.5.11",
+    "section": "5. Organizational Controls",
+    "subsection": "Return of assets",
+    "question": "Are personnel required to return all organizational assets in their possession upon change or termination of employment?",
+    "guideline": "Control 5.11"
+  },
+  {
+    "id": "A.5.12",
+    "section": "5. Organizational Controls",
+    "subsection": "Classification of information",
+    "question": "Has information been classified in terms of legal requirements, value, criticality, and sensitivity to unauthorized disclosure or modification?",
+    "guideline": "Control 5.12"
+  },
+  {
+    "id": "A.5.13",
+    "section": "5. Organizational Controls",
+    "subsection": "Labelling of information",
+    "question": "Has an appropriate set of procedures for information labelling been developed and implemented in accordance with the information classification scheme?",
+    "guideline": "Control 5.13"
+  },
+  {
+    "id": "A.5.14",
+    "section": "5. Organizational Controls",
+    "subsection": "Information transfer",
+    "question": "Are there formal transfer policies, procedures, and controls in place to protect the transfer of information through the use of all types of communication facilities?",
+    "guideline": "Control 5.14"
+  },
+  {
+    "id": "A.5.15",
+    "section": "5. Organizational Controls",
+    "subsection": "Access control",
+    "question": "Has the organization established and implemented specific access control policies regarding physical and logical access to information and associated assets?",
+    "guideline": "Control 5.15"
+  },
+  {
+    "id": "A.5.16",
+    "section": "5. Organizational Controls",
+    "subsection": "Identity management",
+    "question": "Is the full life cycle of identities managed via a formal process?",
+    "guideline": "Control 5.16"
+  },
+  {
+    "id": "A.5.17",
+    "section": "5. Organizational Controls",
+    "subsection": "Authentication information",
+    "question": "Is the allocation and management of authentication information controlled by a formal management process?",
+    "guideline": "Control 5.17"
+  },
+  {
+    "id": "A.5.18",
+    "section": "5. Organizational Controls",
+    "subsection": "Access rights",
+    "question": "Are access rights to information and associated assets provisioned, reviewed, modified, and removed in accordance with the organization's topic-specific policy and rules?",
+    "guideline": "Control 5.18"
+  },
+  {
+    "id": "A.5.19",
+    "section": "5. Organizational Controls",
+    "subsection": "Information security in supplier relationships",
+    "question": "Has the organization defined and implemented processes and procedures to manage the information security risks associated with the use of supplier's products or services?",
+    "guideline": "Control 5.19"
+  },
+  {
+    "id": "A.5.20",
+    "section": "5. Organizational Controls",
+    "subsection": "Addressing information security within supplier agreements",
+    "question": "Have relevant information security requirements been established and agreed with each supplier?",
+    "guideline": "Control 5.20"
+  },
+  {
+    "id": "A.5.21",
+    "section": "5. Organizational Controls",
+    "subsection": "Managing information security in the ICT supply chain",
+    "question": "Has the organization defined and implemented processes and procedures to manage the information security risks associated with the ICT products and services supply chain?",
+    "guideline": "Control 5.21"
+  },
+  {
+    "id": "A.5.22",
+    "section": "5. Organizational Controls",
+    "subsection": "Monitoring, review and change management of supplier services",
+    "question": "Does the organization regularly monitor, review, and audit supplier service delivery?",
+    "guideline": "Control 5.22"
+  },
+  {
+    "id": "A.5.23",
+    "section": "5. Organizational Controls",
+    "subsection": "Information security for use of cloud services",
+    "question": "Have processes for acquisition, use, management, and exit from cloud services been established in accordance with the organization's information security requirements?",
+    "guideline": "Control 5.23"
+  },
+  {
+    "id": "A.5.24",
+    "section": "5. Organizational Controls",
+    "subsection": "Information security incident management planning and preparation",
+    "question": "Has the organization planned and prepared for managing information security incidents by defining, establishing, and communicating information security incident management processes?",
+    "guideline": "Control 5.24"
+  },
+  {
+    "id": "A.5.25",
+    "section": "5. Organizational Controls",
+    "subsection": "Assessment and decision on information security events",
+    "question": "Does the organization assess information security events and decide if they are to be categorized as information security incidents?",
+    "guideline": "Control 5.25"
+  },
+  {
+    "id": "A.5.26",
+    "section": "5. Organizational Controls",
+    "subsection": "Response to information security incidents",
+    "question": "Are information security incidents responded to in accordance with the documented procedures?",
+    "guideline": "Control 5.26"
+  },
+  {
+    "id": "A.5.27",
+    "section": "5. Organizational Controls",
+    "subsection": "Learning from information security incidents",
+    "question": "Is knowledge gained from information security incidents used to strengthen and improve the information security controls?",
+    "guideline": "Control 5.27"
+  },
+  {
+    "id": "A.5.28",
+    "section": "5. Organizational Controls",
+    "subsection": "Collection of evidence",
+    "question": "Does the organization establish and implement procedures for the identification, collection, acquisition, and preservation of evidence related to information security events?",
+    "guideline": "Control 5.28"
+  },
+  {
+    "id": "A.5.29",
+    "section": "5. Organizational Controls",
+    "subsection": "Information security during disruption",
+    "question": "Does the organization plan and maintain information security continuity at an agreed level during disruption?",
+    "guideline": "Control 5.29"
+  },
+  {
+    "id": "A.5.30",
+    "section": "5. Organizational Controls",
+    "subsection": "ICT readiness for business continuity",
+    "question": "Is ICT readiness planned, implemented, maintained, and tested based on business continuity objectives and ICT continuity requirements?",
+    "guideline": "Control 5.30"
+  },
+  {
+    "id": "A.5.31",
+    "section": "5. Organizational Controls",
+    "subsection": "Legal, statutory, regulatory and contractual requirements",
+    "question": "Are legal, statutory, regulatory, and contractual requirements relevant to information security and the organization's approach to meet these requirements identified, documented, and kept up to date?",
+    "guideline": "Control 5.31"
+  },
+  {
+    "id": "A.5.32",
+    "section": "5. Organizational Controls",
+    "subsection": "Intellectual property rights",
+    "question": "Has the organization implemented appropriate procedures to protect intellectual property rights?",
+    "guideline": "Control 5.32"
+  },
+  {
+    "id": "A.5.33",
+    "section": "5. Organizational Controls",
+    "subsection": "Protection of records",
+    "question": "Are records protected from loss, destruction, falsification, unauthorized access, and unauthorized release?",
+    "guideline": "Control 5.33"
+  },
+  {
+    "id": "A.5.34",
+    "section": "5. Organizational Controls",
+    "subsection": "Privacy and protection of PII",
+    "question": "Does the organization identify and meet the requirements regarding the preservation of privacy and protection of PII according to applicable laws and regulations?",
+    "guideline": "Control 5.34"
+  },
+  {
+    "id": "A.5.35",
+    "section": "5. Organizational Controls",
+    "subsection": "Independent review of information security",
+    "question": "Is the organization's approach to managing information security and its implementation reviewed independently at planned intervals?",
+    "guideline": "Control 5.35"
+  },
+  {
+    "id": "A.5.36",
+    "section": "5. Organizational Controls",
+    "subsection": "Compliance with policies, rules and standards for information security",
+    "question": "Is compliance with the organization's information security policies reviewed regularly?",
+    "guideline": "Control 5.36"
+  },
+  {
+    "id": "A.5.37",
+    "section": "5. Organizational Controls",
+    "subsection": "Documented operating procedures",
+    "question": "Are operating procedures for information processing facilities documented and made available to personnel who need them?",
+    "guideline": "Control 5.37"
+  },
+  {
+    "id": "A.6.1",
+    "section": "6. People Controls",
+    "subsection": "Screening",
+    "question": "Are background verification checks on all candidates for employment, contractors, and temporary staff performed prior to joining?",
+    "guideline": "Control 6.1"
+  },
+  {
+    "id": "A.6.2",
+    "section": "6. People Controls",
+    "subsection": "Terms and conditions of employment",
+    "question": "Do the employment agreements state the personnel's and the organization's responsibilities for information security?",
+    "guideline": "Control 6.2"
+  },
+  {
+    "id": "A.6.3",
+    "section": "6. People Controls",
+    "subsection": "Information security awareness, education and training",
+    "question": "Does the organization provide personnel with appropriate information security awareness, education, and training?",
+    "guideline": "Control 6.3"
+  },
+  {
+    "id": "A.6.4",
+    "section": "6. People Controls",
+    "subsection": "Disciplinary process",
+    "question": "Is there a formal disciplinary process in place for personnel who have committed a security breach?",
+    "guideline": "Control 6.4"
+  },
+  {
+    "id": "A.6.5",
+    "section": "6. People Controls",
+    "subsection": "Responsibilities after termination or change of employment",
+    "question": "Are information security responsibilities and duties that remain valid after termination or change of employment defined and communicated?",
+    "guideline": "Control 6.5"
+  },
+  {
+    "id": "A.6.6",
+    "section": "6. People Controls",
+    "subsection": "Confidentiality or non-disclosure agreements",
+    "question": "Are confidentiality or non-disclosure agreements identifying information needs for protection reflected and reviewed regularly?",
+    "guideline": "Control 6.6"
+  },
+  {
+    "id": "A.6.7",
+    "section": "6. People Controls",
+    "subsection": "Remote working",
+    "question": "Are security measures implemented to protect information accessed, processed, or stored at teleworking sites?",
+    "guideline": "Control 6.7"
+  },
+  {
+    "id": "A.6.8",
+    "section": "6. People Controls",
+    "subsection": "Information security event reporting",
+    "question": "Does the organization provide a mechanism for personnel to report observed or suspected information security events?",
+    "guideline": "Control 6.8"
+  },
+  {
+    "id": "A.7.1",
+    "section": "7. Physical Controls",
+    "subsection": "Physical security perimeters",
+    "question": "Are security perimeters defined and used to protect areas that contain information and other associated assets?",
+    "guideline": "Control 7.1"
+  },
+  {
+    "id": "A.7.2",
+    "section": "7. Physical Controls",
+    "subsection": "Physical entry",
+    "question": "Are secure areas protected by appropriate entry controls and access points?",
+    "guideline": "Control 7.2"
+  },
+  {
+    "id": "A.7.3",
+    "section": "7. Physical Controls",
+    "subsection": "Securing offices, rooms and facilities",
+    "question": "Is physical security for offices, rooms, and facilities designed and applied?",
+    "guideline": "Control 7.3"
+  },
+  {
+    "id": "A.7.4",
+    "section": "7. Physical Controls",
+    "subsection": "Physical security monitoring",
+    "question": "Are premises monitored continuously for unauthorized physical access?",
+    "guideline": "Control 7.4"
+  },
+  {
+    "id": "A.7.5",
+    "section": "7. Physical Controls",
+    "subsection": "Protecting against physical and environmental threats",
+    "question": "Is protection against physical and environmental threats designed and applied?",
+    "guideline": "Control 7.5"
+  },
+  {
+    "id": "A.7.6",
+    "section": "7. Physical Controls",
+    "subsection": "Working in secure areas",
+    "question": "Are security measures for working in secure areas designed and implemented?",
+    "guideline": "Control 7.6"
+  },
+  {
+    "id": "A.7.7",
+    "section": "7. Physical Controls",
+    "subsection": "Clear desk and clear screen",
+    "question": "Are clear desk rules for papers and removable storage media and clear screen rules for information processing facilities enforced?",
+    "guideline": "Control 7.7"
+  },
+  {
+    "id": "A.7.8",
+    "section": "7. Physical Controls",
+    "subsection": "Equipment siting and protection",
+    "question": "Is equipment sited and protected to reduce the risks from environmental threats and hazards and opportunities for unauthorized access?",
+    "guideline": "Control 7.8"
+  },
+  {
+    "id": "A.7.9",
+    "section": "7. Physical Controls",
+    "subsection": "Security of assets off-premises",
+    "question": "Are assets off-premises protected?",
+    "guideline": "Control 7.9"
+  },
+  {
+    "id": "A.7.10",
+    "section": "7. Physical Controls",
+    "subsection": "Storage media",
+    "question": "Is storage media managed through its life cycle of acquisition, use, storage, and disposal?",
+    "guideline": "Control 7.10"
+  },
+  {
+    "id": "A.7.11",
+    "section": "7. Physical Controls",
+    "subsection": "Supporting utilities",
+    "question": "Are information processing facilities protected from power failures and other disruptions caused by failures in supporting utilities?",
+    "guideline": "Control 7.11"
+  },
+  {
+    "id": "A.7.12",
+    "section": "7. Physical Controls",
+    "subsection": "Cabling security",
+    "question": "Is cabling protected against interception, interference, or damage?",
+    "guideline": "Control 7.12"
+  },
+  {
+    "id": "A.7.13",
+    "section": "7. Physical Controls",
+    "subsection": "Equipment maintenance",
+    "question": "Is equipment maintained correctly to ensure its continued availability and integrity?",
+    "guideline": "Control 7.13"
+  },
+  {
+    "id": "A.7.14",
+    "section": "7. Physical Controls",
+    "subsection": "Secure disposal or re-use of equipment",
+    "question": "Are items of equipment containing storage media verified to ensure that any sensitive data and licensed software has been removed or securely overwritten prior to disposal or re-use?",
+    "guideline": "Control 7.14"
+  },
+  {
+    "id": "A.8.1",
+    "section": "8. Technological Controls",
+    "subsection": "User endpoint devices",
+    "question": "Is information stored on, processed by, or accessible via user endpoint devices protected?",
+    "guideline": "Control 8.1"
+  },
+  {
+    "id": "A.8.2",
+    "section": "8. Technological Controls",
+    "subsection": "Privileged access rights",
+    "question": "Is the allocation and use of privileged access rights restricted and managed?",
+    "guideline": "Control 8.2"
+  },
+  {
+    "id": "A.8.3",
+    "section": "8. Technological Controls",
+    "subsection": "Information access restriction",
+    "question": "Is access to information and other associated assets restricted in accordance with the established access control policy?",
+    "guideline": "Control 8.3"
+  },
+  {
+    "id": "A.8.4",
+    "section": "8. Technological Controls",
+    "subsection": "Access to source code",
+    "question": "Is read and write access to source code, development tools, and software libraries appropriately restricted?",
+    "guideline": "Control 8.4"
+  },
+  {
+    "id": "A.8.5",
+    "section": "8. Technological Controls",
+    "subsection": "Secure authentication",
+    "question": "Are secure authentication technologies and procedures implemented based on information classification and risk assessment?",
+    "guideline": "Control 8.5"
+  },
+  {
+    "id": "A.8.6",
+    "section": "8. Technological Controls",
+    "subsection": "Capacity management",
+    "question": "Is the use of resources monitored and adjusted in line with current and expected capacity requirements?",
+    "guideline": "Control 8.6"
+  },
+  {
+    "id": "A.8.7",
+    "section": "8. Technological Controls",
+    "subsection": "Protection against malware",
+    "question": "Are protection against malware and appropriate user awareness procedures implemented?",
+    "guideline": "Control 8.7"
+  },
+  {
+    "id": "A.8.8",
+    "section": "8. Technological Controls",
+    "subsection": "Management of technical vulnerabilities",
+    "question": "Is information about technical vulnerabilities of information systems obtained, evaluated, and are appropriate measures taken?",
+    "guideline": "Control 8.8"
+  },
+  {
+    "id": "A.8.9",
+    "section": "8. Technological Controls",
+    "subsection": "Configuration management",
+    "question": "Are configurations, including security configurations, of hardware, software, services, and networks established, documented, implemented, monitored, and reviewed?",
+    "guideline": "Control 8.9"
+  },
+  {
+    "id": "A.8.10",
+    "section": "8. Technological Controls",
+    "subsection": "Information deletion",
+    "question": "Is information stored in information systems, devices, or in any other storage media deleted when no longer required?",
+    "guideline": "Control 8.10"
+  },
+  {
+    "id": "A.8.11",
+    "section": "8. Technological Controls",
+    "subsection": "Data masking",
+    "question": "Is data masking used in accordance with the organization's topic-specific policy on access control and other related topic-specific policies?",
+    "guideline": "Control 8.11"
+  },
+  {
+    "id": "A.8.12",
+    "section": "8. Technological Controls",
+    "subsection": "Data leakage prevention",
+    "question": "Are data leakage prevention measures applied to systems, networks, and any other devices that process, store, or transmit sensitive information?",
+    "guideline": "Control 8.12"
+  },
+  {
+    "id": "A.8.13",
+    "section": "8. Technological Controls",
+    "subsection": "Information backup",
+    "question": "Are backup copies of information, software, and systems maintained and tested regularly in accordance with the agreed topic-specific policy on backup?",
+    "guideline": "Control 8.13"
+  },
+  {
+    "id": "A.8.14",
+    "section": "8. Technological Controls",
+    "subsection": "Redundancy of information processing facilities",
+    "question": "Are information processing facilities implemented with redundancy sufficient to meet availability requirements?",
+    "guideline": "Control 8.14"
+  },
+  {
+    "id": "A.8.15",
+    "section": "8. Technological Controls",
+    "subsection": "Logging",
+    "question": "Are logs that record user activities, exceptions, faults, and information security events produced, stored, protected, and analyzed?",
+    "guideline": "Control 8.15"
+  },
+  {
+    "id": "A.8.16",
+    "section": "8. Technological Controls",
+    "subsection": "Monitoring activities",
+    "question": "Are networks, systems, and applications monitored for anomalous behavior and appropriate actions taken?",
+    "guideline": "Control 8.16"
+  },
+  {
+    "id": "A.8.17",
+    "section": "8. Technological Controls",
+    "subsection": "Clock synchronization",
+    "question": "Are the clocks of all relevant information processing systems synchronized to a single reference time source?",
+    "guideline": "Control 8.17"
+  },
+  {
+    "id": "A.8.18",
+    "section": "8. Technological Controls",
+    "subsection": "Use of privileged utility programs",
+    "question": "Is the use of utility programs that can be capable of overriding system and application controls restricted and tightly controlled?",
+    "guideline": "Control 8.18"
+  },
+  {
+    "id": "A.8.19",
+    "section": "8. Technological Controls",
+    "subsection": "Installation of software on operational systems",
+    "question": "Are procedures and measures implemented to securely manage software installation on operational systems?",
+    "guideline": "Control 8.19"
+  },
+  {
+    "id": "A.8.20",
+    "section": "8. Technological Controls",
+    "subsection": "Networks security",
+    "question": "Are networks and network services secured to protect the information being transferred?",
+    "guideline": "Control 8.20"
+  },
+  {
+    "id": "A.8.21",
+    "section": "8. Technological Controls",
+    "subsection": "Security of network services",
+    "question": "Are security mechanisms, service levels, and management requirements of all network services identified and included in network services agreements?",
+    "guideline": "Control 8.21"
+  },
+  {
+    "id": "A.8.22",
+    "section": "8. Technological Controls",
+    "subsection": "Segregation of networks",
+    "question": "Are groups of information services, users, and information systems segregated on networks?",
+    "guideline": "Control 8.22"
+  },
+  {
+    "id": "A.8.23",
+    "section": "8. Technological Controls",
+    "subsection": "Web filtering",
+    "question": "Is access to external websites managed to reduce exposure to malicious content?",
+    "guideline": "Control 8.23"
+  },
+  {
+    "id": "A.8.24",
+    "section": "8. Technological Controls",
+    "subsection": "Use of cryptography",
+    "question": "Are rules for the effective use of cryptography and key management defined and implemented?",
+    "guideline": "Control 8.24"
+  },
+  {
+    "id": "A.8.25",
+    "section": "8. Technological Controls",
+    "subsection": "Secure development lifecycle",
+    "question": "Are rules for the secure development of software and systems established and applied?",
+    "guideline": "Control 8.25"
+  },
+  {
+    "id": "A.8.26",
+    "section": "8. Technological Controls",
+    "subsection": "Application security requirements",
+    "question": "Are information security requirements identified, specified, and approved when developing or acquiring applications?",
+    "guideline": "Control 8.26"
+  },
+  {
+    "id": "A.8.27",
+    "section": "8. Technological Controls",
+    "subsection": "Secure system architecture and engineering principles",
+    "question": "Are principles for engineering secure systems established, documented, maintained, and applied to any information system implementation activities?",
+    "guideline": "Control 8.27"
+  },
+  {
+    "id": "A.8.28",
+    "section": "8. Technological Controls",
+    "subsection": "Secure coding",
+    "question": "Are secure coding principles applied to software development?",
+    "guideline": "Control 8.28"
+  },
+  {
+    "id": "A.8.29",
+    "section": "8. Technological Controls",
+    "subsection": "Security testing in development and acceptance",
+    "question": "Are security testing processes defined and implemented in the development life cycle?",
+    "guideline": "Control 8.29"
+  },
+  {
+    "id": "A.8.30",
+    "section": "8. Technological Controls",
+    "subsection": "Outsourced development",
+    "question": "Does the organization supervise and monitor the outsourced system development activities?",
+    "guideline": "Control 8.30"
+  },
+  {
+    "id": "A.8.31",
+    "section": "8. Technological Controls",
+    "subsection": "Separation of development, test and production environments",
+    "question": "Are development, testing, and production environments separated to reduce the risks of unauthorized access or changes to the production environment?",
+    "guideline": "Control 8.31"
+  },
+  {
+    "id": "A.8.32",
+    "section": "8. Technological Controls",
+    "subsection": "Change management",
+    "question": "Are changes to the information processing facilities and information systems subject to change management procedures?",
+    "guideline": "Control 8.32"
+  },
+  {
+    "id": "A.8.33",
+    "section": "8. Technological Controls",
+    "subsection": "Test information",
+    "question": "Is test information selected, protected, and controlled?",
+    "guideline": "Control 8.33"
+  },
+  {
+    "id": "A.8.34",
+    "section": "8. Technological Controls",
+    "subsection": "Protection of information systems during audit testing",
+    "question": "Are audit tests and other assurance activities involving assessment of operational systems planned and agreed to minimize disruption to business processes?",
+    "guideline": "Control 8.34"
+  }
+]
+
+const PCI_DSS_QUESTIONS = [
+  {
+    "id": "PCI.1.1",
+    "section": "Build and Maintain a Secure Network and Systems",
+    "subsection": "Requirement 1: Install and Maintain Network Security Controls",
+    "question": "Are network security controls (NSCs) defined, implemented, and maintained according to documented policies?",
+    "guideline": "NSC Processes and Documentation"
+  },
+  {
+    "id": "PCI.1.2",
+    "section": "Build and Maintain a Secure Network and Systems",
+    "subsection": "Requirement 1: Install and Maintain Network Security Controls",
+    "question": "Are connections between the CDE (Cardholder Data Environment) and other networks restricted to only necessary traffic?",
+    "guideline": "Network Connections and Restrictions"
+  },
+  {
+    "id": "PCI.1.3",
+    "section": "Build and Maintain a Secure Network and Systems",
+    "subsection": "Requirement 1: Install and Maintain Network Security Controls",
+    "question": "Is direct public access to the CDE prohibited and are DMZs used for all inbound internet traffic?",
+    "guideline": "Prohibition of Direct Public Access"
+  },
+  {
+    "id": "PCI.1.4",
+    "section": "Build and Maintain a Secure Network and Systems",
+    "subsection": "Requirement 1: Install and Maintain Network Security Controls",
+    "question": "Are network security controls installed between all wireless networks and the CDE?",
+    "guideline": "Wireless Network Segmentation"
+  },
+  {
+    "id": "PCI.2.1",
+    "section": "Build and Maintain a Secure Network and Systems",
+    "subsection": "Requirement 2: Apply Secure Configurations to All System Components",
+    "question": "Are processes and mechanisms for applying secure configurations to all system components defined and understood?",
+    "guideline": "Configuration Processes"
+  },
+  {
+    "id": "PCI.2.2",
+    "section": "Build and Maintain a Secure Network and Systems",
+    "subsection": "Requirement 2: Apply Secure Configurations to All System Components",
+    "question": "Are system configuration standards applied to all system components to address known vulnerabilities?",
+    "guideline": "System Configuration Standards"
+  },
+  {
+    "id": "PCI.2.3",
+    "section": "Build and Maintain a Secure Network and Systems",
+    "subsection": "Requirement 2: Apply Secure Configurations to All System Components",
+    "question": "Are all wireless environments securely configured and managed according to industry best practices?",
+    "guideline": "Wireless Environment Configuration"
+  },
+  {
+    "id": "PCI.3.1",
+    "section": "Protect Account Data",
+    "subsection": "Requirement 3: Protect Stored Account Data",
+    "question": "Are data retention and disposal policies, procedures, and processes defined and implemented?",
+    "guideline": "Data Retention and Disposal"
+  },
+  {
+    "id": "PCI.3.2",
+    "section": "Protect Account Data",
+    "subsection": "Requirement 3: Protect Stored Account Data",
+    "question": "Is Sensitive Authentication Data (SAD) stored only if needed for business and rendered unrecoverable after authorization?",
+    "guideline": "Sensitive Authentication Data Storage"
+  },
+  {
+    "id": "PCI.3.3",
+    "section": "Protect Account Data",
+    "subsection": "Requirement 3: Protect Stored Account Data",
+    "question": "Is the Primary Account Number (PAN) masked when displayed (the first six and last four digits are the maximum number of digits to be displayed)?",
+    "guideline": "PAN Masking"
+  },
+  {
+    "id": "PCI.3.4",
+    "section": "Protect Account Data",
+    "subsection": "Requirement 3: Protect Stored Account Data",
+    "question": "Is the PAN rendered unreadable anywhere it is stored using strong cryptography, truncation, or hashing?",
+    "guideline": "PAN Storage Protection"
+  },
+  {
+    "id": "PCI.3.5",
+    "section": "Protect Account Data",
+    "subsection": "Requirement 3: Protect Stored Account Data",
+    "question": "Are keys used to encrypt account data protected against disclosure and misuse?",
+    "guideline": "Key Management"
+  },
+  {
+    "id": "PCI.4.1",
+    "section": "Protect Account Data",
+    "subsection": "Requirement 4: Protect Cardholder Data with Strong Cryptography During Transmission",
+    "question": "Are processes for securing the transmission of cardholder data defined and documented?",
+    "guideline": "Transmission Security Processes"
+  },
+  {
+    "id": "PCI.4.2",
+    "section": "Protect Account Data",
+    "subsection": "Requirement 4: Protect Cardholder Data with Strong Cryptography During Transmission",
+    "question": "Is strong cryptography used to safeguard PAN during transmission over open, public networks?",
+    "guideline": "Transmission Over Public Networks"
+  },
+  {
+    "id": "PCI.5.1",
+    "section": "Maintain a Vulnerability Management Program",
+    "subsection": "Requirement 5: Protect All Systems and Networks from Malicious Software",
+    "question": "Are processes and mechanisms for protecting systems and networks from malicious software defined and documented?",
+    "guideline": "Malware Protection Processes"
+  },
+  {
+    "id": "PCI.5.2",
+    "section": "Maintain a Vulnerability Management Program",
+    "subsection": "Requirement 5: Protect All Systems and Networks from Malicious Software",
+    "question": "Is malicious software (malware) prevented, or detected and addressed, by anti-malware mechanisms?",
+    "guideline": "Anti-Malware Mechanisms"
+  },
+  {
+    "id": "PCI.5.3",
+    "section": "Maintain a Vulnerability Management Program",
+    "subsection": "Requirement 5: Protect All Systems and Networks from Malicious Software",
+    "question": "Are anti-malware mechanisms and processes active, maintained, and monitored?",
+    "guideline": "Anti-Malware Maintenance"
+  },
+  {
+    "id": "PCI.6.1",
+    "section": "Maintain a Vulnerability Management Program",
+    "subsection": "Requirement 6: Develop and Maintain Secure Systems and Software",
+    "question": "Are processes for developing and maintaining secure systems and software defined and documented?",
+    "guideline": "Secure Software Processes"
+  },
+  {
+    "id": "PCI.6.2",
+    "section": "Maintain a Vulnerability Management Program",
+    "subsection": "Requirement 6: Develop and Maintain Secure Systems and Software",
+    "question": "Are bespoke and custom software developed securely, based on industry standards and/or best practices?",
+    "guideline": "Secure Software Development"
+  },
+  {
+    "id": "PCI.6.3",
+    "section": "Maintain a Vulnerability Management Program",
+    "subsection": "Requirement 6: Develop and Maintain Secure Systems and Software",
+    "question": "Are security vulnerabilities identified and managed using a risk ranking process?",
+    "guideline": "Vulnerability Identification"
+  },
+  {
+    "id": "PCI.6.4",
+    "section": "Maintain a Vulnerability Management Program",
+    "subsection": "Requirement 6: Develop and Maintain Secure Systems and Software",
+    "question": "Are public-facing web applications protected against attacks (e.g., via WAF or code reviews)?",
+    "guideline": "Web Application Protection"
+  },
+  {
+    "id": "PCI.6.5",
+    "section": "Maintain a Vulnerability Management Program",
+    "subsection": "Requirement 6: Develop and Maintain Secure Systems and Software",
+    "question": "Are changes to system components managed securely?",
+    "guideline": "Change Management"
+  },
+  {
+    "id": "PCI.7.1",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 7: Restrict Access to Cardholder Data by Business Need to Know",
+    "question": "Are processes for restricting access to system components and cardholder data defined and documented?",
+    "guideline": "Access Control Processes"
+  },
+  {
+    "id": "PCI.7.2",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 7: Restrict Access to Cardholder Data by Business Need to Know",
+    "question": "Is access to system components and cardholder data defined and assigned according to the 'need to know' principle?",
+    "guideline": "Least Privilege"
+  },
+  {
+    "id": "PCI.8.1",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 8: Identify and Authenticate Access to System Components",
+    "question": "Are processes for identifying and authenticating users defined and documented?",
+    "guideline": "Authentication Processes"
+  },
+  {
+    "id": "PCI.8.2",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 8: Identify and Authenticate Access to System Components",
+    "question": "Is a unique ID assigned to each person with access to system components?",
+    "guideline": "Unique User IDs"
+  },
+  {
+    "id": "PCI.8.3",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 8: Identify and Authenticate Access to System Components",
+    "question": "Is strong authentication managed for users and administrators?",
+    "guideline": "Strong Authentication"
+  },
+  {
+    "id": "PCI.8.4",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 8: Identify and Authenticate Access to System Components",
+    "question": "Is Multi-Factor Authentication (MFA) implemented for all non-console access into the CDE?",
+    "guideline": "Multi-Factor Authentication"
+  },
+  {
+    "id": "PCI.9.1",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 9: Restrict Physical Access to Cardholder Data",
+    "question": "Are processes for restricting physical access to cardholder data defined and documented?",
+    "guideline": "Physical Security Processes"
+  },
+  {
+    "id": "PCI.9.2",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 9: Restrict Physical Access to Cardholder Data",
+    "question": "Are physical access controls managed and monitored for the facility and CDE?",
+    "guideline": "Facility Access Controls"
+  },
+  {
+    "id": "PCI.9.3",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 9: Restrict Physical Access to Cardholder Data",
+    "question": "Is physical access for personnel and visitors authorized and managed?",
+    "guideline": "Personnel and Visitor Access"
+  },
+  {
+    "id": "PCI.9.4",
+    "section": "Implement Strong Access Control Measures",
+    "subsection": "Requirement 9: Restrict Physical Access to Cardholder Data",
+    "question": "Are media with cardholder data securely stored, distributed, and destroyed?",
+    "guideline": "Media Security"
+  },
+  {
+    "id": "PCI.10.1",
+    "section": "Regularly Monitor and Test Networks",
+    "subsection": "Requirement 10: Log and Monitor All Access to System Components and Cardholder Data",
+    "question": "Are processes for logging and monitoring all access to system components defined and documented?",
+    "guideline": "Logging Processes"
+  },
+  {
+    "id": "PCI.10.2",
+    "section": "Regularly Monitor and Test Networks",
+    "subsection": "Requirement 10: Log and Monitor All Access to System Components and Cardholder Data",
+    "question": "Are audit logs generated for all activity within the CDE and related to cardholder data?",
+    "guideline": "Audit Log Generation"
+  },
+  {
+    "id": "PCI.10.3",
+    "section": "Regularly Monitor and Test Networks",
+    "subsection": "Requirement 10: Log and Monitor All Access to System Components and Cardholder Data",
+    "question": "Are audit logs protected from destruction and unauthorized modification?",
+    "guideline": "Log Protection"
+  },
+  {
+    "id": "PCI.10.4",
+    "section": "Regularly Monitor and Test Networks",
+    "subsection": "Requirement 10: Log and Monitor All Access to System Components and Cardholder Data",
+    "question": "Are audit logs reviewed to identify anomalies or suspicious activity?",
+    "guideline": "Log Review"
+  },
+  {
+    "id": "PCI.11.1",
+    "section": "Regularly Monitor and Test Networks",
+    "subsection": "Requirement 11: Test Security of Systems and Networks Regularly",
+    "question": "Are processes for security testing of systems and networks defined and documented?",
+    "guideline": "Security Testing Processes"
+  },
+  {
+    "id": "PCI.11.2",
+    "section": "Regularly Monitor and Test Networks",
+    "subsection": "Requirement 11: Test Security of Systems and Networks Regularly",
+    "question": "Are wireless access points identified and monitored, and unauthorized wireless access points addressed?",
+    "guideline": "Wireless Testing"
+  },
+  {
+    "id": "PCI.11.3",
+    "section": "Regularly Monitor and Test Networks",
+    "subsection": "Requirement 11: Test Security of Systems and Networks Regularly",
+    "question": "Are internal and external vulnerabilities identified, prioritized, and addressed?",
+    "guideline": "Vulnerability Scanning"
+  },
+  {
+    "id": "PCI.11.4",
+    "section": "Regularly Monitor and Test Networks",
+    "subsection": "Requirement 11: Test Security of Systems and Networks Regularly",
+    "question": "Are penetration tests performed to identify and correct exploitable vulnerabilities?",
+    "guideline": "Penetration Testing"
+  },
+  {
+    "id": "PCI.12.1",
+    "section": "Maintain an Information Security Policy",
+    "subsection": "Requirement 12: Support Information Security with Organizational Policies and Programs",
+    "question": "Is the information security policy established, published, maintained, and disseminated?",
+    "guideline": "Security Policy"
+  },
+  {
+    "id": "PCI.12.3",
+    "section": "Maintain an Information Security Policy",
+    "subsection": "Requirement 12: Support Information Security with Organizational Policies and Programs",
+    "question": "Are risks to the cardholder data environment formally identified, evaluated, and managed?",
+    "guideline": "Risk Assessment"
+  },
+  {
+    "id": "PCI.12.5",
+    "section": "Maintain an Information Security Policy",
+    "subsection": "Requirement 12: Support Information Security with Organizational Policies and Programs",
+    "question": "Are PCI DSS scope and compliance validated and documented?",
+    "guideline": "Scope Validation"
+  },
+  {
+    "id": "PCI.12.6",
+    "section": "Maintain an Information Security Policy",
+    "subsection": "Requirement 12: Support Information Security with Organizational Policies and Programs",
+    "question": "Is security awareness education provided to all personnel?",
+    "guideline": "Security Awareness"
+  },
+  {
+    "id": "PCI.12.9",
+    "section": "Maintain an Information Security Policy",
+    "subsection": "Requirement 12: Support Information Security with Organizational Policies and Programs",
+    "question": "Are Third-Party Service Providers (TPSPs) managed to support the security of cardholder data?",
+    "guideline": "Third-Party Management"
+  },
+  {
+    "id": "PCI.12.10",
+    "section": "Maintain an Information Security Policy",
+    "subsection": "Requirement 12: Support Information Security with Organizational Policies and Programs",
+    "question": "Is an incident response plan implemented and tested to respond to suspected or confirmed security incidents?",
+    "guideline": "Incident Response"
+  }
+]
+
 const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, onComplete, onBack }) => {
   const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>({});
   const [currentSection, setCurrentSection] = useState<string>('');
@@ -646,7 +1625,14 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
   const [autoAnswerProgress, setAutoAnswerProgress] = useState({ current: 0, total: 0 });
   const [autoAnswerStarted, setAutoAnswerStarted] = useState(false);
 
-  const questions = framework === 'SOC2' ? SOC2_QUESTIONS : SWIFT_QUESTIONS;
+  const questions =
+    framework === 'SOC2'
+      ? SOC2_QUESTIONS
+      : framework === 'ISO27001_2022'
+        ? ISO27001_QUESTIONS
+        : framework === 'PCI_DSS'
+          ? PCI_DSS_QUESTIONS
+          : SWIFT_QUESTIONS;
 
   const sections = Array.from(new Set(questions.map(q => q.section)));
 
@@ -951,6 +1937,84 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
       ],
       'CC9.2.1': [
         { id: '22', type: 'Document', filename: 'vendor_risk_assessment.pdf', preview: 'Vendor and business partner risk assessment and management documentation demonstrates third-party risk management program. Includes vendor due diligence, security questionnaires, contract reviews, and ongoing monitoring of vendor compliance with SOC 2 requirements.', relevance: 92, control_id: 'SOC2-CC9.2', timestamp: new Date(Date.now() - 27 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      // ISO/IEC 27001:2022 mock evidence (grouped by Annex A clause families)
+      'A.5': [
+        { id: 'ISO-5-1', type: 'Document', filename: 'iso27001_information_security_policy.pdf', preview: 'ISO/IEC 27001:2022-compliant information security policy approved by executive management, communicated to all personnel, and reviewed annually.', relevance: 94, control_id: 'A.5.1', timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'ISO-5-2', type: 'Document', filename: 'iso27001_roles_and_responsibilities_matrix.xlsx', preview: 'RACI matrix defining information security roles and responsibilities across the organization, including ISMS owner, risk owners, and control owners.', relevance: 92, control_id: 'A.5.2', timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'ISO-5-3', type: 'Log', filename: 'segregation_of_duties_change_log.log', preview: 'Change management and production access logs demonstrating segregation of duties between developers, approvers, and deployers.', relevance: 90, control_id: 'A.5.3', timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'A.6': [
+        { id: 'ISO-6-1', type: 'Document', filename: 'pre_employment_screening_procedure.pdf', preview: 'Background verification procedure describing screening checks for employees, contractors, and temporary staff, aligned with local regulations.', relevance: 91, control_id: 'A.6.1', timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'ISO-6-2', type: 'Document', filename: 'security_awareness_training_records.csv', preview: 'Training completion records showing that personnel have completed annual information security and privacy awareness training.', relevance: 93, control_id: 'A.6.3', timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'A.7': [
+        { id: 'ISO-7-1', type: 'Document', filename: 'physical_security_design.pdf', preview: 'Physical security design for offices and data rooms showing security perimeters, access control points, CCTV coverage, and alarm systems.', relevance: 92, control_id: 'A.7.1', timestamp: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'ISO-7-2', type: 'Log', filename: 'badge_access_logs.log', preview: 'Physical entry logs for secure areas demonstrating enforcement of badge-based access controls and monitoring of unauthorized attempts.', relevance: 95, control_id: 'A.7.2', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'A.8': [
+        { id: 'ISO-8-1', type: 'Log', filename: 'endpoint_protection_logs.log', preview: 'Endpoint protection logs showing anti-malware status, blocked threats, and policy enforcement across laptops and workstations.', relevance: 94, control_id: 'A.8.7', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'ISO-8-2', type: 'Log', filename: 'vulnerability_scan_results_iso27001.log', preview: 'Technical vulnerability scan reports and remediation tracking demonstrating active vulnerability management aligned with ISO/IEC 27001:2022 requirements.', relevance: 93, control_id: 'A.8.8', timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'ISO-8-3', type: 'Document', filename: 'backup_and_recovery_strategy.pdf', preview: 'Backup and recovery strategy describing backup frequency, off-site storage, restore testing schedule, and RPO/RTO targets.', relevance: 91, control_id: 'A.8.13', timestamp: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      // PCI DSS v4.0 mock evidence (grouped by requirement sections)
+      'PCI.1': [
+        { id: 'PCI-1-1', type: 'Document', filename: 'pci_network_security_controls_policy.pdf', preview: 'PCI DSS v4.0 network security controls (NSC) policy defining firewall rules, network segmentation, DMZ architecture, and wireless network isolation for the Cardholder Data Environment (CDE).', relevance: 93, control_id: 'PCI.1.1', timestamp: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-1-2', type: 'Log', filename: 'cde_network_connection_logs.log', preview: 'Network connection logs demonstrating restriction of traffic between CDE and other networks to only necessary, authorized connections per PCI DSS requirement 1.2.', relevance: 95, control_id: 'PCI.1.2', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.2': [
+        { id: 'PCI-2-1', type: 'Document', filename: 'pci_system_configuration_standards.pdf', preview: 'PCI DSS v4.0 system configuration standards applied to all system components addressing known vulnerabilities, default passwords, and secure configuration baselines.', relevance: 92, control_id: 'PCI.2.1', timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-2-2', type: 'Log', filename: 'configuration_compliance_scan.log', preview: 'Configuration compliance scan results showing adherence to PCI DSS secure configuration standards across all system components in the CDE.', relevance: 94, control_id: 'PCI.2.2', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.3': [
+        { id: 'PCI-3-1', type: 'Document', filename: 'pci_data_retention_disposal_policy.pdf', preview: 'PCI DSS v4.0 data retention and disposal policy defining retention periods for cardholder data, secure deletion procedures, and media destruction processes.', relevance: 91, control_id: 'PCI.3.1', timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-3-2', type: 'Log', filename: 'pan_encryption_verification.log', preview: 'Primary Account Number (PAN) encryption verification logs demonstrating that PAN is rendered unreadable using strong cryptography, truncation, or hashing per PCI DSS requirement 3.4.', relevance: 96, control_id: 'PCI.3.4', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-3-3', type: 'Document', filename: 'pci_key_management_procedures.pdf', preview: 'Key management procedures protecting encryption keys used for cardholder data, including key generation, distribution, storage, rotation, and destruction per PCI DSS requirement 3.5.', relevance: 93, control_id: 'PCI.3.5', timestamp: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.4': [
+        { id: 'PCI-4-1', type: 'Document', filename: 'pci_transmission_security_policy.pdf', preview: 'PCI DSS v4.0 transmission security policy requiring strong cryptography (TLS 1.2+) for PAN transmission over open, public networks.', relevance: 94, control_id: 'PCI.4.1', timestamp: new Date(Date.now() - 17 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-4-2', type: 'Log', filename: 'tls_encryption_verification.log', preview: 'TLS encryption verification logs confirming that all PAN transmissions over public networks use strong cryptography meeting PCI DSS requirement 4.2.', relevance: 95, control_id: 'PCI.4.2', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.5': [
+        { id: 'PCI-5-1', type: 'Document', filename: 'pci_malware_protection_policy.pdf', preview: 'PCI DSS v4.0 malware protection policy requiring anti-malware mechanisms on all systems commonly affected by malware, with automatic updates and periodic scans.', relevance: 92, control_id: 'PCI.5.1', timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-5-2', type: 'Log', filename: 'antimalware_status_reports.log', preview: 'Anti-malware status reports showing active protection, signature updates, and scan results across all systems in the CDE per PCI DSS requirement 5.2.', relevance: 94, control_id: 'PCI.5.2', timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.6': [
+        { id: 'PCI-6-1', type: 'Document', filename: 'pci_secure_development_lifecycle.pdf', preview: 'PCI DSS v4.0 secure software development lifecycle (SDLC) policy incorporating security requirements, secure coding practices, and vulnerability management.', relevance: 91, control_id: 'PCI.6.1', timestamp: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-6-2', type: 'Log', filename: 'code_review_security_findings.log', preview: 'Secure code review findings and remediation tracking demonstrating that bespoke and custom software is developed securely per PCI DSS requirement 6.2.', relevance: 93, control_id: 'PCI.6.2', timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-6-3', type: 'Log', filename: 'vulnerability_risk_ranking.log', preview: 'Vulnerability risk ranking process logs showing identification, prioritization, and remediation of security vulnerabilities per PCI DSS requirement 6.3.', relevance: 92, control_id: 'PCI.6.3', timestamp: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.7': [
+        { id: 'PCI-7-1', type: 'Document', filename: 'pci_access_control_policy.pdf', preview: 'PCI DSS v4.0 access control policy implementing least privilege and need-to-know principles for access to system components and cardholder data.', relevance: 93, control_id: 'PCI.7.1', timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-7-2', type: 'Log', filename: 'access_rights_review.log', preview: 'Access rights review logs demonstrating that access to system components and cardholder data is defined and assigned according to business need-to-know per PCI DSS requirement 7.2.', relevance: 94, control_id: 'PCI.7.2', timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.8': [
+        { id: 'PCI-8-1', type: 'Document', filename: 'pci_authentication_policy.pdf', preview: 'PCI DSS v4.0 authentication policy requiring unique user IDs, strong authentication, and Multi-Factor Authentication (MFA) for all non-console access into the CDE.', relevance: 95, control_id: 'PCI.8.1', timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-8-2', type: 'Log', filename: 'unique_user_id_verification.log', preview: 'User ID verification logs confirming that each person with access to system components has a unique ID per PCI DSS requirement 8.2.', relevance: 96, control_id: 'PCI.8.2', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-8-3', type: 'Log', filename: 'mfa_enforcement_cde.log', preview: 'Multi-Factor Authentication (MFA) enforcement logs demonstrating MFA implementation for all non-console access into the Cardholder Data Environment per PCI DSS requirement 8.4.', relevance: 97, control_id: 'PCI.8.4', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.9': [
+        { id: 'PCI-9-1', type: 'Document', filename: 'pci_physical_security_policy.pdf', preview: 'PCI DSS v4.0 physical security policy restricting physical access to cardholder data, including facility access controls, visitor management, and media handling procedures.', relevance: 92, control_id: 'PCI.9.1', timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-9-2', type: 'Log', filename: 'physical_access_cde_logs.log', preview: 'Physical access control logs for the Cardholder Data Environment showing badge access, visitor escorts, and monitoring of physical access per PCI DSS requirement 9.2.', relevance: 94, control_id: 'PCI.9.2', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.10': [
+        { id: 'PCI-10-1', type: 'Document', filename: 'pci_logging_monitoring_policy.pdf', preview: 'PCI DSS v4.0 logging and monitoring policy requiring audit logs for all activity within the CDE and related to cardholder data, with log protection and review procedures.', relevance: 93, control_id: 'PCI.10.1', timestamp: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-10-2', type: 'Log', filename: 'cde_audit_logs.log', preview: 'Audit logs generated for all activity within the Cardholder Data Environment and related to cardholder data, demonstrating compliance with PCI DSS requirement 10.2.', relevance: 96, control_id: 'PCI.10.2', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-10-3', type: 'Log', filename: 'log_review_anomaly_detection.log', preview: 'Audit log review records identifying anomalies and suspicious activity, with evidence of regular log analysis per PCI DSS requirement 10.4.', relevance: 94, control_id: 'PCI.10.4', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.11': [
+        { id: 'PCI-11-1', type: 'Document', filename: 'pci_security_testing_policy.pdf', preview: 'PCI DSS v4.0 security testing policy requiring vulnerability scanning, penetration testing, and wireless access point monitoring per PCI DSS requirement 11.', relevance: 92, control_id: 'PCI.11.1', timestamp: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-11-2', type: 'Log', filename: 'wireless_access_point_scan.log', preview: 'Wireless access point identification and monitoring logs, with evidence of addressing unauthorized wireless access points per PCI DSS requirement 11.2.', relevance: 93, control_id: 'PCI.11.2', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-11-3', type: 'Log', filename: 'pci_vulnerability_scan_results.log', preview: 'Internal and external vulnerability scan results with risk prioritization and remediation tracking per PCI DSS requirement 11.3.', relevance: 95, control_id: 'PCI.11.3', timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-11-4', type: 'Document', filename: 'penetration_test_report.pdf', preview: 'Penetration test report demonstrating annual penetration testing to identify and correct exploitable vulnerabilities per PCI DSS requirement 11.4.', relevance: 94, control_id: 'PCI.11.4', timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'PCI.12': [
+        { id: 'PCI-12-1', type: 'Document', filename: 'pci_information_security_policy.pdf', preview: 'PCI DSS v4.0 information security policy established, published, maintained, and disseminated to all personnel, reviewed annually per PCI DSS requirement 12.1.', relevance: 94, control_id: 'PCI.12.1', timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-12-2', type: 'Document', filename: 'pci_risk_assessment_cde.pdf', preview: 'Formal risk assessment for the cardholder data environment identifying, evaluating, and managing risks to cardholder data per PCI DSS requirement 12.3.', relevance: 93, control_id: 'PCI.12.3', timestamp: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-12-3', type: 'Document', filename: 'pci_scope_validation_report.pdf', preview: 'PCI DSS scope validation and compliance documentation demonstrating annual validation of CDE scope and compliance status per PCI DSS requirement 12.5.', relevance: 95, control_id: 'PCI.12.5', timestamp: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-12-4', type: 'Document', filename: 'pci_security_awareness_training_records.csv', preview: 'Security awareness education completion records showing that all personnel have received PCI DSS security awareness training per requirement 12.6.', relevance: 92, control_id: 'PCI.12.6', timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-12-5', type: 'Document', filename: 'pci_third_party_service_provider_agreements.pdf', preview: 'Third-Party Service Provider (TPSP) agreements and due diligence documentation demonstrating management of TPSPs to support cardholder data security per PCI DSS requirement 12.9.', relevance: 91, control_id: 'PCI.12.9', timestamp: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: 'PCI-12-6', type: 'Document', filename: 'pci_incident_response_plan.pdf', preview: 'PCI DSS v4.0 incident response plan implemented and tested to respond to suspected or confirmed security incidents affecting cardholder data per requirement 12.10.', relevance: 93, control_id: 'PCI.12.10', timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() }
       ]
     };
 
@@ -1063,7 +2127,13 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {framework === 'SOC2' ? 'SOC 2 Assessment Questions' : 'SWIFT CSCF v2023 Assessment Questions'}
+              {framework === 'SOC2'
+                ? 'SOC 2 Assessment Questions'
+                : framework === 'ISO27001_2022'
+                  ? 'ISO/IEC 27001:2022 Assessment Questions'
+                  : framework === 'PCI_DSS'
+                    ? 'PCI DSS v4.0 Assessment Questions'
+                    : 'SWIFT CSCF v2023 Assessment Questions'}
             </h2>
             <p className="text-gray-600">
               Answer the following questions to create your compliance assurance pack
