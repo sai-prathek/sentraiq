@@ -1324,33 +1324,6 @@ const ARCHITECTURE_EVIDENCE_REQUIREMENTS: Record<string, Requirement[]> = {
   ]
 };
 
-// Map evidence types to icons and suggested sources
-const getEvidenceSourceSuggestion = (requirement: string): { icon: React.ComponentType<{ className?: string }>, source: string, type: 'document' | 'log' | 'config' | 'screenshot' } => {
-  const lowerReq = requirement.toLowerCase();
-  
-  if (lowerReq.includes('screenshot') || lowerReq.includes('screen shot')) {
-    return { icon: FileText, source: 'Upload Screenshot', type: 'screenshot' };
-  }
-  if (lowerReq.includes('policy') || lowerReq.includes('procedure') || lowerReq.includes('plan')) {
-    return { icon: FileText, source: 'Upload Document', type: 'document' };
-  }
-  if (lowerReq.includes('log') || lowerReq.includes('logging') || lowerReq.includes('audit')) {
-    return { icon: Database, source: 'Connect Log Source', type: 'log' };
-  }
-  if (lowerReq.includes('config') || lowerReq.includes('configuration') || lowerReq.includes('rule')) {
-    return { icon: Server, source: 'Upload Configuration File', type: 'config' };
-  }
-  if (lowerReq.includes('diagram') || lowerReq.includes('architecture')) {
-    return { icon: Network, source: 'Upload Diagram', type: 'document' };
-  }
-  if (lowerReq.includes('report') || lowerReq.includes('evidence') || lowerReq.includes('soc')) {
-    return { icon: FileText, source: 'Upload Report', type: 'document' };
-  }
-  
-  // Default
-  return { icon: Upload, source: 'Upload Evidence', type: 'document' };
-};
-
 const RequirementsTab: React.FC<RequirementsTabProps> = ({
   swiftArchitectureType,
   onComplete,
@@ -1502,6 +1475,24 @@ const RequirementsTab: React.FC<RequirementsTabProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Action Buttons - Moved to top for easier accessibility */}
+      <div className="mb-6 flex items-center justify-between pb-4 border-b border-gray-200">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+        <button
+          onClick={onComplete}
+          className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
+        >
+          Continue to Evidence Management
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
+
       {/* Summary Card with Progress */}
       <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
@@ -1763,24 +1754,6 @@ const RequirementsTab: React.FC<RequirementsTabProps> = ({
             </motion.div>
           );
         })}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
-        <button
-          onClick={onComplete}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
-        >
-          Continue to Evidence Management
-          <ArrowRight className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );
