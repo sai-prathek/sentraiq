@@ -20,7 +20,7 @@ interface GenerateTabProps {
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
 const STEPS = [
-  { id: 1, label: 'Select Compliance Frameworks', description: 'Choose infrastructure & frameworks' },
+  { id: 1, label: 'Select Compliance Frameworks', description: 'Choose your compliance frameworks' },
   { id: 2, label: 'Manage Evidence', description: 'Add and review evidence files' },
   { id: 3, label: 'Assessment Questions', description: 'Answer compliance questions' },
   { id: 4, label: 'Enhance Pack', description: 'Query evidence (optional)' },
@@ -144,7 +144,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       
       // Pre-fill query
       const frameworkNames = data.frameworks.map((f: any) => f.name).join(' + ');
-      setQuery(`Compliance evidence for ${data.infrastructure?.name} - ${frameworkNames}`);
+      setQuery(`Compliance evidence for ${data.infrastructure?.name || 'your environment'} - ${frameworkNames}`);
     } else if (step === 3 && data) {
       setAssessmentAnswers(data);
       localStorage.setItem('assessmentAnswers', JSON.stringify(data));
@@ -250,7 +250,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 1: Select Compliance Frameworks</h2>
-                  <p className="text-gray-600">Choose your infrastructure type and compliance frameworks to begin</p>
+                  <p className="text-gray-600">Choose your compliance frameworks to begin</p>
                 </div>
                 <ObjectiveSelector
                   onSelectionComplete={(selection) => handleStepComplete(1, selection)}
@@ -368,10 +368,12 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
                     <h3 className="font-semibold text-blue-900 mb-4">Configuration Summary</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-blue-700">Infrastructure:</span>
-                        <p className="font-medium text-blue-900">{objectiveSelection.infrastructure?.name}</p>
-                      </div>
+                      {objectiveSelection.infrastructure && (
+                        <div>
+                          <span className="text-blue-700">Infrastructure:</span>
+                          <p className="font-medium text-blue-900">{objectiveSelection.infrastructure.name}</p>
+                        </div>
+                      )}
                       <div>
                         <span className="text-blue-700">Frameworks:</span>
                         <p className="font-medium text-blue-900">

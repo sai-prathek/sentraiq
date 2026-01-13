@@ -26,479 +26,637 @@ interface AssessmentQuestionsProps {
 const SWIFT_QUESTIONS = [
   {
     "id": "1.1.a.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user adequately defined and documented design goals for implementing environment separation?",
     "guideline": "a"
   },
   {
     "id": "1.1.a.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "1.1.b.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user adequately defined and implemented the scope for the secure zone?",
     "guideline": "b"
   },
   {
     "id": "1.1.b.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "b"
   },
   {
     "id": "1.1.c.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user adequately implemented boundary protections for the secure zone?",
     "guideline": "c"
   },
   {
     "id": "1.1.c.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "c"
   },
   {
     "id": "1.1.d.1.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user adequately controlled local operator (end user and administrator) access to the secure zone?",
     "guideline": "d.1"
   },
   {
     "id": "1.1.d.1.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "d.1"
   },
   {
     "id": "1.1.d.2.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user adequately controlled remote operator (teleworker, \"on-call\" staff, remote administrator) access to the secure zone?",
     "guideline": "d.2"
   },
   {
     "id": "1.1.d.2.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "d.2"
   },
   {
     "id": "1.1.e.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user adequately separated the secure zone from general enterprise IT services?",
     "guideline": "e"
   },
   {
     "id": "1.1.e.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.1 SWIFT Environment Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "e"
   },
   {
     "id": "1.2.a.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.2 Operating System Privileged Account Control",
     "question": "Has the user adequately restricted the number of privileged accounts for operating systems?",
     "guideline": "a"
   },
   {
     "id": "1.2.a.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.2 Operating System Privileged Account Control",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "1.2.b.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.2 Operating System Privileged Account Control",
     "question": "Has the user adequately controlled the usage of privileged accounts for operating systems?",
     "guideline": "b"
   },
   {
     "id": "1.2.b.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.2 Operating System Privileged Account Control",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "b"
   },
   {
     "id": "1.3.a.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.3 Virtualisation or Cloud Platform Protection",
     "question": "Has the user adequately protected the virtualisation or cloud platform?",
     "guideline": "a"
   },
   {
     "id": "1.3.a.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.3 Virtualisation or Cloud Platform Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "1.3.b.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.3 Virtualisation or Cloud Platform Protection",
     "question": "Has the user adequately secured the virtualisation or cloud platform management console?",
     "guideline": "b"
   },
   {
     "id": "1.3.b.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.3 Virtualisation or Cloud Platform Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "b"
   },
   {
     "id": "1.4.a.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.4 Restriction of Internet Access",
     "question": "Has the user adequately restricted internet access?",
     "guideline": "a"
   },
   {
     "id": "1.4.a.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.4 Restriction of Internet Access",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "1.5.a.1",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.5 Customer Environment Protection",
     "question": "Has the user adequately separated the secure zone from the external environment?",
     "guideline": "a"
   },
   {
     "id": "1.5.a.2",
-    "section": "1. Secure Your Environment",
+    "section": "Secure Your Environment",
     "subsection": "1.5 Customer Environment Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "2.1.a.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.1 Internal Data Flow Security",
     "question": "Has the user adequately protected the confidentiality and integrity of data flows?",
     "guideline": "a"
   },
   {
     "id": "2.1.a.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.1 Internal Data Flow Security",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "2.1.b.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.1 Internal Data Flow Security",
     "question": "Has the user adequately validated the authenticity of data flows?",
     "guideline": "b"
   },
   {
     "id": "2.1.b.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.1 Internal Data Flow Security",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "b"
   },
   {
     "id": "2.2.a.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.2 Security Updates",
     "question": "Has the user adequately implemented security updates?",
     "guideline": "a"
   },
   {
     "id": "2.2.a.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.2 Security Updates",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "2.3.a.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.3 System Hardening",
     "question": "Has the user adequately hardened the systems?",
     "guideline": "a"
   },
   {
     "id": "2.3.a.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.3 System Hardening",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "2.6.a.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.6 Operator Session Confidentiality and Integrity",
     "question": "Has the user adequately protected the confidentiality and integrity of operator sessions?",
     "guideline": "a"
   },
   {
     "id": "2.6.a.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.6 Operator Session Confidentiality and Integrity",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "2.7.a.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.7 Vulnerability Scanning",
     "question": "Has the user adequately implemented vulnerability scanning?",
     "guideline": "a"
   },
   {
     "id": "2.7.a.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.7 Vulnerability Scanning",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "2.8.a.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.8 Outsourced Critical Activity Protection",
     "question": "Has the user adequately protected outsourced critical activities?",
     "guideline": "a"
   },
   {
     "id": "2.8.a.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.8 Outsourced Critical Activity Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "2.9.a.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.9 Transaction Business Controls",
     "question": "Has the user adequately implemented transaction business controls?",
     "guideline": "a"
   },
   {
     "id": "2.9.a.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.9 Transaction Business Controls",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "2.10.a.1",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.10 Application Hardening",
     "question": "Has the user adequately hardened the applications?",
     "guideline": "a"
   },
   {
     "id": "2.10.a.2",
-    "section": "2. Know and Limit Access",
+    "section": "Secure Your Environment",
     "subsection": "2.10 Application Hardening",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "3.1.a.1",
-    "section": "3. Physical Security",
+    "section": "Secure Your Environment",
     "subsection": "3.1 Physical Security",
     "question": "Has the user adequately physically secured the environment?",
     "guideline": "a"
   },
   {
     "id": "3.1.a.2",
-    "section": "3. Physical Security",
+    "section": "Secure Your Environment",
     "subsection": "3.1 Physical Security",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "4.1.a.1",
-    "section": "4. Authentication and Access Control",
+    "section": "Know and Limit Access",
     "subsection": "4.1 Password Policy",
     "question": "Has the user adequately defined and implemented a password policy?",
     "guideline": "a"
   },
   {
     "id": "4.1.a.2",
-    "section": "4. Authentication and Access Control",
+    "section": "Know and Limit Access",
     "subsection": "4.1 Password Policy",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "4.2.a.1",
-    "section": "4. Authentication and Access Control",
+    "section": "Know and Limit Access",
     "subsection": "4.2 Multi-Factor Authentication",
     "question": "Has the user adequately implemented multi-factor authentication?",
     "guideline": "a"
   },
   {
     "id": "4.2.a.2",
-    "section": "4. Authentication and Access Control",
+    "section": "Know and Limit Access",
     "subsection": "4.2 Multi-Factor Authentication",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "5.1.a.1",
-    "section": "5. Access Management",
+    "section": "Know and Limit Access",
     "subsection": "5.1 Logical Access Control",
     "question": "Has the user adequately implemented logical access control?",
     "guideline": "a"
   },
   {
     "id": "5.1.a.2",
-    "section": "5. Access Management",
+    "section": "Know and Limit Access",
     "subsection": "5.1 Logical Access Control",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "5.2.a.1",
-    "section": "5. Access Management",
+    "section": "Know and Limit Access",
     "subsection": "5.2 Token Management",
     "question": "Has the user adequately managed tokens?",
     "guideline": "a"
   },
   {
     "id": "5.2.a.2",
-    "section": "5. Access Management",
+    "section": "Know and Limit Access",
     "subsection": "5.2 Token Management",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "5.4.a.1",
-    "section": "5. Access Management",
+    "section": "Know and Limit Access",
     "subsection": "5.4 Password Repository Protection",
     "question": "Has the user adequately protected the password repository?",
     "guideline": "a"
   },
   {
     "id": "5.4.a.2",
-    "section": "5. Access Management",
+    "section": "Know and Limit Access",
     "subsection": "5.4 Password Repository Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "6.1.a.1",
-    "section": "6. Protection and Integrity",
+    "section": "Detect and Respond",
     "subsection": "6.1 Malware Protection",
     "question": "Has the user adequately implemented malware protection?",
     "guideline": "a"
   },
   {
     "id": "6.1.a.2",
-    "section": "6. Protection and Integrity",
+    "section": "Detect and Respond",
     "subsection": "6.1 Malware Protection",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "6.2.a.1",
-    "section": "6. Protection and Integrity",
+    "section": "Detect and Respond",
     "subsection": "6.2 Software Integrity",
     "question": "Has the user adequately checked software integrity?",
     "guideline": "a"
   },
   {
     "id": "6.2.a.2",
-    "section": "6. Protection and Integrity",
+    "section": "Detect and Respond",
     "subsection": "6.2 Software Integrity",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "6.3.a.1",
-    "section": "6. Protection and Integrity",
+    "section": "Detect and Respond",
     "subsection": "6.3 Database Integrity",
     "question": "Has the user adequately checked database integrity?",
     "guideline": "a"
   },
   {
     "id": "6.3.a.2",
-    "section": "6. Protection and Integrity",
+    "section": "Detect and Respond",
     "subsection": "6.3 Database Integrity",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "6.4.a.1",
-    "section": "6. Protection and Integrity",
+    "section": "Detect and Respond",
     "subsection": "6.4 Logging and Monitoring",
     "question": "Has the user adequately implemented logging and monitoring?",
     "guideline": "a"
   },
   {
     "id": "6.4.a.2",
-    "section": "6. Protection and Integrity",
+    "section": "Detect and Respond",
     "subsection": "6.4 Logging and Monitoring",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "7.1.a.1",
-    "section": "7. Incident Response and Training",
+    "section": "Detect and Respond",
     "subsection": "7.1 Cyber Incident Response Planning",
     "question": "Has the user adequately planned for cyber incident response?",
     "guideline": "a"
   },
   {
     "id": "7.1.a.2",
-    "section": "7. Incident Response and Training",
+    "section": "Detect and Respond",
     "subsection": "7.1 Cyber Incident Response Planning",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   },
   {
     "id": "7.2.a.1",
-    "section": "7. Incident Response and Training",
+    "section": "Detect and Respond",
     "subsection": "7.2 Security Training and Awareness",
     "question": "Has the user adequately implemented security training and awareness?",
     "guideline": "a"
   },
   {
     "id": "7.2.a.2",
-    "section": "7. Incident Response and Training",
+    "section": "Detect and Respond",
     "subsection": "7.2 Security Training and Awareness",
     "question": "Has the user employed an alternative implementation approach?",
     "guideline": "a"
   }
 ]
 
+const SOC2_QUESTIONS = [
+  {
+    "id": "CC1.1.1",
+    "section": "Control Environment & Governance",
+    "subsection": "CC1 Control Environment",
+    "question": "Has the entity demonstrated a commitment to integrity and ethical values?",
+    "guideline": "CC1.1"
+  },
+  {
+    "id": "CC1.3.1",
+    "section": "Control Environment & Governance",
+    "subsection": "CC1 Control Environment",
+    "question": "Has the entity established board of directors oversight regarding the development and performance of internal control?",
+    "guideline": "CC1.3"
+  },
+  {
+    "id": "CC2.1.1",
+    "section": "Communication & Information Management",
+    "subsection": "CC2 Communication and Information",
+    "question": "Has the entity adequately identified and managed internal and external information required to support the functioning of internal control?",
+    "guideline": "CC2.1"
+  },
+  {
+    "id": "CC3.2.1",
+    "section": "Risk Assessment & Management",
+    "subsection": "CC3 Risk Assessment",
+    "question": "Has the entity adequately identified risks to the achievement of its objectives across the entity?",
+    "guideline": "CC3.2"
+  },
+  {
+    "id": "CC5.1.1",
+    "section": "Control Activities & Implementation",
+    "subsection": "CC5 Control Activities",
+    "question": "Has the entity selected and developed control activities that contribute to the mitigation of risks?",
+    "guideline": "CC5.1"
+  },
+  {
+    "id": "CC6.1.1",
+    "section": "Access Controls & Security",
+    "subsection": "CC6 Logical and Physical Access Controls",
+    "question": "Has the entity implemented logical access security software, infrastructure, and architectures to restrict access to authorized users?",
+    "guideline": "CC6.1"
+  },
+  {
+    "id": "CC6.1.2",
+    "section": "Access Controls & Security",
+    "subsection": "CC6 Logical and Physical Access Controls",
+    "question": "Has the entity employed an alternative implementation approach for logical access restrictions?",
+    "guideline": "CC6.1"
+  },
+  {
+    "id": "CC6.2.1",
+    "section": "Access Controls & Security",
+    "subsection": "CC6 Logical and Physical Access Controls",
+    "question": "Has the entity adequately identified and authenticated users, processes, and devices prior to allowing access?",
+    "guideline": "CC6.2"
+  },
+  {
+    "id": "CC6.3.1",
+    "section": "Access Controls & Security",
+    "subsection": "CC6 Logical and Physical Access Controls",
+    "question": "Has the entity managed access provisioning and removal to ensure the principle of least privilege?",
+    "guideline": "CC6.3"
+  },
+  {
+    "id": "CC6.4.1",
+    "section": "Access Controls & Security",
+    "subsection": "CC6 Logical and Physical Access Controls",
+    "question": "Has the entity restricted physical access to facilities and protected information assets?",
+    "guideline": "CC6.4"
+  },
+  {
+    "id": "CC6.6.1",
+    "section": "Access Controls & Security",
+    "subsection": "CC6 Logical and Physical Access Controls",
+    "question": "Has the entity implemented boundary protection devices (firewalls, IDS/IPS) to prevent unauthorized traffic?",
+    "guideline": "CC6.6"
+  },
+  {
+    "id": "CC6.7.1",
+    "section": "Access Controls & Security",
+    "subsection": "CC6 Logical and Physical Access Controls",
+    "question": "Has the entity restricted the transmission, movement, and removal of information to authorized internal and external parties?",
+    "guideline": "CC6.7"
+  },
+  {
+    "id": "CC6.8.1",
+    "section": "Access Controls & Security",
+    "subsection": "CC6 Logical and Physical Access Controls",
+    "question": "Has the entity implemented controls to prevent or detect malicious software (malware)?",
+    "guideline": "CC6.8"
+  },
+  {
+    "id": "CC7.1.1",
+    "section": "System Operations & Monitoring",
+    "subsection": "CC7 System Operations",
+    "question": "Has the entity implemented detection and monitoring procedures to identify configuration changes and susceptibility to vulnerabilities?",
+    "guideline": "CC7.1"
+  },
+  {
+    "id": "CC7.2.1",
+    "section": "System Operations & Monitoring",
+    "subsection": "CC7 System Operations",
+    "question": "Has the entity adequately monitored the system for anomalies and security incidents?",
+    "guideline": "CC7.2"
+  },
+  {
+    "id": "CC7.3.1",
+    "section": "System Operations & Monitoring",
+    "subsection": "CC7 System Operations",
+    "question": "Has the entity evaluated security incidents to determine the extent of the impact and remediation required?",
+    "guideline": "CC7.3"
+  },
+  {
+    "id": "CC7.4.1",
+    "section": "System Operations & Monitoring",
+    "subsection": "CC7 System Operations",
+    "question": "Has the entity established a framework for responding to security incidents (Incident Response Plan)?",
+    "guideline": "CC7.4"
+  },
+  {
+    "id": "CC7.5.1",
+    "section": "System Operations & Monitoring",
+    "subsection": "CC7 System Operations",
+    "question": "Has the entity implemented procedures to restore the affected environment after a security incident?",
+    "guideline": "CC7.5"
+  },
+  {
+    "id": "CC8.1.1",
+    "section": "Change Management & Development",
+    "subsection": "CC8 Change Management",
+    "question": "Has the entity authorized, designed, developed, configured, documented, tested, and approved changes to infrastructure and data?",
+    "guideline": "CC8.1"
+  },
+  {
+    "id": "CC8.1.2",
+    "section": "Change Management & Development",
+    "subsection": "CC8 Change Management",
+    "question": "Has the entity employed an alternative implementation approach for change management?",
+    "guideline": "CC8.1"
+  },
+  {
+    "id": "CC9.2.1",
+    "section": "Vendor & Third-Party Risk Management",
+    "subsection": "CC9 Risk Mitigation",
+    "question": "Has the entity assessed and managed risks associated with vendors and business partners?",
+    "guideline": "CC9.2"
+  }
+]
+
 const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, onComplete, onBack }) => {
   const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>({});
-  const [currentSection, setCurrentSection] = useState<string>('1. Secure Your Environment');
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['1. Secure Your Environment']));
+  const [currentSection, setCurrentSection] = useState<string>('');
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [autoAnswering, setAutoAnswering] = useState(false);
   const [autoAnswerProgress, setAutoAnswerProgress] = useState({ current: 0, total: 0 });
   const [autoAnswerStarted, setAutoAnswerStarted] = useState(false);
 
-  const questions = framework === 'SWIFT_CSP' ? SWIFT_QUESTIONS : SWIFT_QUESTIONS; // Add other frameworks later
+  const questions = framework === 'SOC2' ? SOC2_QUESTIONS : SWIFT_QUESTIONS;
 
   const sections = Array.from(new Set(questions.map(q => q.section)));
+
+  useEffect(() => {
+    if (sections.length > 0) {
+      const firstSection = sections[0];
+      setCurrentSection(firstSection);
+      setExpandedSections(new Set([firstSection]));
+    }
+  }, [framework]);
 
   const updateAnswer = (
     questionId: string,
@@ -633,7 +791,7 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
     };
   };
 
-  // Predefined mock evidence responses for demo
+  // Predefined mock evidence responses for demo (supports SWIFT_CSP and SOC2)
   const getMockEvidenceForQuestion = (questionId: string): EvidenceItem[] => {
     const mockEvidence: Record<string, EvidenceItem[]> = {
       // Section 1 - Secure Your Environment
@@ -728,6 +886,71 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
       ],
       '7.2': [
         { id: '33', type: 'Document', filename: 'security_training.pdf', preview: 'Security awareness training documentation', relevance: 87, control_id: 'SWIFT-7.2', timestamp: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      // SOC 2 mock evidence (recent timestamps within 90 days, compliance-focused narratives)
+      'CC1.1.1': [
+        { id: '1', type: 'Document', filename: 'code_of_conduct.pdf', preview: 'Code of conduct and ethics policy document establishes commitment to integrity, ethical values, and compliance with SOC 2 requirements. Includes employee acknowledgment and annual training records.', relevance: 92, control_id: 'SOC2-CC1.1', timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC1.3.1': [
+        { id: '2', type: 'Document', filename: 'board_oversight_policy.pdf', preview: 'Board of directors oversight documentation demonstrates active governance of internal control system. Includes quarterly board meeting minutes and control performance reviews.', relevance: 88, control_id: 'SOC2-CC1.3', timestamp: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC2.1.1': [
+        { id: '3', type: 'Document', filename: 'information_management_policy.pdf', preview: 'Information management and communication policy defines processes for identifying, capturing, and managing internal and external information required for SOC 2 compliance. Includes data classification and retention schedules.', relevance: 90, control_id: 'SOC2-CC2.1', timestamp: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC3.2.1': [
+        { id: '4', type: 'Document', filename: 'risk_assessment_report.pdf', preview: 'Enterprise risk assessment documentation identifies and evaluates risks to achievement of SOC 2 objectives. Includes risk register, threat modeling, and quarterly risk review processes.', relevance: 93, control_id: 'SOC2-CC3.2', timestamp: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC5.1.1': [
+        { id: '5', type: 'Document', filename: 'control_activities_policy.pdf', preview: 'Control activities selection and development policy documents how controls are selected, designed, and implemented to mitigate identified risks. Includes control matrix and effectiveness testing procedures.', relevance: 91, control_id: 'SOC2-CC5.1', timestamp: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC6.1.1': [
+        { id: '6', type: 'Log', filename: 'logical_access_control.log', preview: 'Logical access security software implementation logs demonstrate active enforcement of access restrictions. Shows IAM system configuration, role-based access control (RBAC) implementation, and access denial events.', relevance: 94, control_id: 'SOC2-CC6.1', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+        { id: '7', type: 'Document', filename: 'access_control_architecture.pdf', preview: 'Logical access control architecture documentation describes identity and access management (IAM) infrastructure, authentication mechanisms, and authorization frameworks implemented to restrict access to authorized users only.', relevance: 92, control_id: 'SOC2-CC6.1', timestamp: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC6.1.2': [
+        { id: '8', type: 'Document', filename: 'alternative_access_controls.pdf', preview: 'Alternative logical access implementation approach documentation describes compensating controls and alternative methods used to achieve logical access restrictions when standard approaches are not applicable.', relevance: 88, control_id: 'SOC2-CC6.1', timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC6.2.1': [
+        { id: '9', type: 'Log', filename: 'authentication_logs.log', preview: 'User, process, and device authentication logs demonstrate successful identification and authentication prior to access. Includes multi-factor authentication (MFA) events, SSO sessions, and device certificate validations.', relevance: 95, control_id: 'SOC2-CC6.2', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC6.3.1': [
+        { id: '10', type: 'Log', filename: 'access_provisioning.log', preview: 'Access provisioning and removal logs demonstrate least privilege implementation. Shows user access requests, approvals, role assignments, access reviews, and timely deprovisioning of terminated user accounts.', relevance: 93, control_id: 'SOC2-CC6.3', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC6.4.1': [
+        { id: '11', type: 'Document', filename: 'physical_security_controls.pdf', preview: 'Physical access restrictions and facility protection documentation describes badge access systems, visitor management, data center security, and physical safeguards protecting information assets from unauthorized access.', relevance: 89, control_id: 'SOC2-CC6.4', timestamp: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC6.6.1': [
+        { id: '12', type: 'Log', filename: 'firewall_ids_ips.log', preview: 'Boundary protection device logs (firewalls, IDS/IPS) demonstrate active network perimeter security. Shows blocked unauthorized traffic attempts, intrusion detection alerts, and network segmentation enforcement.', relevance: 96, control_id: 'SOC2-CC6.6', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC6.7.1': [
+        { id: '13', type: 'Document', filename: 'data_transmission_policy.pdf', preview: 'Information transmission, movement, and removal restrictions policy defines controls for data in transit, encryption requirements, secure file transfer protocols, and restrictions on data movement to authorized parties only.', relevance: 90, control_id: 'SOC2-CC6.7', timestamp: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC6.8.1': [
+        { id: '14', type: 'Log', filename: 'malware_protection.log', preview: 'Malware detection and prevention system logs demonstrate active anti-malware controls. Shows real-time scanning results, quarantine actions, signature updates, and blocked malicious software attempts.', relevance: 94, control_id: 'SOC2-CC6.8', timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC7.1.1': [
+        { id: '15', type: 'Log', filename: 'configuration_monitoring.log', preview: 'Configuration change detection and vulnerability monitoring logs demonstrate continuous monitoring of system configurations and vulnerability management. Shows configuration drift alerts, vulnerability scan results, and patch status.', relevance: 92, control_id: 'SOC2-CC7.1', timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC7.2.1': [
+        { id: '16', type: 'Log', filename: 'anomaly_detection.log', preview: 'System anomaly and security incident monitoring logs demonstrate active security monitoring. Shows SIEM alerts, behavioral analytics detections, failed login attempts, and security event correlations.', relevance: 95, control_id: 'SOC2-CC7.2', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC7.3.1': [
+        { id: '17', type: 'Document', filename: 'incident_evaluation_report.pdf', preview: 'Security incident evaluation and impact assessment documentation demonstrates incident analysis procedures. Includes incident severity classification, impact assessments, root cause analysis, and remediation tracking.', relevance: 91, control_id: 'SOC2-CC7.3', timestamp: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC7.4.1': [
+        { id: '18', type: 'Document', filename: 'incident_response_plan.pdf', preview: 'Security incident response framework and plan documents procedures for responding to security incidents. Includes incident response team roles, escalation procedures, communication plans, and SOC 2 compliance requirements.', relevance: 93, control_id: 'SOC2-CC7.4', timestamp: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC7.5.1': [
+        { id: '19', type: 'Document', filename: 'disaster_recovery_procedures.pdf', preview: 'Environment restoration procedures after security incidents document recovery processes, backup verification, RTO/RPO targets, and procedures for restoring affected systems to secure operational state.', relevance: 90, control_id: 'SOC2-CC7.5', timestamp: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC8.1.1': [
+        { id: '20', type: 'Log', filename: 'change_management.log', preview: 'Change authorization and approval logs demonstrate formal change management process. Shows change requests, approvals, testing results, deployment authorizations, and post-implementation reviews for infrastructure and data changes.', relevance: 94, control_id: 'SOC2-CC8.1', timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC8.1.2': [
+        { id: '21', type: 'Document', filename: 'alternative_change_management.pdf', preview: 'Alternative change management implementation approach documentation describes compensating controls and alternative methods for managing changes when standard change management processes are not applicable.', relevance: 87, control_id: 'SOC2-CC8.1', timestamp: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString() }
+      ],
+      'CC9.2.1': [
+        { id: '22', type: 'Document', filename: 'vendor_risk_assessment.pdf', preview: 'Vendor and business partner risk assessment and management documentation demonstrates third-party risk management program. Includes vendor due diligence, security questionnaires, contract reviews, and ongoing monitoring of vendor compliance with SOC 2 requirements.', relevance: 92, control_id: 'SOC2-CC9.2', timestamp: new Date(Date.now() - 27 * 24 * 60 * 60 * 1000).toISOString() }
       ]
     };
 
@@ -839,8 +1062,12 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">SWIFT CSCF v2023 Assessment Questions</h2>
-            <p className="text-gray-600">Answer the following questions to create your compliance assurance pack</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {framework === 'SOC2' ? 'SOC 2 Assessment Questions' : 'SWIFT CSCF v2023 Assessment Questions'}
+            </h2>
+            <p className="text-gray-600">
+              Answer the following questions to create your compliance assurance pack
+            </p>
           </div>
           <div className="text-right">
             <div className="text-sm text-gray-600 mb-1">Progress</div>

@@ -34,33 +34,6 @@ interface ObjectiveSelectorProps {
   onSelectionComplete: (selection: ObjectiveSelection) => void;
 }
 
-const INFRASTRUCTURE_OPTIONS: InfrastructureType[] = [
-  {
-    id: 'cloud_a4',
-    name: 'Cloud A4',
-    description: 'Cloud-based architecture with A4 security controls',
-    icon: Cloud
-  },
-  {
-    id: 'on_prem',
-    name: 'On-Premises',
-    description: 'Traditional on-premises infrastructure',
-    icon: Server
-  },
-  {
-    id: 'swift_terminal',
-    name: 'SWIFT Terminal',
-    description: 'SWIFT Alliance Access terminal environment',
-    icon: Network
-  },
-  {
-    id: 'payment_gateway',
-    name: 'Payment Gateway',
-    description: 'Payment processing gateway infrastructure',
-    icon: Shield
-  }
-];
-
 const FRAMEWORK_OPTIONS: Framework[] = [
   {
     id: 'SWIFT_CSP',
@@ -142,14 +115,8 @@ const getControlsForInfrastructure = (infraId: string, frameworkIds: string[]): 
 };
 
 const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComplete }) => {
-  const [selectedInfrastructure, setSelectedInfrastructure] = useState<InfrastructureType | null>(null);
   const [selectedFrameworks, setSelectedFrameworks] = useState<Framework[]>([]);
   const [showControls, setShowControls] = useState(false);
-
-  const handleInfrastructureSelect = (infra: InfrastructureType) => {
-    setSelectedInfrastructure(infra);
-    setShowControls(false);
-  };
 
   const handleFrameworkToggle = (framework: Framework) => {
     setSelectedFrameworks(prev => {
@@ -163,23 +130,23 @@ const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComple
   };
 
   const handleContinue = () => {
-    if (!selectedInfrastructure || selectedFrameworks.length === 0) return;
+    if (selectedFrameworks.length === 0) return;
     
     const { controls, sharedControls } = getControlsForInfrastructure(
-      selectedInfrastructure.id,
+      'default',
       selectedFrameworks.map(f => f.id)
     );
     
     onSelectionComplete({
-      infrastructure: selectedInfrastructure,
+      infrastructure: null,
       frameworks: selectedFrameworks,
       controls,
       sharedControls
     });
   };
 
-  const { controls, sharedControls } = selectedInfrastructure && selectedFrameworks.length > 0
-    ? getControlsForInfrastructure(selectedInfrastructure.id, selectedFrameworks.map(f => f.id))
+  const { controls, sharedControls } = selectedFrameworks.length > 0
+    ? getControlsForInfrastructure('default', selectedFrameworks.map(f => f.id))
     : { controls: [], sharedControls: [] };
 
   const mandatoryControls = controls.filter(c => c.type === 'mandatory');
@@ -187,62 +154,16 @@ const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComple
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Step 1: Infrastructure Selection */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 1: Select Your Infrastructure</h2>
-        <p className="text-gray-600 mb-6">Choose the infrastructure type to filter applicable controls</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {INFRASTRUCTURE_OPTIONS.map((infra) => {
-            const Icon = infra.icon;
-            const isSelected = selectedInfrastructure?.id === infra.id;
-            
-            return (
-              <motion.button
-                key={infra.id}
-                onClick={() => handleInfrastructureSelect(infra)}
-                className={`
-                  p-6 rounded-lg border-2 transition-all text-left
-                  ${isSelected 
-                    ? 'border-blue-900 bg-blue-50 shadow-md' 
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                  }
-                `}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`
-                    p-3 rounded-lg
-                    ${isSelected ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-600'}
-                  `}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">{infra.name}</h3>
-                    <p className="text-sm text-gray-600">{infra.description}</p>
-                  </div>
-                  {isSelected && (
-                    <CheckCircle className="w-5 h-5 text-blue-900" />
-                  )}
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Step 2: Framework Selection */}
-      {selectedInfrastructure && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 2: Select Compliance Frameworks</h2>
-          <p className="text-gray-600 mb-6">Select one or more frameworks. Overlapping controls will be identified.</p>
+      {/* Step 1: Framework Selection */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
+      >
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 1: Select Compliance Frameworks</h2>
+        <p className="text-gray-600 mb-6">Select one or more frameworks. Overlapping controls will be identified.</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {FRAMEWORK_OPTIONS.map((framework) => {
               const isSelected = selectedFrameworks.some(f => f.id === framework.id);
               
@@ -272,113 +193,112 @@ const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComple
                 </motion.button>
               );
             })}
+        </div>
+
+        {/* Shared Controls Indicator */}
+        {selectedFrameworks.length > 1 && sharedControls.length > 0 && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="w-5 h-5 text-green-700" />
+              <span className="font-semibold text-green-900">
+                Map Once, Report Many: {sharedControls.length} shared controls detected
+              </span>
+            </div>
+            <p className="text-sm text-green-700">
+              These controls satisfy multiple frameworks. Evidence will be collected once and used for all selected frameworks.
+            </p>
           </div>
+        )}
 
-          {/* Shared Controls Indicator */}
-          {selectedFrameworks.length > 1 && sharedControls.length > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-5 h-5 text-green-700" />
-                <span className="font-semibold text-green-900">
-                  Map Once, Report Many: {sharedControls.length} shared controls detected
-                </span>
-              </div>
-              <p className="text-sm text-green-700">
-                These controls satisfy multiple frameworks. Evidence will be collected once and used for all selected frameworks.
-              </p>
-            </div>
-          )}
+        {/* Controls Preview */}
+        {selectedFrameworks.length > 0 && (
+          <div className="mt-6">
+            <button
+              onClick={() => setShowControls(!showControls)}
+              className="flex items-center gap-2 text-blue-900 font-medium hover:text-blue-700"
+            >
+              {showControls ? 'Hide' : 'Show'} Applicable Controls ({controls.length})
+              <ArrowRight className={`w-4 h-4 transition-transform ${showControls ? 'rotate-90' : ''}`} />
+            </button>
 
-          {/* Controls Preview */}
-          {selectedFrameworks.length > 0 && (
-            <div className="mt-6">
-              <button
-                onClick={() => setShowControls(!showControls)}
-                className="flex items-center gap-2 text-blue-900 font-medium hover:text-blue-700"
-              >
-                {showControls ? 'Hide' : 'Show'} Applicable Controls ({controls.length})
-                <ArrowRight className={`w-4 h-4 transition-transform ${showControls ? 'rotate-90' : ''}`} />
-              </button>
-
-              <AnimatePresence>
-                {showControls && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 space-y-4"
-                  >
-                    {/* Mandatory Controls */}
-                    {mandatoryControls.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 text-red-600" />
-                          Mandatory Controls ({mandatoryControls.length})
-                        </h4>
-                        <div className="space-y-2">
-                          {mandatoryControls.map(control => (
-                            <div key={control.control_id} className="bg-red-50 border border-red-200 rounded-lg p-3">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <span className="font-medium text-gray-900">{control.control_id}: {control.name}</span>
-                                  <p className="text-sm text-gray-600 mt-1">{control.description}</p>
-                                </div>
-                                {sharedControls.some(sc => sc.control_id === control.control_id) && (
-                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Shared</span>
-                                )}
+            <AnimatePresence>
+              {showControls && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4 space-y-4"
+                >
+                  {/* Mandatory Controls */}
+                  {mandatoryControls.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                        Mandatory Controls ({mandatoryControls.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {mandatoryControls.map(control => (
+                          <div key={control.control_id} className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <span className="font-medium text-gray-900">{control.control_id}: {control.name}</span>
+                                <p className="text-sm text-gray-600 mt-1">{control.description}</p>
                               </div>
+                              {sharedControls.some(sc => sc.control_id === control.control_id) && (
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Shared</span>
+                              )}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {/* Advisory Controls */}
-                    {advisoryControls.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 text-yellow-600" />
-                          Advisory Controls ({advisoryControls.length})
-                        </h4>
-                        <div className="space-y-2">
-                          {advisoryControls.map(control => (
-                            <div key={control.control_id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <span className="font-medium text-gray-900">{control.control_id}: {control.name}</span>
-                                  <p className="text-sm text-gray-600 mt-1">{control.description}</p>
-                                </div>
-                                {sharedControls.some(sc => sc.control_id === control.control_id) && (
-                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Shared</span>
-                                )}
+                  {/* Advisory Controls */}
+                  {advisoryControls.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-yellow-600" />
+                        Advisory Controls ({advisoryControls.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {advisoryControls.map(control => (
+                          <div key={control.control_id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <span className="font-medium text-gray-900">{control.control_id}: {control.name}</span>
+                                <p className="text-sm text-gray-600 mt-1">{control.description}</p>
                               </div>
+                              {sharedControls.some(sc => sc.control_id === control.control_id) && (
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Shared</span>
+                              )}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
-          {/* Continue Button */}
-          {selectedFrameworks.length > 0 && (
-            <div className="mt-6 flex justify-end">
-              <motion.button
-                onClick={handleContinue}
-                className="px-6 py-3 bg-blue-900 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Continue to Pack Generation
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
-            </div>
-          )}
-        </motion.div>
-      )}
+        {/* Continue Button */}
+        {selectedFrameworks.length > 0 && (
+          <div className="mt-6 flex justify-end">
+            <motion.button
+              onClick={handleContinue}
+              className="px-6 py-3 bg-blue-900 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Continue to Pack Generation
+              <ArrowRight className="w-4 h-4" />
+            </motion.button>
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 };
