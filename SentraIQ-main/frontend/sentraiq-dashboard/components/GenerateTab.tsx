@@ -20,7 +20,7 @@ interface GenerateTabProps {
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
 const STEPS = [
-  { id: 1, label: 'Select Compliance Frameworks', description: 'Choose your compliance frameworks' },
+  { id: 1, label: 'Select Compliance Framework', description: 'Choose your compliance framework' },
   { id: 2, label: 'Manage Evidence', description: 'Add and review evidence files' },
   { id: 3, label: 'Assessment Questions', description: 'Answer compliance questions' },
   { id: 4, label: 'Enhance Pack', description: 'Query evidence (optional)' },
@@ -249,8 +249,8 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
             {currentStep === 1 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 1: Select Compliance Frameworks</h2>
-                  <p className="text-gray-600">Choose your compliance frameworks to begin</p>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 1: Select Compliance Framework</h2>
+                  <p className="text-gray-600">Choose your compliance framework to begin</p>
                 </div>
                 <ObjectiveSelector
                   onSelectionComplete={(selection) => handleStepComplete(1, selection)}
