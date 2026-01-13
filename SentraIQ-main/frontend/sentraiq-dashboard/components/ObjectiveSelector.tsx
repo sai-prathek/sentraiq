@@ -371,7 +371,6 @@ const getControlsForInfrastructure = (infraId: string, frameworkIds: string[]): 
 
 const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComplete }) => {
   const [selectedFramework, setSelectedFramework] = useState<Framework | null>(null);
-  const [showControls, setShowControls] = useState(false);
 
   const handleFrameworkSelect = (framework: Framework) => {
     // If clicking the same framework, deselect it
@@ -441,70 +440,6 @@ const ObjectiveSelector: React.FC<ObjectiveSelectorProps> = ({ onSelectionComple
               );
             })}
         </div>
-
-        {/* Controls Preview */}
-        {selectedFramework && (
-          <div className="mt-6">
-            <button
-              onClick={() => setShowControls(!showControls)}
-              className="flex items-center gap-2 text-blue-900 font-medium hover:text-blue-700"
-            >
-              {showControls ? 'Hide' : 'Show'} Applicable Controls ({controls.length})
-              <ArrowRight className={`w-4 h-4 transition-transform ${showControls ? 'rotate-90' : ''}`} />
-            </button>
-
-            <AnimatePresence>
-              {showControls && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-4 space-y-4"
-                >
-                  {/* Mandatory Controls */}
-                  {mandatoryControls.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-red-600" />
-                        Mandatory Controls ({mandatoryControls.length})
-                      </h4>
-                      <div className="space-y-2">
-                        {mandatoryControls.map(control => (
-                          <div key={control.control_id} className="bg-red-50 border border-red-200 rounded-lg p-3">
-                            <div>
-                              <span className="font-medium text-gray-900">{control.control_id}: {control.name}</span>
-                              <p className="text-sm text-gray-600 mt-1">{control.description}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Advisory Controls */}
-                  {advisoryControls.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-gray-500" />
-                        Advisory Controls ({advisoryControls.length})
-                      </h4>
-                      <div className="space-y-2">
-                        {advisoryControls.map(control => (
-                          <div key={control.control_id} className="bg-gray-50 border border-gray-300 rounded-lg p-3 opacity-75">
-                            <div>
-                              <span className="font-medium text-gray-600">{control.control_id}: {control.name}</span>
-                              <p className="text-sm text-gray-500 mt-1">{control.description}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
 
         {/* Continue Button */}
         {selectedFramework && (
