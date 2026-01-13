@@ -4,14 +4,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000,
+    host: '0.0.0.0',
+    port: 8081,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        target: process.env.VITE_API_URL || 'http://49.50.99.89:8080',
         changeOrigin: true
       },
       '/data': {
-        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        target: process.env.VITE_API_URL || 'http://49.50.99.89:8080',
         changeOrigin: true
       }
     }
@@ -23,7 +24,7 @@ export default defineConfig({
   // Define backend URL at build time for production
   define: {
     'import.meta.env.VITE_API_URL': JSON.stringify(
-      process.env.VITE_API_URL || 'http://localhost:8080'
+      process.env.VITE_API_URL || 'http://49.50.99.89:8080'
     )
   }
 })

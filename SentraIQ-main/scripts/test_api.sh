@@ -2,13 +2,13 @@
 
 # SentralQ API Test Script
 
-BASE_URL="http://localhost:8000/api/v1"
+BASE_URL="http://49.50.99.89:8080/api/v1"
 
 echo "🧪 Testing SentralQ API..."
 
 # Test health endpoint
 echo -e "\n📊 Testing health endpoint..."
-curl -X GET "http://localhost:8000/health" | jq '.'
+curl -X GET "http://49.50.99.89:8080/health" | jq '.'
 
 # Test dashboard stats
 echo -e "\n📈 Testing dashboard stats..."

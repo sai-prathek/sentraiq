@@ -3,6 +3,7 @@ import { Outlet, useLocation, Link } from 'react-router-dom';
 import { TabType, ToastNotification, EvidenceItem, WorkflowState } from '../types';
 import Header from './Header';
 import ToastContainer from './Toast';
+import ScrollToTop from './ScrollToTop';
 import { motion } from 'framer-motion';
 import { Database, FileText, Package, History, FileCheck, GitBranch } from 'lucide-react';
 
@@ -109,6 +110,7 @@ const DashboardLayout: React.FC = () => {
     <div className="h-screen bg-[#f8f9fa] text-gray-900 flex flex-col overflow-hidden">
       <Header />
       <ToastContainer notifications={toasts} removeToast={removeToast} />
+      <ScrollToTop />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Side Panel - Tab Navigation */}

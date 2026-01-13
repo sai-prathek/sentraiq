@@ -1648,7 +1648,8 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
     if (sections.length > 0) {
       const firstSection = sections[0];
       setCurrentSection(firstSection);
-      setExpandedSections(new Set([firstSection]));
+      // Keep all sections closed by default
+      setExpandedSections(new Set());
     }
   }, [framework, sections.length]);
 
@@ -2530,6 +2531,32 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
             <span className="text-gray-700">Remaining: {total - answered}</span>
           </div>
         </div>
+
+        {/* Action Buttons - Moved to top for easier accessibility */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Evidence Ingestion
+          </button>
+
+          <button
+            onClick={handleComplete}
+            disabled={answered !== total}
+            className={`
+              flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors
+              ${answered === total
+                ? 'bg-blue-900 text-white hover:bg-blue-800'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }
+            `}
+          >
+            Continue to Query Evidence
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Questions by Section */}
@@ -2829,32 +2856,6 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
             </div>
           );
         })}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Evidence Ingestion
-        </button>
-
-        <button
-          onClick={handleComplete}
-          disabled={answered === 0}
-          className={`
-            flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors
-            ${answered > 0
-              ? 'bg-blue-900 text-white hover:bg-blue-800'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }
-          `}
-        >
-          Continue to Query Evidence
-          <ArrowRight className="w-4 h-4" />
-        </button>
       </div>
 
       {/* Evidence Detail Modal - Hide actions since evidence is auto-added during assessment */}

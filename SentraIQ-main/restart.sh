@@ -100,7 +100,7 @@ fi
 # Ensure .env.local exists with correct API URL
 if [ ! -f ".env.local" ]; then
     echo "📝 Creating .env.local..."
-    echo "VITE_API_URL=http://localhost:$BACKEND_PORT" > .env.local
+    echo "VITE_API_URL=http://49.50.99.89:$BACKEND_PORT" > .env.local
 fi
 
 # Start frontend in background

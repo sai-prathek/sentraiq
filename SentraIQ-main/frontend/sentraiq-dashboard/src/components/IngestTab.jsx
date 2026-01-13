@@ -49,7 +49,7 @@ const IngestTab = ({ onIngestComplete }) => {
     try {
       // Fetch the demo file from backend
       const response = await fetch(
-        `http://localhost:8080/data/sample_${type === 'log' ? 'logs' : 'policies'}/${demo.file}`
+        `http://49.50.99.89:8080/data/sample_${type === 'log' ? 'logs' : 'policies'}/${demo.file}`
       );
       const blob = await response.blob();
       const file = new File([blob], demo.file, { type: blob.type });

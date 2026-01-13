@@ -1,5 +1,6 @@
 import React from 'react';
 import Header from '../components/Header';
+import ScrollToTop from '../components/ScrollToTop';
 
 const BusinessOverview: React.FC = () => {
   return (
@@ -802,6 +803,7 @@ const BusinessOverview: React.FC = () => {
         </div>
 
       </div>
+      <ScrollToTop />
     </div>
   );
 };

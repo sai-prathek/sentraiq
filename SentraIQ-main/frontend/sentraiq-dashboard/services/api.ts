@@ -7,7 +7,7 @@ import { DashboardStats, EvidenceItem, GeneratedPack, IngestResponse } from '../
 const API_BASE =
   import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== ''
   ? `${import.meta.env.VITE_API_URL}/api/v1`
-    : 'http://localhost:8080/api/v1';
+    : 'http://49.50.99.89:8080/api/v1';
 
 // Helper to simulate network delay for demo purposes
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -476,7 +476,7 @@ export const api = {
     try {
       const apiBase = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== ''
         ? import.meta.env.VITE_API_URL
-        : 'http://localhost:8080';
+        : 'http://49.50.99.89:8080';
       
       const response = await axios.get(`${apiBase}/api/v1/assurance/download/${packId}`, {
         responseType: 'blob'

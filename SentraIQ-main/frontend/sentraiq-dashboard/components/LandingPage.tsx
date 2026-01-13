@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, FileText, Database, Search, CheckCircle2, Play, FileCheck } from 'lucide-react';
+import ScrollToTop from './ScrollToTop';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -307,6 +308,7 @@ const demoDocs = [
             </div>
         </div>
       </footer>
+      <ScrollToTop />
     </div>
   );
 };

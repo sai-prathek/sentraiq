@@ -8,7 +8,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite preview --host 0.0.0.0 --port 8005"
+    "start": "vite preview --host 0.0.0.0 --port 8081",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop sentraiq-frontend",
+    "pm2:restart": "pm2 restart sentraiq-frontend",
+    "pm2:delete": "pm2 delete sentraiq-frontend",
+    "pm2:logs": "pm2 logs sentraiq-frontend",
+    "pm2:status": "pm2 status"
   },
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",

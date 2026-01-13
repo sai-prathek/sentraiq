@@ -5,7 +5,7 @@ Script to ingest sample data into SentralQ
 import requests
 from pathlib import Path
 
-API_BASE = "http://localhost:8000/api/v1"
+API_BASE = "http://49.50.99.89:8080/api/v1"
 
 def ingest_log(file_path, source, description):
     """Ingest a log file"""
@@ -64,7 +64,7 @@ def main():
     )
 
     print("\n✅ Sample data ingestion complete!")
-    print("🌐 Visit http://localhost:8000 to explore the dashboard")
+    print("🌐 Visit http://49.50.99.89:8080 to explore the dashboard")
 
 if __name__ == "__main__":
     main()

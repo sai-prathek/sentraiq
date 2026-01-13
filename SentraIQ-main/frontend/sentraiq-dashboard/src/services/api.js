@@ -3,7 +3,7 @@ import axios from 'axios';
 // Point the frontend explicitly to the local FastAPI backend by default.
 // If you later introduce Vite envs, you can swap this to:
 // const API_BASE = `${import.meta.env.VITE_API_URL}/api/v1`;
-const API_BASE = 'http://localhost:8080/api/v1';
+const API_BASE = 'http://49.50.99.89:8080/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE,

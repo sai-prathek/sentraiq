@@ -315,19 +315,17 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                       </p>
                     )}
                   </div>
+                </div>
+                
+                {/* Action Buttons - Moved to top for easier accessibility */}
+                <div className="mb-6 flex items-center justify-between pb-4 border-b border-gray-200">
                   <button
                     onClick={() => setCurrentStep(1)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                    className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
                   </button>
-                </div>
-                <IngestTab 
-                  onToast={onToast}
-                  selectedFramework={objectiveSelection?.frameworks?.[0]?.id || null}
-                />
-                <div className="mt-6 flex justify-end">
                   <button
                     onClick={() => handleStepComplete(2)}
                     className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
@@ -336,24 +334,20 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
+                
+                <IngestTab 
+                  onToast={onToast}
+                  selectedFramework={objectiveSelection?.frameworks?.[0]?.id || null}
+                />
               </div>
             )}
 
             {/* Step 3: Assessment Questions */}
             {currentStep === 3 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                <div className="mb-6 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 3: Assessment Questions</h2>
-                    <p className="text-gray-600">Answer compliance assessment questions to create initial pack</p>
-                  </div>
-                  <button
-                    onClick={() => setCurrentStep(2)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back
-                  </button>
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 3: Assessment Questions</h2>
+                  <p className="text-gray-600">Answer compliance assessment questions to create initial pack</p>
                 </div>
                 <AssessmentQuestions
                   framework={localStorage.getItem('selectedFramework') || 'SWIFT_CSP'}
@@ -371,20 +365,17 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 4: Enhance Pack (Optional)</h2>
                     <p className="text-gray-600">Use query evidence to find and add additional evidence items</p>
                   </div>
+                </div>
+                
+                {/* Action Buttons - Moved to top for easier accessibility */}
+                <div className="mb-6 flex items-center justify-between pb-4 border-b border-gray-200">
                   <button
                     onClick={() => setCurrentStep(3)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                    className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
                   </button>
-                </div>
-                <QueryTab
-                  onToast={onToast}
-                  selectedEvidence={selectedEvidence}
-                  onAddEvidenceToPack={addEvidenceToPack}
-                />
-                <div className="mt-6 flex justify-end">
                   <button
                     onClick={() => handleStepComplete(4)}
                     className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
@@ -393,6 +384,12 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
+                
+                <QueryTab
+                  onToast={onToast}
+                  selectedEvidence={selectedEvidence}
+                  onAddEvidenceToPack={addEvidenceToPack}
+                />
               </div>
             )}
 
@@ -406,12 +403,24 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 5: Create Pack</h2>
                     <p className="text-gray-600">Review and generate your compliance assurance pack</p>
                   </div>
+                </div>
+                
+                {/* Action Buttons - Moved to top for easier accessibility */}
+                <div className="mb-6 flex items-center justify-between pb-4 border-b border-gray-200">
                   <button
                     onClick={() => setCurrentStep(4)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                    className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
+                  </button>
+                  <button
+                    onClick={handleGeneratePack}
+                    disabled={loading || !query || !dateRange.start || !dateRange.end}
+                    className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Generating...' : 'Generate Pack'}
+                    <ShieldCheck className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -575,23 +584,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex justify-end gap-4 pt-4">
-                    <button
-                      onClick={() => setCurrentStep(4)}
-                      className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={handleGeneratePack}
-                      disabled={loading || !query || !dateRange.start || !dateRange.end}
-                      className="px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      {loading ? 'Generating...' : 'Generate Pack'}
-                      <ShieldCheck className="w-4 h-4" />
-                    </button>
-                  </div>
                 </div>
               </div>
             )}
@@ -599,19 +591,21 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
             {/* Step 6: View Report */}
             {currentStep === 6 && generatedPack && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                <div className="mb-6 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 6: Compliance Report</h2>
-                    <p className="text-gray-600">Review and download your compliance assurance report</p>
-                  </div>
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 6: Compliance Report</h2>
+                  <p className="text-gray-600">Review and download your compliance assurance report</p>
+                </div>
+                
+                {/* Action Buttons - Moved to top for easier accessibility */}
+                <div className="mb-6 flex items-center justify-between pb-4 border-b border-gray-200">
+                  <button
+                    onClick={() => setCurrentStep(5)}
+                    className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
+                  </button>
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setCurrentStep(5)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      Back
-                    </button>
                     <button
                       onClick={async () => {
                         try {
@@ -633,7 +627,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                           );
                         }
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                      className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                     >
                       <FileText className="w-4 h-4" />
                       Download PDF Report
@@ -641,7 +635,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     <a
                       href={generatedPack.download_url}
                       download
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors"
+                      className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg font-medium hover:bg-blue-800 transition-colors"
                     >
                       <Download className="w-4 h-4" />
                       Download Pack (ZIP)

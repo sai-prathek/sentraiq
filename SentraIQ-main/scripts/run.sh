@@ -19,11 +19,11 @@ if [ ! -f ".env" ]; then
 fi
 
 # Run the application
-echo "🌐 Starting FastAPI server on http://localhost:8000"
-echo "📊 Dashboard: http://localhost:8000"
-echo "📚 API Docs: http://localhost:8000/docs"
+echo "🌐 Starting FastAPI server on http://49.50.99.89:8080"
+echo "📊 Dashboard: http://49.50.99.89:8080"
+echo "📚 API Docs: http://49.50.99.89:8080/docs"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8080

@@ -20,7 +20,7 @@ echo "📋 Pre-flight Checks:"
 echo ""
 
 # Check backend
-if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+if curl -s http://49.50.99.89:8080/health > /dev/null 2>&1; then
     echo -e "${GREEN}✅ Backend is running on port 8000${NC}"
 else
     echo -e "${RED}❌ Backend is NOT running!${NC}"
