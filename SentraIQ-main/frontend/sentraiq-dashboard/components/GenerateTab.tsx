@@ -174,7 +174,9 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     const maxCompletedStep = getMaxCompletedStep();
     if (step <= maxCompletedStep + 1) {
       // If user is navigating back before Step 3, clear assessment answers
-      // so that when they re-run the assessment it starts fresh.
+      // and any evidence that was added to the pack (both assessment
+      // and enhancement), so that when they re-run the assessment and
+      // enhancement it starts fresh.
       if (step < 3) {
         setAssessmentAnswers([]);
         try {
@@ -182,6 +184,12 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
         } catch (e) {
           console.warn('Failed to clear stored assessment answers:', e);
         }
+
+        // Clear all evidence currently in the pack and reset the baseline
+        // so that Step 5 correctly treats Step 3 evidence as the new base
+        // and Step 4 evidence as enhanced items for the new run.
+        onClearSelectedEvidence();
+        setEvidenceCountBeforeEnhance(0);
       }
       setCurrentStep(step);
     }
