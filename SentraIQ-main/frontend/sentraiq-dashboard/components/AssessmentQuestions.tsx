@@ -2818,16 +2818,12 @@ const AssessmentQuestions: React.FC<AssessmentQuestionsProps> = ({ framework, on
         </button>
       </div>
 
-      {/* Evidence Detail Modal */}
+      {/* Evidence Detail Modal - Hide actions since evidence is auto-added during assessment */}
       <EvidenceDetailModal
         evidence={currentEvidence}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onAddToSelection={(item) => {
-          // Evidence can be added to pack from the modal
-          console.log('Evidence added to pack:', item);
-        }}
-        isAlreadySelected={false}
+        hideActions={true}
       />
     </div>
   );

@@ -10,6 +10,7 @@ interface EvidenceDetailModalProps {
   onClose: () => void;
   onAddToSelection?: (evidence: EvidenceItem) => void;
   isAlreadySelected?: boolean;
+  hideActions?: boolean; // When true, hides "Add to Pack" and "Map to Controls" buttons
 }
 
 const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
@@ -18,6 +19,7 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
   onClose,
   onAddToSelection,
   isAlreadySelected = false,
+  hideActions = false,
 }) => {
   const [mapping, setMapping] = useState(false);
   const [mappingResult, setMappingResult] = useState<any>(null);
@@ -229,38 +231,52 @@ const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <button 
-                    onClick={handleMapToControls}
-                    disabled={mapping}
-                    className="flex-1 px-4 py-3 bg-blue-900 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {mapping ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        Mapping...
-                      </>
-                    ) : (
-                      <>
-                        <Shield className="w-4 h-4" />
-                        {evidence.control_id ? 'Re-map to Controls' : 'Map to Controls'}
-                      </>
-                    )}
-                  </button>
-                  <button 
-                    onClick={() => onAddToSelection && onAddToSelection(evidence)}
-                    disabled={isAlreadySelected}
-                    className={`flex-1 px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 ${
-                      isAlreadySelected
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
-                    }`}
-                  >
-                    <Package className="w-4 h-4" />
-                    {isAlreadySelected ? 'Already in Pack List' : 'Add to Pack List'}
-                  </button>
-                </div>
+                {/* Actions - Hidden when hideActions is true (e.g., from auto-assessment) */}
+                {!hideActions && (
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={handleMapToControls}
+                      disabled={mapping}
+                      className="flex-1 px-4 py-3 bg-blue-900 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {mapping ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Mapping...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="w-4 h-4" />
+                          {evidence.control_id ? 'Re-map to Controls' : 'Map to Controls'}
+                        </>
+                      )}
+                    </button>
+                    <button 
+                      onClick={() => onAddToSelection && onAddToSelection(evidence)}
+                      disabled={isAlreadySelected}
+                      className={`flex-1 px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 ${
+                        isAlreadySelected
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
+                      }`}
+                    >
+                      <Package className="w-4 h-4" />
+                      {isAlreadySelected ? 'Already in Pack List' : 'Add to Pack List'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Info message when actions are hidden (auto-assessment mode) */}
+                {hideActions && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-blue-900">
+                      <CheckCircle className="w-5 h-5" />
+                      <p className="text-sm font-semibold">
+                        This evidence has been automatically added to your assurance pack during the assessment.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
               </div>
             </motion.div>
