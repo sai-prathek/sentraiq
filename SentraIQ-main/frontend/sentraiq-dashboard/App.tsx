@@ -6,6 +6,7 @@ import IngestPage from './pages/IngestPage';
 import QueryPage from './pages/QueryPage';
 import GeneratePage from './pages/GeneratePage';
 import HistoryPage from './pages/HistoryPage';
+import ControlVersioningPage from './pages/ControlVersioningPage';
 import BusinessOverviewPage from './pages/BusinessOverviewPage';
 
 const App: React.FC = () => {
@@ -25,6 +26,7 @@ const App: React.FC = () => {
           <Route path="ingest" element={<IngestPage />} />
           <Route path="query" element={<QueryPage />} />
           <Route path="history" element={<HistoryPage />} />
+          <Route path="controls" element={<ControlVersioningPage />} />
         </Route>
 
         {/* Legacy routes for backward compatibility */}

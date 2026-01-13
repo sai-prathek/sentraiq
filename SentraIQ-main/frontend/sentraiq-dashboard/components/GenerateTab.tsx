@@ -309,6 +309,11 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 2: Manage Evidence</h2>
                     <p className="text-gray-600">Add and review evidence files for your compliance pack</p>
+                    {objectiveSelection && objectiveSelection.frameworks.length > 0 && (
+                      <p className="text-sm text-blue-700 mt-1">
+                        Framework: {objectiveSelection.frameworks.map(f => f.name).join(', ')}
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={() => setCurrentStep(1)}
@@ -318,7 +323,10 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     Back
                   </button>
                 </div>
-                <IngestTab onToast={onToast} />
+                <IngestTab 
+                  onToast={onToast}
+                  selectedFramework={objectiveSelection?.frameworks?.[0]?.id || null}
+                />
                 <div className="mt-6 flex justify-end">
                   <button
                     onClick={() => handleStepComplete(2)}

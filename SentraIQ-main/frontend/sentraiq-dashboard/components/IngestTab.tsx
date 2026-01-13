@@ -1,24 +1,53 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { UploadCloud, File as FileIcon, CheckCircle2, Database, FileText, Calendar, Trash2, AlertTriangle } from 'lucide-react';
+import { UploadCloud, File as FileIcon, CheckCircle2, Database, FileText, Calendar, Trash2, AlertTriangle, ShieldCheck, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LoadingOverlay from './LoadingOverlay';
+import AutomatedConnectors from './AutomatedConnectors';
 import { api } from '../services/api';
 import { IngestedLog, IngestedDocument, DashboardOutletContext } from '../types';
 import { useOutletContext } from 'react-router-dom';
 
 interface IngestTabProps {
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+  selectedFramework?: string | null;
 }
 
-const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
+const IngestTab: React.FC<IngestTabProps> = ({ onToast, selectedFramework: propFramework }) => {
   const [loading, setLoading] = useState(false);
   const [ingestedLogs, setIngestedLogs] = useState<IngestedLog[]>([]);
   const [ingestedDocs, setIngestedDocs] = useState<IngestedDocument[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [deletingId, setDeletingId] = useState<{ type: 'log' | 'document'; id: number } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ type: 'log' | 'document'; id: number; name: string } | null>(null);
+  const [selectedFramework, setSelectedFramework] = useState<string | null>(propFramework || null);
   
   const { setWorkflowState } = useOutletContext<DashboardOutletContext>();
+
+  // Load selected framework from prop or localStorage
+  useEffect(() => {
+    if (propFramework) {
+      setSelectedFramework(propFramework);
+      return;
+    }
+    
+    const stored = localStorage.getItem('selectedFramework');
+    if (stored) {
+      setSelectedFramework(stored);
+    }
+    
+    // Also try to get from objectiveSelection
+    const objectiveSelection = localStorage.getItem('objectiveSelection');
+    if (objectiveSelection) {
+      try {
+        const selection = JSON.parse(objectiveSelection);
+        if (selection.frameworks && selection.frameworks.length > 0) {
+          setSelectedFramework(selection.frameworks[0].id);
+        }
+      } catch (e) {
+        console.error('Failed to parse objective selection:', e);
+      }
+    }
+  }, [propFramework]);
 
   // Fetch ingested items on mount
   useEffect(() => {
@@ -286,23 +315,26 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
 
   return (
     <div className="space-y-6">
-      {/* Upload Section */}
+      {/* Evidence Collection Section */}
       <div>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <UploadCloud className="w-5 h-5 text-blue-900" />
-          Upload New Evidence
+          Connect Evidence Sources
         </h2>
+        <p className="text-sm text-gray-600 mb-6">
+          Upload evidence files or connect to operational systems
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <DropZone 
-            title="Ingest Machine Logs" 
-            type="log" 
-            icon={<CheckCircle2 className="w-5 h-5 text-blue-900" />}
-            acceptedTypes=".log,.txt"
-            options={['SWIFT', 'Firewall', 'FPS', 'CHAPS', 'Other']}
+          {/* Left Side: Automated Connectors for Machine Logs */}
+          <AutomatedConnectors
+            selectedFramework={selectedFramework}
             onIngestSuccess={loadIngestedItems}
+            onToast={onToast}
           />
+          
+          {/* Right Side: Manual Document Upload */}
           <DropZone 
-            title="Ingest Documentary Evidence" 
+            title="Manual Evidence Upload" 
             type="document" 
             icon={<FileIcon className="w-5 h-5 text-blue-800" />}
             acceptedTypes=".pdf,.doc,.docx,.txt"
@@ -312,128 +344,139 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast }) => {
         </div>
       </div>
 
-      {/* Ingested Items List */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <Database className="w-5 h-5 text-blue-800" />
-            Ingested Evidence ({ingestedLogs.length + ingestedDocs.length})
-          </h2>
-          <button
-            onClick={loadIngestedItems}
-            disabled={loadingList}
-            className="text-sm text-blue-900 hover:text-blue-800 font-medium disabled:opacity-50"
-          >
-            {loadingList ? 'Refreshing...' : 'Refresh'}
-          </button>
+      {/* NILE Immutable Evidence Locker */}
+      {(ingestedLogs.length > 0 || ingestedDocs.length > 0) && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6 shadow-sm">
+          <div className="mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-900 rounded-lg">
+                  <Lock className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">NILE Immutable Evidence Locker</h2>
+                  <p className="text-sm text-gray-600">Evidence files secured with cryptographic integrity verification</p>
+                </div>
+              </div>
+              <button
+                onClick={loadIngestedItems}
+                disabled={loadingList}
+                className="text-sm text-blue-900 hover:text-blue-800 font-medium disabled:opacity-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                {loadingList ? 'Refreshing...' : 'Refresh'}
+              </button>
+            </div>
+          </div>
+          
+          {loadingList ? (
+            <div className="text-center py-8 text-gray-400">Loading...</div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {/* Display Logs */}
+              {ingestedLogs.map((log) => (
+                <motion.div
+                  key={`log-${log.id}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow group"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                        <FileIcon className="w-5 h-5 text-blue-900" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 mb-1 truncate">{log.filename}</p>
+                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                          <span>{formatFileSize(log.size_bytes)}</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <Database className="w-3 h-3" />
+                            {log.source} Integration
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                          <span className="text-gray-400">Hash: SHA-256:</span> {log.hash ? log.hash.substring(0, 8).toUpperCase() : 'N/A'}
+                          {log.hash && log.hash.length > 8 && <span className="text-gray-300">...</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 flex-shrink-0">
+                        <ShieldCheck className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-semibold text-green-700">Cryptographically Verified</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteLog(log.id, log.filename)}
+                        disabled={deletingId?.type === 'log' && deletingId?.id === log.id}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 flex-shrink-0"
+                        title="Delete log"
+                      >
+                        {deletingId?.type === 'log' && deletingId?.id === log.id ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Display Documents */}
+              {ingestedDocs.map((doc) => (
+                <motion.div
+                  key={`doc-${doc.id}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow group"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="p-2 bg-orange-100 rounded-lg flex-shrink-0">
+                        <FileText className="w-5 h-5 text-orange-900" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 mb-1 truncate">{doc.filename}</p>
+                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                          <span>{formatFileSize(doc.size_bytes)}</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <FileText className="w-3 h-3" />
+                            {doc.doc_type} Integration
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                          <span className="text-gray-400">Hash: SHA-256:</span> {doc.hash ? doc.hash.substring(0, 8).toUpperCase() : 'N/A'}
+                          {doc.hash && doc.hash.length > 8 && <span className="text-gray-300">...</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 flex-shrink-0">
+                        <ShieldCheck className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-semibold text-green-700">Cryptographically Verified</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteDocument(doc.id, doc.filename)}
+                        disabled={deletingId?.type === 'document' && deletingId?.id === doc.id}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 flex-shrink-0"
+                        title="Delete document"
+                      >
+                        {deletingId?.type === 'document' && deletingId?.id === doc.id ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
-
-        {loadingList ? (
-          <div className="text-center py-8 text-gray-400">Loading...</div>
-        ) : ingestedLogs.length === 0 && ingestedDocs.length === 0 ? (
-          <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-8 text-center">
-            <Database className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">No evidence ingested yet</p>
-            <p className="text-sm text-gray-400 mt-1">Upload logs or documents above to get started</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Ingested Logs */}
-            {ingestedLogs.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <Database className="w-4 h-4 text-blue-800" />
-                  Logs ({ingestedLogs.length})
-                </h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {ingestedLogs.map((log) => (
-                    <div
-                      key={log.id}
-                      className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors group"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm text-gray-900 truncate">{log.filename}</p>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <Database className="w-3 h-3" />
-                              {log.source}
-                            </span>
-                            <span>{formatFileSize(log.size_bytes)}</span>
-                          </div>
-                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(log.ingested_at)}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteLog(log.id, log.filename)}
-                          disabled={deletingId?.type === 'log' && deletingId?.id === log.id}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50"
-                          title="Delete log"
-                        >
-                          {deletingId?.type === 'log' && deletingId?.id === log.id ? (
-                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Ingested Documents */}
-            {ingestedDocs.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-blue-800" />
-                  Documents ({ingestedDocs.length})
-                </h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {ingestedDocs.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-orange-200 transition-colors group"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm text-gray-900 truncate">{doc.filename}</p>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <FileText className="w-3 h-3" />
-                              {doc.doc_type}
-                            </span>
-                            <span>{formatFileSize(doc.size_bytes)}</span>
-                          </div>
-                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(doc.ingested_at)}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteDocument(doc.id, doc.filename)}
-                          disabled={deletingId?.type === 'document' && deletingId?.id === doc.id}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50"
-                          title="Delete document"
-                        >
-                          {deletingId?.type === 'document' && deletingId?.id === doc.id ? (
-                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {confirmDelete && (

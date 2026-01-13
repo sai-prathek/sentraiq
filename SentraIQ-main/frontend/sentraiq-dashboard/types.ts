@@ -37,7 +37,7 @@ export interface GeneratedPack {
   timestamp: string;
 }
 
-export type TabType = 'ingest' | 'query' | 'generate' | 'history';
+export type TabType = 'ingest' | 'query' | 'generate' | 'history' | 'controls';
 
 export interface PackHistoryItem {
   pack_id: string;
