@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Eye, Calendar, Hash, Package, Search, AlertCircle } from 'lucide-react';
+import { FileText, Download, Eye, Calendar, Hash, Package, Search, AlertCircle, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { api } from '../services/api';
 import { PackHistoryItem } from '../types';
-import MarkdownViewer from './MarkdownViewer';
 
 interface PackHistoryProps {
   onToast: (msg: string, type: 'success' | 'error' | 'warning' | 'info') => void;
@@ -13,9 +12,9 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
   const [packs, setPacks] = useState<PackHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPack, setSelectedPack] = useState<PackHistoryItem | null>(null);
-  const [reportContent, setReportContent] = useState<string>('');
   const [showReport, setShowReport] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
+  const [reportPdfUrl, setReportPdfUrl] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -40,12 +39,17 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
     setLoadingReport(true);
     setShowReport(true);
     try {
-      const report = await api.getPackReport(pack.pack_id);
-      setReportContent(report);
+      const pdfBlob = await api.getPackReportPdf(pack.pack_id);
+      const url = window.URL.createObjectURL(pdfBlob);
+      setReportPdfUrl(url);
     } catch (error: any) {
-      console.error('Failed to load report:', error);
-      onToast(error?.message || 'Failed to load report', 'error');
-      setReportContent('Failed to load report. Please try again.');
+      console.error('Failed to load report PDF:', error);
+      onToast(
+        error?.message ||
+          'Failed to load PDF report. If this is a fresh environment, install reportlab on the backend.',
+        'error'
+      );
+      setShowReport(false);
     } finally {
       setLoadingReport(false);
     }
@@ -68,6 +72,15 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
       onToast(error?.message || 'Failed to download pack', 'error');
     }
   };
+
+  // Cleanup PDF object URL when component unmounts or URL changes
+  useEffect(() => {
+    return () => {
+      if (reportPdfUrl) {
+        window.URL.revokeObjectURL(reportPdfUrl);
+      }
+    };
+  }, [reportPdfUrl]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -267,16 +280,71 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
       )}
 
       {/* Report Viewer Modal */}
-      <MarkdownViewer
-        content={loadingReport ? 'Loading report...' : reportContent}
-        title={selectedPack ? `Pack Report: ${selectedPack.pack_id}` : 'Pack Report'}
-        isOpen={showReport}
-        onClose={() => {
-          setShowReport(false);
-          setSelectedPack(null);
-          setReportContent('');
-        }}
-      />
+      {showReport && selectedPack && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            onClick={() => {
+              setShowReport(false);
+              setSelectedPack(null);
+              if (reportPdfUrl) {
+                window.URL.revokeObjectURL(reportPdfUrl);
+                setReportPdfUrl(null);
+              }
+            }}
+          />
+
+          {/* Modal */}
+          <div className="fixed inset-4 md:inset-8 lg:inset-16 z-50 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center gap-3">
+                <FileText className="w-6 h-6 text-blue-900" />
+                <h2 className="text-lg font-bold text-gray-900">
+                  Pack Report: {selectedPack.pack_id}
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowReport(false);
+                  setSelectedPack(null);
+                  if (reportPdfUrl) {
+                    window.URL.revokeObjectURL(reportPdfUrl);
+                    setReportPdfUrl(null);
+                  }
+                }}
+                className="p-2.5 hover:bg-gray-200 rounded-lg transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 bg-gray-50">
+              {loadingReport ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading PDF report...</p>
+                  </div>
+                </div>
+              ) : reportPdfUrl ? (
+                <iframe
+                  src={reportPdfUrl}
+                  title="Pack Report PDF"
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  <p>Report not available.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

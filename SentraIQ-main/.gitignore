@@ -69,3 +69,4 @@ build/
 storage/raw_logs/*.log
 storage/raw_documents/*.pdf
 storage/assurance_packs/*.zip
+storage/assurance_packs/*.pdf

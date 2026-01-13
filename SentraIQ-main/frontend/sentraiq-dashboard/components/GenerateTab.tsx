@@ -37,9 +37,8 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [generatedPack, setGeneratedPack] = useState<GeneratedPack | null>(null);
-  const [reportContent, setReportContent] = useState<string>('');
-  const [loadingReport, setLoadingReport] = useState(false);
-  const [showFullReport, setShowFullReport] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
 
   // Step data
   const [objectiveSelection, setObjectiveSelection] = useState<ObjectiveSelection | null>(null);
@@ -101,10 +100,10 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     }
   }, [objectiveSelection]);
 
-  // Auto-load report when pack is generated
+  // Auto-load PDF when pack is generated
   useEffect(() => {
-    if (generatedPack && !reportContent && !loadingReport) {
-      loadReport();
+    if (generatedPack && !pdfUrl && !loadingPdf) {
+      loadPdf();
     }
   }, [generatedPack]);
 
@@ -133,19 +132,33 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     });
   }, [currentStep]);
 
-  const loadReport = async () => {
+  const loadPdf = async () => {
     if (!generatedPack) return;
-    setLoadingReport(true);
+    setLoadingPdf(true);
     try {
-      const report = await api.getPackReport(generatedPack.pack_id);
-      setReportContent(report);
+      const pdfBlob = await api.getPackReportPdf(generatedPack.pack_id);
+      const url = window.URL.createObjectURL(pdfBlob);
+      setPdfUrl(url);
     } catch (error: any) {
-      console.error('Failed to load report:', error);
-      onToast(error?.message || 'Failed to load report', 'error');
+      console.error('Failed to load PDF report:', error);
+      onToast(
+        error?.message ||
+          'Failed to load PDF report. If this is a fresh environment, install reportlab on the backend.',
+        'error'
+      );
     } finally {
-      setLoadingReport(false);
+      setLoadingPdf(false);
     }
   };
+
+  // Cleanup PDF object URL when component unmounts or URL changes
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        window.URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   const handleStepComplete = (step: Step, data?: any) => {
     if (step === 1 && data) {
@@ -628,28 +641,22 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   </div>
                 </div>
 
-                {loadingReport ? (
+                {loadingPdf ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-900 rounded-full animate-spin"></div>
                   </div>
-                ) : reportContent ? (
+                ) : pdfUrl ? (
                   <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="bg-gray-50 border-b border-gray-200 p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span className="font-semibold text-gray-900">Pack Generated Successfully</span>
-                      </div>
-                      <button
-                        onClick={() => setShowFullReport(!showFullReport)}
-                        className="text-sm text-blue-900 hover:text-blue-700 font-medium"
-                      >
-                        {showFullReport ? 'Show Summary' : 'Show Full Report'}
-                      </button>
+                    <div className="bg-gray-50 border-b border-gray-200 p-4 flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span className="font-semibold text-gray-900">Pack Generated Successfully</span>
                     </div>
-                    <div className="p-6 max-h-[600px] overflow-y-auto prose prose-sm max-w-none">
-                      <div className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
-                        {reportContent}
-                      </div>
+                    <div className="p-0 h-[600px]">
+                      <iframe
+                        src={pdfUrl}
+                        title="Compliance Report PDF"
+                        className="w-full h-full"
+                      />
                     </div>
                   </div>
                 ) : (
