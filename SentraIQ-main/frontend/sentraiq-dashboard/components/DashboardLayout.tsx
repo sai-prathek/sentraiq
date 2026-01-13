@@ -4,7 +4,7 @@ import { TabType, ToastNotification, EvidenceItem, WorkflowState } from '../type
 import Header from './Header';
 import ToastContainer from './Toast';
 import { motion } from 'framer-motion';
-import { Database, FileText, Package, History, FileCheck } from 'lucide-react';
+import { Database, FileText, Package, History, FileCheck, GitBranch } from 'lucide-react';
 
 const DashboardLayout: React.FC = () => {
   const location = useLocation();
@@ -91,6 +91,7 @@ const DashboardLayout: React.FC = () => {
     if (path.includes('/ingest')) return 'ingest';
     if (path.includes('/query')) return 'query';
     if (path.includes('/history')) return 'history';
+    if (path.includes('/controls')) return 'controls';
     return 'generate';
   };
 
@@ -101,6 +102,7 @@ const DashboardLayout: React.FC = () => {
     { id: 'ingest', label: 'Manage Evidence', icon: Database, path: '/dashboard/ingest' },
     { id: 'query', label: 'Query Evidence', icon: FileText, path: '/dashboard/query' },
     { id: 'history', label: 'Pack History', icon: History, path: '/dashboard/history' },
+    { id: 'controls', label: 'Control Versioning', icon: GitBranch, path: '/dashboard/controls' },
   ];
 
   return (
