@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, AlertCircle, ArrowRight, ArrowLeft, FileCheck, Sparkles, Clock, FileX, Database, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
@@ -1635,6 +1635,7 @@ const ComplianceAssessment: React.FC<ComplianceAssessmentProps> = ({
   sessionId,
 }) => {
   const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>({});
+  const loadedSessionRef = useRef<number | null>(null);
   const [currentSection, setCurrentSection] = useState<string>('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [autoAnswering, setAutoAnswering] = useState(false);
@@ -1707,32 +1708,50 @@ const ComplianceAssessment: React.FC<ComplianceAssessmentProps> = ({
   // Hydrate answers from backend assessment session (if available) when the
   // component mounts or when the framework/session changes. This makes the
   // backend the source of truth for assessment progress.
+  // Always restore from backend when component mounts or session changes to ensure
+  // answers persist when navigating back to this step.
   useEffect(() => {
     const fetchSessionAnswers = async () => {
-      if (!sessionId) return;
+      if (!sessionId) {
+        loadedSessionRef.current = null;
+        setAnswers({});
+        return;
+      }
+      
+      // Always reload if session changed (ref resets on component remount, so navigating back will trigger reload)
+      const sessionChanged = loadedSessionRef.current !== sessionId;
+      
+      if (!sessionChanged) {
+        // Same session and already loaded - skip to avoid unnecessary API calls
+        return;
+      }
+      
       try {
         const session = await api.getAssessmentSession(sessionId);
         const sessionAnswers = session?.assessment_answers as AssessmentAnswer[] | undefined;
-        if (!Array.isArray(sessionAnswers) || sessionAnswers.length === 0) return;
+        
+        if (Array.isArray(sessionAnswers) && sessionAnswers.length > 0) {
+          const record: Record<string, AssessmentAnswer> = {};
+          sessionAnswers.forEach((ans) => {
+            if (!ans || !ans.questionId) return;
+            record[ans.questionId] = ans;
+          });
 
-        const record: Record<string, AssessmentAnswer> = {};
-        sessionAnswers.forEach((ans) => {
-          if (!ans || !ans.questionId) return;
-          record[ans.questionId] = ans;
-        });
-
-        if (Object.keys(record).length > 0) {
-          setAnswers(record);
+          setAnswers(Object.keys(record).length > 0 ? record : {});
+        } else {
+          setAnswers({});
         }
+        
+        // Mark this session as loaded
+        loadedSessionRef.current = sessionId;
       } catch (e) {
         console.warn('Failed to hydrate assessment answers from backend session:', e);
+        setAnswers({});
       }
     };
 
-    // Only hydrate from backend if we don't already have answers in state
-    if (Object.keys(answers).length === 0) {
-      fetchSessionAnswers();
-    }
+    // Always try to restore from backend when component mounts or session changes
+    fetchSessionAnswers();
   }, [framework, sessionId]);
 
   // Whenever answers change and we have a session, push updates to backend so

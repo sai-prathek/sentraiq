@@ -599,7 +599,13 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       setCurrentStep(7);
       return;
     } else if (step === 4) {
-      // Step 4 completion: snapshot evidence summary
+      // Step 4 completion: Clear previous assessment answers and evidence when starting fresh assessment
+      // This is the ONLY place where evidence should be cleared (when user clicks "Continue to Compliance Assessment")
+      setAssessmentAnswers([]);
+      onClearSelectedEvidence();
+      setEvidenceCountBeforeEnhance(0);
+      
+      // Snapshot evidence summary
       if (sessionId) {
         try {
           await api.updateAssessmentSession(sessionId, {
@@ -608,6 +614,8 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
               updated_at: new Date().toISOString(),
             },
             current_step: 5,
+            // Clear assessment answers in session when starting fresh assessment
+            assessment_answers: [],
           });
         } catch (error: any) {
           console.error('Failed to update session with evidence summary:', error);
@@ -631,18 +639,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     }
     
     if (step <= maxCompletedStep + 1) {
-      // If user is navigating back before Step 5 (Compliance Assessment), clear assessment answers
-      // and any evidence that was added to the pack, so that when they re-run the assessment
-      // it starts fresh.
-      const assessmentStep = isSwiftSelected ? 5 : 5;
-      
-      if (step < assessmentStep) {
-        setAssessmentAnswers([]);
-
-        // Clear all evidence currently in the pack and reset the baseline
-        onClearSelectedEvidence();
-        setEvidenceCountBeforeEnhance(0);
-      }
       setCurrentStep(step);
     }
   };
@@ -691,7 +687,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       
       setGeneratedPack(pack);
       onToast("Assurance pack generated successfully!", "success");
-      onClearSelectedEvidence();
       setSwiftExcelUrl(null);
 
       // Pre-generate SWIFT Excel assessment during pack creation (if SWIFT is selected)
