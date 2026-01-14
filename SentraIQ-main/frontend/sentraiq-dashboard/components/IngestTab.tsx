@@ -1,11 +1,12 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { UploadCloud, File as FileIcon, CheckCircle2, Database, FileText, Calendar, Trash2, AlertTriangle, ShieldCheck, Lock } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { UploadCloud, File as FileIcon, CheckCircle2, Database, FileText, Calendar, Trash2, AlertTriangle, ShieldCheck, Lock, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LoadingOverlay from './LoadingOverlay';
 import AutomatedConnectors from './AutomatedConnectors';
 import { api } from '../services/api';
 import { IngestedLog, IngestedDocument, DashboardOutletContext } from '../types';
 import { useOutletContext } from 'react-router-dom';
+import { ARCHITECTURE_EVIDENCE_REQUIREMENTS } from './RequirementsTab';
 
 interface IngestTabProps {
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
@@ -20,6 +21,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast, selectedFramework: propF
   const [deletingId, setDeletingId] = useState<{ type: 'log' | 'document'; id: number } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ type: 'log' | 'document'; id: number; name: string } | null>(null);
   const [selectedFramework, setSelectedFramework] = useState<string | null>(propFramework || null);
+  const [swiftArchitectureType, setSwiftArchitectureType] = useState<string | null>(null);
   
   const { setWorkflowState } = useOutletContext<DashboardOutletContext>();
 
@@ -48,6 +50,48 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast, selectedFramework: propF
       }
     }
   }, [propFramework]);
+
+  // Load Swift architecture type from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('swiftArchitectureType');
+    if (stored) {
+      setSwiftArchitectureType(stored);
+    }
+  }, []);
+
+  // Get evidence requirements for the selected architecture
+  const evidenceRequirements = useMemo(() => {
+    if (swiftArchitectureType && ARCHITECTURE_EVIDENCE_REQUIREMENTS[swiftArchitectureType]) {
+      return ARCHITECTURE_EVIDENCE_REQUIREMENTS[swiftArchitectureType];
+    }
+    return [];
+  }, [swiftArchitectureType]);
+
+  // Get suggested document types based on evidence requirements
+  const suggestedDocumentTypes = useMemo(() => {
+    const allRequirements = evidenceRequirements.flatMap(req => req.requirements);
+    const types = new Set<string>(['Policy', 'Audit Report', 'Configuration', 'Procedure', 'Other']);
+    
+    // Add specific types based on requirements
+    allRequirements.forEach(req => {
+      const reqLower = req.toLowerCase();
+      if (reqLower.includes('diagram') || reqLower.includes('architecture')) {
+        types.add('Architecture Diagram');
+      }
+      if (reqLower.includes('policy') || reqLower.includes('procedure')) {
+        types.add('Policy');
+        types.add('Procedure');
+      }
+      if (reqLower.includes('report') || reqLower.includes('audit')) {
+        types.add('Audit Report');
+      }
+      if (reqLower.includes('configuration') || reqLower.includes('config')) {
+        types.add('Configuration');
+      }
+    });
+    
+    return Array.from(types);
+  }, [evidenceRequirements]);
 
   // Fetch ingested items on mount
   useEffect(() => {
@@ -324,10 +368,31 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast, selectedFramework: propF
         <p className="text-sm text-gray-600 mb-6">
           Upload evidence files or connect to operational systems
         </p>
+        {/* Show info about evidence requirements if Swift architecture is selected */}
+        {swiftArchitectureType && evidenceRequirements.length > 0 && (
+          <div className="mb-4 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 bg-blue-100 rounded-lg flex-shrink-0">
+                <Info className="w-4 h-4 text-blue-700" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-blue-900 mb-1">
+                  SWIFT {swiftArchitectureType} Evidence Requirements Detected
+                </p>
+                <p className="text-xs text-blue-700 leading-snug">
+                  Based on your selected architecture, {evidenceRequirements.length} control{evidenceRequirements.length !== 1 ? 's' : ''} require evidence. 
+                  Connectors highlighted in blue match your requirements. Upload documents or connect systems to collect the needed evidence.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Side: Automated Connectors for Machine Logs */}
           <AutomatedConnectors
             selectedFramework={selectedFramework}
+            swiftArchitectureType={swiftArchitectureType}
             onIngestSuccess={loadIngestedItems}
             onToast={onToast}
           />
@@ -338,7 +403,7 @@ const IngestTab: React.FC<IngestTabProps> = ({ onToast, selectedFramework: propF
             type="document" 
             icon={<FileIcon className="w-5 h-5 text-blue-800" />}
             acceptedTypes=".pdf,.doc,.docx,.txt"
-            options={['Policy', 'Audit Report', 'Configuration', 'Procedure', 'Other']}
+            options={suggestedDocumentTypes}
             onIngestSuccess={loadIngestedItems}
           />
         </div>

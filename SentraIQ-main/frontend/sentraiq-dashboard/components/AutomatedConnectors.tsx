@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Cloud, 
   Key, 
@@ -11,10 +11,12 @@ import {
   AlertCircle,
   Loader2,
   Link2,
-  Zap
+  Zap,
+  Info
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { api } from '../services/api';
+import { ARCHITECTURE_EVIDENCE_REQUIREMENTS, Requirement } from './RequirementsTab';
 
 interface Connector {
   id: string;
@@ -23,60 +25,129 @@ interface Connector {
   icon: React.ReactNode;
   available: boolean;
   frameworks: string[]; // Framework IDs this connector is relevant for
+  evidenceKeywords: string[]; // Keywords that indicate this connector is relevant
 }
 
 interface AutomatedConnectorsProps {
   selectedFramework: string | null;
+  swiftArchitectureType?: string | null;
   onIngestSuccess: () => Promise<void>;
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
 }
 
-// Define connectors with framework associations
+// Define evidence connection types with framework associations and evidence keywords.
+// These are generic evidence sources (not specific vendor tools) that business users will recognize.
 const CONNECTORS: Connector[] = [
   {
-    id: 'aws_security_hub',
-    name: 'AWS Security Hub',
-    description: 'Cloud Security Posture Management',
+    id: 'network_perimeter',
+    name: 'Network & Perimeter Security Telemetry',
+    description: 'Firewalls, secure zones, segmentation and internet restriction evidence',
     icon: <Cloud className="w-5 h-5" />,
     available: true,
-    frameworks: ['SWIFT_CSP', 'SOC2', 'ISO27001_2022', 'PCI_DSS']
+    frameworks: ['SWIFT_CSP'],
+    evidenceKeywords: [
+      'firewall', 'network', 'access control', 'acl', 'security configuration', 'vpc',
+      'network segmentation', 'segmentation', 'secure zone', 'zone', 'internet access',
+      'proxy', 'outbound traffic', 'ping', 'connectivity', 'data flow'
+    ]
   },
   {
-    id: 'cyberark_pam',
-    name: 'CyberArk PAM',
-    description: 'Privileged Access Management',
+    id: 'privileged_access',
+    name: 'Privileged Access & Identity Records',
+    description: 'Admin access reviews, privileged account inventory and session evidence',
     icon: <Key className="w-5 h-5" />,
     available: true,
-    frameworks: ['SWIFT_CSP', 'SOC2', 'ISO27001_2022', 'PCI_DSS']
+    frameworks: ['SWIFT_CSP'],
+    evidenceKeywords: [
+      'privilege', 'privileged access', 'access review', 'access logs', 'administrator',
+      'privileged account', 'access matrix', 'mfa', 'multi-factor', 'authentication',
+      'password policy', 'login policy', 'iam', 'least privilege', 'operator',
+      'admin access', 'joiners', 'leavers', 'movers'
+    ]
   },
   {
-    id: 'qualys_vmdr',
-    name: 'Qualys VMDR',
-    description: 'Vulnerability Management & Detection Response',
+    id: 'vulnerability_management',
+    name: 'Vulnerability & Patch Management Evidence',
+    description: 'Vulnerability scans, patching status and hardening reports',
     icon: <Shield className="w-5 h-5" />,
     available: true,
-    frameworks: ['SWIFT_CSP', 'ISO27001_2022', 'PCI_DSS']
+    frameworks: ['SWIFT_CSP'],
+    evidenceKeywords: [
+      'vulnerability', 'vulnerability scan', 'vulnerability management', 'scan report',
+      'patch', 'patching', 'security update', 'hardware version', 'software version',
+      'system hardening', 'hardening', 'update schedule', 'vmware', 'soc reports'
+    ]
   },
   {
-    id: 'splunk_siem',
-    name: 'Splunk SIEM',
-    description: 'Security Information & Event Management',
+    id: 'logging_monitoring',
+    name: 'Logging, Monitoring & Intrusion Detection',
+    description: 'Centralised logging, monitoring dashboards and intrusion detection evidence',
     icon: <Database className="w-5 h-5" />,
     available: true,
-    frameworks: ['SWIFT_CSP', 'SOC2', 'ISO27001_2022']
+    frameworks: ['SWIFT_CSP'],
+    evidenceKeywords: [
+      'logging', 'monitoring', 'event logging', 'centralised logging', 'log', 'audit',
+      'security event', 'intrusion detection', 'ids', 'ips', 'network flow',
+      'packet inspection', 'session', 'retention policy', 'alerting'
+    ]
   },
   {
-    id: 'servicenow_grc',
-    name: 'ServiceNow GRC',
-    description: 'Governance, Risk & Compliance',
+    id: 'governance_policies',
+    name: 'Policies, Procedures & Governance Docs',
+    description: 'Policies, procedures, risk assessments and governance documentation',
     icon: <Layers className="w-5 h-5" />,
     available: true,
-    frameworks: ['SOC2', 'ISO27001_2022', 'PCI_DSS']
+    frameworks: ['SWIFT_CSP'],
+    evidenceKeywords: [
+      'policy', 'procedure', 'governance', 'risk assessment', 'compliance',
+      'change management', 'documentation', 'assessment', 'review', 'audit report',
+      'training and awareness', 'incident response plan', 'business continuity'
+    ]
   }
 ];
 
+// Function to map evidence requirements to relevant connectors
+const getRelevantConnectorsForRequirements = (
+  requirements: Requirement[],
+  connectors: Connector[]
+): { connector: Connector; matchedRequirements: string[]; controlIds: string[] }[] => {
+  const connectorMatches: Map<string, { connector: Connector; matchedRequirements: Set<string>; controlIds: Set<string> }> = new Map();
+
+  requirements.forEach(req => {
+    req.requirements.forEach(requirement => {
+      const requirementLower = requirement.toLowerCase();
+      
+      connectors.forEach(connector => {
+        const matches = connector.evidenceKeywords.some(keyword => 
+          requirementLower.includes(keyword.toLowerCase())
+        );
+        
+        if (matches) {
+          if (!connectorMatches.has(connector.id)) {
+            connectorMatches.set(connector.id, {
+              connector,
+              matchedRequirements: new Set(),
+              controlIds: new Set()
+            });
+          }
+          const match = connectorMatches.get(connector.id)!;
+          match.matchedRequirements.add(requirement);
+          match.controlIds.add(req.control_id);
+        }
+      });
+    });
+  });
+
+  return Array.from(connectorMatches.values()).map(match => ({
+    connector: match.connector,
+    matchedRequirements: Array.from(match.matchedRequirements),
+    controlIds: Array.from(match.controlIds)
+  }));
+};
+
 const AutomatedConnectors: React.FC<AutomatedConnectorsProps> = ({
   selectedFramework,
+  swiftArchitectureType,
   onIngestSuccess,
   onToast
 }) => {
@@ -84,12 +155,48 @@ const AutomatedConnectors: React.FC<AutomatedConnectorsProps> = ({
   const [connectingAll, setConnectingAll] = useState(false);
   const [connectedConnectors, setConnectedConnectors] = useState<Set<string>>(new Set());
 
-  // Filter connectors based on selected framework - only show available ones
-  const relevantConnectors = selectedFramework
-    ? CONNECTORS.filter(connector => connector.frameworks.includes(selectedFramework))
-    : CONNECTORS;
+  // Get evidence requirements for the selected architecture
+  const evidenceRequirements = useMemo(() => {
+    if (swiftArchitectureType && ARCHITECTURE_EVIDENCE_REQUIREMENTS[swiftArchitectureType]) {
+      return ARCHITECTURE_EVIDENCE_REQUIREMENTS[swiftArchitectureType];
+    }
+    return [];
+  }, [swiftArchitectureType]);
+
+  // Map evidence requirements to connectors
+  const connectorMatches = useMemo(() => {
+    if (evidenceRequirements.length > 0) {
+      return getRelevantConnectorsForRequirements(evidenceRequirements, CONNECTORS);
+    }
+    return [];
+  }, [evidenceRequirements]);
+
+  // Filter connectors based on:
+  // 1. Selected framework
+  // 2. Evidence requirements (if Swift architecture is selected)
+  const relevantConnectors = useMemo(() => {
+    let filtered = selectedFramework
+      ? CONNECTORS.filter(connector => connector.frameworks.includes(selectedFramework))
+      : CONNECTORS;
+
+    // If Swift architecture is selected and we have evidence requirements, prioritize connectors that match
+    if (swiftArchitectureType && connectorMatches.length > 0) {
+      const matchedConnectorIds = new Set(connectorMatches.map(m => m.connector.id));
+      // Show matched connectors first, then others
+      const matched = filtered.filter(c => matchedConnectorIds.has(c.id));
+      const unmatched = filtered.filter(c => !matchedConnectorIds.has(c.id));
+      return [...matched, ...unmatched];
+    }
+
+    return filtered;
+  }, [selectedFramework, swiftArchitectureType, connectorMatches]);
 
   const availableConnectors = relevantConnectors.filter(c => c.available);
+
+  // Get match info for a connector
+  const getConnectorMatchInfo = (connectorId: string) => {
+    return connectorMatches.find(m => m.connector.id === connectorId);
+  };
 
   const handleConnect = async (connector: Connector) => {
     if (!connector.available || connecting || connectingAll) return;
@@ -98,15 +205,16 @@ const AutomatedConnectors: React.FC<AutomatedConnectorsProps> = ({
     onToast(`Connecting to ${connector.name}...`, 'info');
 
     try {
-      const connectorSourceMap: Record<string, string> = {
-        'aws_security_hub': 'AWS Security Hub',
-        'cyberark_pam': 'CyberArk PAM',
-        'qualys_vmdr': 'Qualys VMDR',
-        'splunk_siem': 'Splunk SIEM',
-        'servicenow_grc': 'ServiceNow GRC'
+      // Use generic source labels so the UI is not bound to a specific vendor.
+      const genericSourceMap: Record<string, string> = {
+        'network_perimeter': 'Network & Perimeter Logs',
+        'privileged_access': 'Privileged Access Activity',
+        'vulnerability_management': 'Vulnerability Scan Results',
+        'logging_monitoring': 'Security Monitoring Events',
+        'governance_policies': 'Governance & Policy Records'
       };
 
-      const source = connectorSourceMap[connector.id] || connector.name;
+      const source = genericSourceMap[connector.id] || connector.name;
       const sampleLogContent = generateSampleLogContent(connector.id, source);
       
       const blob = new Blob([sampleLogContent], { type: 'text/plain' });
@@ -152,15 +260,15 @@ const AutomatedConnectors: React.FC<AutomatedConnectorsProps> = ({
       try {
         setConnecting(connector.id);
         
-        const connectorSourceMap: Record<string, string> = {
-          'aws_security_hub': 'AWS Security Hub',
-          'cyberark_pam': 'CyberArk PAM',
-          'qualys_vmdr': 'Qualys VMDR',
-          'splunk_siem': 'Splunk SIEM',
-          'servicenow_grc': 'ServiceNow GRC'
+        const genericSourceMap: Record<string, string> = {
+          'network_perimeter': 'Network & Perimeter Logs',
+          'privileged_access': 'Privileged Access Activity',
+          'vulnerability_management': 'Vulnerability Scan Results',
+          'logging_monitoring': 'Security Monitoring Events',
+          'governance_policies': 'Governance & Policy Records'
         };
 
-        const source = connectorSourceMap[connector.id] || connector.name;
+        const source = genericSourceMap[connector.id] || connector.name;
         const sampleLogContent = generateSampleLogContent(connector.id, source);
         
         const blob = new Blob([sampleLogContent], { type: 'text/plain' });
@@ -200,56 +308,41 @@ const AutomatedConnectors: React.FC<AutomatedConnectorsProps> = ({
     const timestamp = new Date().toISOString();
     
     const templates: Record<string, string> = {
-      'aws_security_hub': `[${timestamp}] AWS Security Hub - Security Finding
-Finding Type: Software and Configuration Checks
-Severity: MEDIUM
-Resource: arn:aws:ec2:us-east-1:123456789012:instance/i-1234567890abcdef0
-Compliance Status: FAILED
-Control: SWIFT-2.7, SOC2-CC7.1
-Description: EC2 instance security group allows unrestricted access to port 22
-Remediation: Restrict SSH access to specific IP addresses`,
+      'network_perimeter': `[${timestamp}] Network & Perimeter Security Event
+Source: Perimeter firewall / secure zone gateway
+Event: Rule change and connectivity test
+Control: SWIFT 1.1, 1.4, 2.1
+Description: Evidence of network segmentation, secure zone isolation and restricted internet access
+Details: Firewall rules and connectivity tests captured for SWIFT secure zone`,
 
-      'cyberark_pam': `[${timestamp}] CyberArk PAM - Privileged Access Event
-Event Type: Authentication Success
-User: admin@example.com
-Target System: Production Database Server
-Session Duration: 2h 15m
-Control: SWIFT-2.8, SOC2-CC6.2
-MFA Status: Verified
-Access Method: RDP
-IP Address: 10.0.1.50`,
+      'privileged_access': `[${timestamp}] Privileged Access Activity
+Source: Identity and access management / admin console
+Event: Privileged access review completed
+Control: SWIFT 1.2, 2.8, 4.1, 4.2
+Description: Administrator account inventory, access logs and recent change tickets exported`,
 
-      'qualys_vmdr': `[${timestamp}] Qualys VMDR - Vulnerability Scan Result
-Scan ID: QID-12345
-Host: 192.168.1.100
-Vulnerability: SSL/TLS Weak Cipher Suites
-Severity: HIGH
-CVSS Score: 7.5
-Control: SWIFT-2.7, ISO27001_2022-A.12.6.1
-Status: Detected
-Recommendation: Disable weak cipher suites in SSL/TLS configuration`,
+      'vulnerability_management': `[${timestamp}] Vulnerability & Patch Management Summary
+Source: Vulnerability scanning and patch management tools
+Event: Latest scan and patch status for in-scope infrastructure
+Control: SWIFT 2.2, 2.3, 2.7, 6.1–6.3
+Description: Scan reports and patch deployment evidence for SWIFT secure zone systems`,
 
-      'splunk_siem': `[${timestamp}] Splunk SIEM - Security Event
-Event Type: Failed Login Attempt
-Source IP: 203.0.113.45
-Destination: mail.example.com
-User: service_account
-Control: SWIFT-2.1, SOC2-CC6.1
-Status: Blocked
-Threat Level: MEDIUM
-Action Taken: IP address blocked for 1 hour`,
+      'logging_monitoring': `[${timestamp}] Logging, Monitoring & Intrusion Detection
+Source: Central logging and monitoring platform
+Event: Aggregated security events and intrusion detection alerts
+Control: SWIFT 2.1, 3.1, 6.4, 6.5A
+Description: Evidence of centralised logging, monitoring dashboards and intrusion detection controls`,
 
-      'servicenow_grc': `[${timestamp}] ServiceNow GRC - Compliance Assessment
-Assessment ID: GRC-2024-001
-Framework: ${selectedFramework || 'SOC2'}
-Control: SOC2-CC6.1
-Status: Compliant
-Evidence: Access control policy reviewed and approved
-Reviewer: compliance@example.com
-Next Review Date: 2024-12-31`
+      'governance_policies': `[${timestamp}] Governance, Policies & Procedures
+Source: Document management / GRC repository
+Event: Export of policies, procedures and risk assessments
+Control: SWIFT 2.9, 5.x, 6.x, 7.x
+Description: Evidence pack including relevant policies, risk assessments and governance documentation`
     };
 
-    return templates[connectorId] || `[${timestamp}] ${source} - Automated Evidence Collection\nControl: Framework-specific evidence collection\nStatus: Collected successfully`;
+    return templates[connectorId] || `[${timestamp}] ${source} - Automated Evidence Collection
+Control: Framework-specific evidence collection
+Status: Collected successfully`;
   };
 
   if (!selectedFramework) {
@@ -318,6 +411,8 @@ Next Review Date: 2024-12-31`
           {availableConnectors.map((connector) => {
             const isConnecting = connecting === connector.id;
             const isConnected = connectedConnectors.has(connector.id);
+            const matchInfo = getConnectorMatchInfo(connector.id);
+            const isRelevant = matchInfo && matchInfo.matchedRequirements.length > 0;
 
             return (
               <motion.div
@@ -329,17 +424,21 @@ Next Review Date: 2024-12-31`
                   border-2 rounded-lg p-3 transition-all shadow-sm
                   ${isConnected 
                     ? 'border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 shadow-green-100' 
+                    : isRelevant
+                    ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-blue-100'
                     : 'border-gray-200 hover:border-blue-400 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 hover:shadow-md'
                   }
                   ${isConnecting ? 'ring-2 ring-blue-300 ring-offset-1' : ''}
                 `}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div className={`
                       p-2 rounded-lg transition-all flex-shrink-0
                       ${isConnected 
                         ? 'bg-green-200 text-green-800 shadow-sm' 
+                        : isRelevant
+                        ? 'bg-blue-200 text-blue-800 shadow-sm'
                         : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                       }
                     `}>
@@ -348,11 +447,26 @@ Next Review Date: 2024-12-31`
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                         <h4 className="font-semibold text-gray-900 text-sm leading-tight">{connector.name}</h4>
+                        {isRelevant && (
+                          <span className="px-1.5 py-0.5 bg-blue-200 text-blue-800 text-xs font-semibold rounded border border-blue-300 whitespace-nowrap flex items-center gap-1">
+                            <Info className="w-3 h-3" />
+                            Matches {matchInfo!.matchedRequirements.length} requirement{matchInfo!.matchedRequirements.length !== 1 ? 's' : ''}
+                          </span>
+                        )}
                         <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded border border-green-200 whitespace-nowrap">
                           Available
                         </span>
                       </div>
                       <p className="text-xs text-gray-600 leading-snug truncate">{connector.description}</p>
+                      {isRelevant && matchInfo && (
+                        <div className="mt-2 text-xs text-blue-700">
+                          <p className="font-medium mb-1">Relevant for controls: {matchInfo.controlIds.join(', ')}</p>
+                          <p className="text-blue-600 line-clamp-2">
+                            Matches: {matchInfo.matchedRequirements.slice(0, 2).join(', ')}
+                            {matchInfo.matchedRequirements.length > 2 && ` +${matchInfo.matchedRequirements.length - 2} more`}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <button
@@ -403,10 +517,15 @@ Next Review Date: 2024-12-31`
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-blue-900 mb-0.5">
-                Systems Ready: {availableConnectors.length} evidence source(s) available for this domain
+                Systems Ready: {availableConnectors.length} evidence source(s) available
+                {swiftArchitectureType && connectorMatches.length > 0 && (
+                  <span className="ml-1">({connectorMatches.length} match your evidence requirements)</span>
+                )}
               </p>
               <p className="text-xs text-blue-700 leading-snug">
-                Automated Collection: Connect to your operational systems to automatically collect and verify evidence data for compliance assessment.
+                {swiftArchitectureType && connectorMatches.length > 0
+                  ? `Connectors highlighted in blue match your SWIFT ${swiftArchitectureType} evidence requirements. Connect to automatically collect relevant evidence.`
+                  : 'Automated Collection: Connect to your operational systems to automatically collect and verify evidence data for compliance assessment.'}
               </p>
             </div>
           </div>

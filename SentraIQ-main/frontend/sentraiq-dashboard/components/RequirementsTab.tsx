@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Shield, Clock, XCircle, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-interface Requirement {
+export interface Requirement {
   control_id: string;
   requirements: string[];
 }
@@ -22,7 +22,7 @@ interface RequirementsTabProps {
 }
 
 // Evidence requirements based on architecture type
-const ARCHITECTURE_EVIDENCE_REQUIREMENTS: Record<string, Requirement[]> = {
+export const ARCHITECTURE_EVIDENCE_REQUIREMENTS: Record<string, Requirement[]> = {
   'A1': [
     {
       "control_id": "1.1",

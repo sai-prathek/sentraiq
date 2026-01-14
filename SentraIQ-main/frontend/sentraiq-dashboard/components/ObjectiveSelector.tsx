@@ -38,21 +38,21 @@ interface ObjectiveSelectorProps {
 // Framework versions mapping
 const FRAMEWORK_VERSIONS: Record<string, string[]> = {
   'SWIFT CSP': [
-    'CSCF v2026 (Applicable starting 2026)',
-    'CSCF v2025 (Valid for 2025 attestation)',
-    'CSCF v2024 (Valid for 2024 attestation)'
+    'CSCF v2026',
+    'CSCF v2025',
+    'CSCF v2024'
   ],
   'SOC 2': [
-    '2017 Trust Services Criteria (with 2022 Revised Points of Focus)'
+    '2017 Trust Services Criteria'
   ],
   'ISO/IEC 27001': [
     'ISO/IEC 27001:2022',
-    'ISO/IEC 27001:2013 (Valid until transition deadline: Oct 31, 2025)'
+    'ISO/IEC 27001:2013'
   ],
   'PCI DSS': [
-    'v4.0.1 (Released June 2024)',
-    'v4.0 (Released March 2022)',
-    'v3.2.1 (Retired March 31, 2024)'
+    'v4.0.1',
+    'v4.0',
+    'v3.2.1'
   ]
 };
 
