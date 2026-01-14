@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import { TabType, ToastNotification, EvidenceItem, WorkflowState } from '../types';
 import Header from './Header';
@@ -61,9 +61,9 @@ const DashboardLayout: React.FC = () => {
     });
   };
 
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
   // Pack list management
   const addEvidenceToPack = (item: EvidenceItem) => {

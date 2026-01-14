@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TabType, ToastNotification } from '../types';
 import Header from './Header';
 import StatsDashboard from './StatsDashboard';
@@ -31,9 +31,9 @@ const Dashboard: React.FC<DashboardProps> = ({ demoMode, onHome }) => {
     setToasts((prev) => [...prev, { id, message, type }]);
   };
 
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
   const tabs = [
     { id: 'ingest', label: 'Ingest Evidence' },
