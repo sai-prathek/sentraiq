@@ -106,6 +106,8 @@ class AssurancePackRequest(BaseModel):
     explicit_document_ids: Optional[List[int]] = None
     # Assessment answers from compliance questions
     assessment_answers: Optional[List[Dict[str, Any]]] = None
+    # Optional assessment session identifier to link this pack to a UI flow
+    session_id: Optional[int] = None
 
 
 class AssurancePackResponse(BaseModel):
@@ -138,6 +140,98 @@ class SwiftExcelReportRequest(BaseModel):
     """Request to generate a SWIFT CSCF Excel report based on control status"""
     swift_architecture_type: Optional[str] = None
     control_statuses: List[SwiftControlStatus]
+    # Optional assessment session identifier so the generated Excel can be tracked per session
+    session_id: Optional[int] = None
+
+
+# Assessment Session Schemas
+
+
+class AssessmentSessionBase(BaseModel):
+    """Base fields for assessment session payloads"""
+
+    status: Optional[str] = Field(
+        default=None,
+        description="Lifecycle status: in-progress, completed, cancelled",
+    )
+    current_step: Optional[int] = Field(
+        default=None,
+        description="Current step in the multi-step generate flow (1-8)",
+    )
+
+    objective_selection: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Step 1 selection payload (infrastructure, frameworks, objectives, etc.)",
+    )
+    swift_architecture_type: Optional[str] = Field(
+        default=None,
+        description="Selected SWIFT architecture type (A1, A2, A3, A4, B)",
+    )
+    requirements_status: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Step 3 requirements status/summary",
+    )
+    assessment_answers: Optional[List[Dict[str, Any]]] = Field(
+        default=None,
+        description="Step 5 compliance assessment answers",
+    )
+    control_statuses: Optional[List[Dict[str, Any]]] = Field(
+        default=None,
+        description="Step 6 derived control status information",
+    )
+    evidence_summary: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Step 4/7 evidence summary (counts, breakdowns, etc.)",
+    )
+
+    pack_id: Optional[str] = Field(
+        default=None,
+        description="Generated assurance pack ID associated with this session",
+    )
+    swift_excel_filename: Optional[str] = Field(
+        default=None,
+        description="Filename of SWIFT Excel generated for this session",
+    )
+    swift_excel_path: Optional[str] = Field(
+        default=None,
+        description="Filesystem path of SWIFT Excel generated for this session",
+    )
+
+    meta_data: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Arbitrary metadata for the session (e.g., UI environment, user info)",
+    )
+
+
+class AssessmentSessionCreate(BaseModel):
+    """Create a new assessment session when user starts the generate flow"""
+
+    objective_selection: Dict[str, Any] = Field(
+        ...,
+        description="Initial objective/framework/infrastructure selection",
+    )
+    swift_architecture_type: Optional[str] = Field(
+        default=None,
+        description="Optional SWIFT architecture type if already known at creation time",
+    )
+
+
+class AssessmentSessionUpdate(AssessmentSessionBase):
+    """Partial update of an assessment session"""
+
+    pass
+
+
+class AssessmentSessionResponse(AssessmentSessionBase):
+    """Full assessment session representation"""
+
+    id: int
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 # Dashboard Schemas

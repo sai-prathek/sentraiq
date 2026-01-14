@@ -100,6 +100,40 @@ class AssurancePack(Base):
     meta_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
 
+class AssessmentSession(Base):
+    """Assessment session tracking for multi-step assurance pack generation flows"""
+    __tablename__ = "assessment_sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # High-level lifecycle
+    status: Mapped[str] = mapped_column(String(50), default="in-progress")  # in-progress, completed, cancelled
+    current_step: Mapped[int] = mapped_column(Integer, default=1)
+
+    # Step-specific payloads (stored as JSON blobs to avoid tight coupling with UI schema)
+    objective_selection: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    swift_architecture_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    requirements_status: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    assessment_answers: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    control_statuses: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    evidence_summary: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+
+    # Outputs
+    pack_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    swift_excel_filename: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    swift_excel_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+    # Timestamps & misc
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+    meta_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+
+
 class TelescopeQuery(Base):
     """Layer 3: Telescope - Query history"""
     __tablename__ = "telescope_queries"

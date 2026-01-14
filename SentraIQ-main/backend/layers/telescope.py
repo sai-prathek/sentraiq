@@ -983,6 +983,8 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         explicit_log_ids: Optional[List[int]] = None,
         explicit_document_ids: Optional[List[int]] = None,
         assessment_answers: Optional[List[Dict[str, Any]]] = None,
+        swift_excel_filename: Optional[str] = None,
+        swift_excel_path: Optional[str] = None,
     ) -> AssurancePack:
         """
         Generate an Assurance Pack with evidence
@@ -1131,6 +1133,14 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
             )
         }
 
+        # If we have a SWIFT Excel file associated with this pack/session, add metadata
+        if swift_excel_filename or swift_excel_path:
+            excel_path = Path(swift_excel_path) if swift_excel_path else None
+            manifest['swift_excel'] = {
+                'filename': swift_excel_filename or (excel_path.name if excel_path else None),
+                'source_path': swift_excel_path,
+            }
+
         # Save manifest
         try:
             with open(pack_dir / 'manifest.json', 'w') as f:
@@ -1165,6 +1175,43 @@ Return ONLY a JSON object with a single field "relevance_score" as a float betwe
         # Update manifest with file details
         manifest['files'] = copy_result['copied']
         
+        # If a SWIFT Excel file was provided and exists on disk, copy it into the pack
+        # directory and register it in the manifest so it is included in the ZIP.
+        if swift_excel_path:
+            try:
+                excel_src = Path(swift_excel_path)
+                if excel_src.exists():
+                    excel_dir = pack_dir / 'reports'
+                    excel_dir.mkdir(exist_ok=True)
+                    excel_dest = excel_dir / (swift_excel_filename or excel_src.name)
+                    shutil.copy2(excel_src, excel_dest)
+
+                    excel_size = excel_dest.stat().st_size
+                    relative_excel_path = excel_dest.relative_to(pack_dir)
+
+                    # Ensure manifest fields exist
+                    manifest.setdefault('files', [])
+                    manifest.setdefault('files_copied', 0)
+                    manifest.setdefault('total_file_size_bytes', 0)
+
+                    manifest['files'].append({
+                        'type': 'swift_excel',
+                        'id': None,
+                        'filename': excel_dest.name,
+                        'relative_path': str(relative_excel_path),
+                        'size_bytes': excel_size,
+                    })
+                    manifest['files_copied'] += 1
+                    manifest['total_file_size_bytes'] += excel_size
+
+                    # Enrich swift_excel metadata with final location inside the pack
+                    manifest.setdefault('swift_excel', {})
+                    manifest['swift_excel']['filename'] = excel_dest.name
+                    manifest['swift_excel']['relative_path'] = str(relative_excel_path)
+            except Exception as e:
+                # Non-fatal: log to stdout but do not fail pack generation
+                print(f"⚠️  Warning: Failed to include SWIFT Excel in pack: {e}")
+
         # Re-save manifest with updated information
         try:
             with open(pack_dir / 'manifest.json', 'w') as f:

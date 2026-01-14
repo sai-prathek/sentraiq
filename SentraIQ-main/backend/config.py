@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     RAW_LOGS_PATH: Path = STORAGE_PATH / "raw_logs"
     RAW_DOCUMENTS_PATH: Path = STORAGE_PATH / "raw_documents"
     ASSURANCE_PACKS_PATH: Path = STORAGE_PATH / "assurance_packs"
+    SWIFT_EXCEL_PATH: Path = STORAGE_PATH / "swift_excels"
 
     # OpenAI (Optional for Telescope)
     OPENAI_API_KEY: Optional[str] = None
@@ -75,3 +76,4 @@ settings = Settings()
 settings.RAW_LOGS_PATH.mkdir(parents=True, exist_ok=True)
 settings.RAW_DOCUMENTS_PATH.mkdir(parents=True, exist_ok=True)
 settings.ASSURANCE_PACKS_PATH.mkdir(parents=True, exist_ok=True)
+settings.SWIFT_EXCEL_PATH.mkdir(parents=True, exist_ok=True)

@@ -211,6 +211,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   const [swiftArchitectureTypes, setSwiftArchitectureTypes] = useState<any[]>([]);
   const [controlApplicabilityMatrix, setControlApplicabilityMatrix] = useState<any>(null);
   const [swiftExcelUrl, setSwiftExcelUrl] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<number | null>(null);
   
   // Track evidence count when entering Step 4 (to distinguish assessment vs enhanced evidence)
   const [evidenceCountBeforeEnhance, setEvidenceCountBeforeEnhance] = useState<number>(0);
@@ -234,6 +235,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     setQuery('');
     setControlId('');
     setSwiftExcelUrl(null);
+    setSessionId(null);
     
     // Set default date range
     const end = new Date();
@@ -246,17 +248,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     
     // Clear selected evidence
     onClearSelectedEvidence();
-    
-    // Clear localStorage data
-    try {
-      localStorage.removeItem('objectiveSelection');
-      localStorage.removeItem('assessmentAnswers');
-      localStorage.removeItem('swiftArchitectureType');
-      localStorage.removeItem('selectedFramework');
-      localStorage.removeItem('selectedFrameworkVersion');
-    } catch (e) {
-      console.warn('Failed to clear localStorage:', e);
-    }
   }, [onClearSelectedEvidence]);
 
   // Reset flow when Generate Assurance Pack tab is clicked
@@ -281,33 +272,9 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     prevLocationRef.current = location.pathname;
   }, [location.pathname, resetFlow]);
 
-  // Load saved data on mount
+  // Load session data from backend on mount if sessionId exists in URL params or state
+  // For now, we'll only load if explicitly provided - new sessions start fresh
   useEffect(() => {
-    const stored = localStorage.getItem('objectiveSelection');
-    if (stored) {
-      try {
-        const selection = JSON.parse(stored);
-        setObjectiveSelection(selection);
-      } catch (e) {
-        console.error('Failed to load objective selection:', e);
-      }
-    }
-
-    const storedAnswers = localStorage.getItem('assessmentAnswers');
-    if (storedAnswers) {
-      try {
-        const answers = JSON.parse(storedAnswers);
-        setAssessmentAnswers(answers);
-      } catch (e) {
-        console.error('Failed to load assessment answers:', e);
-      }
-    }
-
-    const storedArchitecture = localStorage.getItem('swiftArchitectureType');
-    if (storedArchitecture) {
-      setSwiftArchitectureType(storedArchitecture);
-    }
-
     // Set default date range
     const end = new Date();
     const start = new Date();
@@ -395,25 +362,29 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   }, [currentStep]);
 
   // (PDF generation removed – reports are now provided via markdown and Excel only)
-
-  const handleStepComplete = (step: Step, data?: any) => {
+  const handleStepComplete = async (step: Step, data?: any) => {
     if (step === 1 && data) {
       setObjectiveSelection(data);
-      localStorage.setItem('objectiveSelection', JSON.stringify(data));
-      const frameworkIds = data.frameworks.map((f: any) => f.id);
-      localStorage.setItem('selectedFramework', frameworkIds[0] || 'SWIFT_CSP');
-      
-      // Store framework version if available
-      const firstFramework = data.frameworks[0];
-      if (firstFramework?.version) {
-        localStorage.setItem('selectedFrameworkVersion', firstFramework.version);
-      }
       
       // Pre-fill query with framework name and version
       const frameworkNames = data.frameworks.map((f: any) => {
         return f.version ? `${f.name} (${f.version})` : f.name;
       }).join(' + ');
       setQuery(`Compliance evidence for ${data.infrastructure?.name || 'your environment'} - ${frameworkNames}`);
+
+      // Start a new assessment session on the backend
+      try {
+        const session = await api.startAssessmentSession({
+          objective_selection: data,
+          swift_architecture_type: null,
+        });
+        if (session?.id) {
+          setSessionId(session.id);
+        }
+      } catch (error: any) {
+        console.error('Failed to start assessment session:', error);
+        onToast(error?.message || 'Failed to start assessment session', 'error');
+      }
       
       // If SWIFT is selected, go to architecture selection (step 2), otherwise skip to evidence (step 4)
       const isSwiftSelected = data.frameworks.some((f: any) => f.id === 'SWIFT_CSP');
@@ -427,26 +398,86 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     } else if (step === 2 && data) {
       // Architecture type selected - go to Requirements step
       setSwiftArchitectureType(data);
-      localStorage.setItem('swiftArchitectureType', data);
+
+      // Update session with architecture selection
+      if (sessionId) {
+        try {
+          await api.updateAssessmentSession(sessionId, {
+            swift_architecture_type: data,
+            current_step: 2,
+          });
+        } catch (error: any) {
+          console.error('Failed to update session with architecture type:', error);
+        }
+      }
+
       setCurrentStep(3);
       return;
     } else if (step === 3) {
       // Requirements step completed - go to Evidence Management
+      if (sessionId) {
+        try {
+          await api.updateAssessmentSession(sessionId, {
+            requirements_status: { completed: true, timestamp: new Date().toISOString() },
+            current_step: 4,
+          });
+        } catch (error: any) {
+          console.error('Failed to update session with requirements status:', error);
+        }
+      }
+
       setCurrentStep(4);
       return;
     } else if (step === 5 && data) {
       setAssessmentAnswers(data);
-      localStorage.setItem('assessmentAnswers', JSON.stringify(data));
+
+      // Note: ComplianceAssessment component already syncs answers to backend
+      // via its own useEffect, so we just update the step here
+      if (sessionId) {
+        try {
+          await api.updateAssessmentSession(sessionId, {
+            current_step: 6,
+          });
+        } catch (error: any) {
+          console.error('Failed to update session step:', error);
+        }
+      }
+
       // Move to Control Status step after assessment
       setCurrentStep(6);
       return;
     } else if (step === 6) {
       // Control Status step completed - go to Create Pack
+      if (sessionId) {
+        try {
+          await api.updateAssessmentSession(sessionId, {
+            // Control statuses can be derived from assessment answers and matrix later
+            current_step: 7,
+          });
+        } catch (error: any) {
+          console.error('Failed to update session at control status step:', error);
+        }
+      }
+
       setCurrentStep(7);
       return;
+    } else if (step === 4) {
+      // Step 4 completion: snapshot evidence summary
+      if (sessionId) {
+        try {
+          await api.updateAssessmentSession(sessionId, {
+            evidence_summary: {
+              total_selected: selectedEvidence.length,
+              updated_at: new Date().toISOString(),
+            },
+            current_step: 5,
+          });
+        } catch (error: any) {
+          console.error('Failed to update session with evidence summary:', error);
+        }
+      }
     }
-    
-    // Move to next step
+    // For other steps, keep existing behavior of moving to next step
     if (step < 8) {
       setCurrentStep((step + 1) as Step);
     }
@@ -470,11 +501,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       
       if (step < assessmentStep) {
         setAssessmentAnswers([]);
-        try {
-          localStorage.removeItem('assessmentAnswers');
-        } catch (e) {
-          console.warn('Failed to clear stored assessment answers:', e);
-        }
 
         // Clear all evidence currently in the pack and reset the baseline
         onClearSelectedEvidence();
@@ -504,9 +530,17 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     setLoading(true);
     setGeneratedPack(null);
     try {
-      // Get assessment answers from localStorage
-      const storedAnswers = localStorage.getItem('assessmentAnswers');
-      const answers = storedAnswers ? JSON.parse(storedAnswers) : [];
+
+      // Get assessment answers from session if available, otherwise use empty array
+      let answers: any[] = [];
+      if (sessionId) {
+        try {
+          const session = await api.getAssessmentSession(sessionId);
+          answers = (session?.assessment_answers as any[]) || [];
+        } catch (e) {
+          console.warn('Failed to fetch answers from session, using empty array:', e);
+        }
+      }
 
       const pack = await api.generatePack(
         query,
@@ -514,7 +548,8 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
         dateRange.start,
         dateRange.end,
         selectedEvidence,
-        answers
+        answers,
+        sessionId,
       );
       
       setGeneratedPack(pack);
@@ -535,7 +570,11 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
             controlApplicabilityMatrix
           );
 
-          const excelBlob = await api.downloadSwiftExcelReport(swiftArchitectureType, controlStatuses);
+          const excelBlob = await api.downloadSwiftExcelReport(
+            swiftArchitectureType,
+            controlStatuses,
+            sessionId,
+          );
           const url = window.URL.createObjectURL(excelBlob);
           setSwiftExcelUrl(url);
         } catch (excelError: any) {
@@ -688,7 +727,12 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                             `}
                             onClick={() => {
                               setSwiftArchitectureType(arch.id);
-                              localStorage.setItem('swiftArchitectureType', arch.id);
+                              // Update session immediately when architecture is selected
+                              if (sessionId) {
+                                api.updateAssessmentSession(sessionId, {
+                                  swift_architecture_type: arch.id,
+                                }).catch(console.warn);
+                              }
                             }}
                           >
                             <div className="font-bold text-lg text-gray-900 mb-1">{arch.id}</div>
@@ -913,6 +957,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   swiftArchitectureType={swiftArchitectureType}
                   onComplete={() => handleStepComplete(3)}
                   onBack={() => setCurrentStep(2)}
+                  sessionId={sessionId}
                 />
               </div>
             )}
@@ -975,13 +1020,14 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   <p className="text-gray-600">Answer compliance assessment questions to create initial pack</p>
                 </div>
                 <ComplianceAssessment
-                  framework={localStorage.getItem('selectedFramework') || 'SWIFT_CSP'}
+                  framework={objectiveSelection?.frameworks?.[0]?.id || 'SWIFT_CSP'}
                   frameworkName={objectiveSelection?.frameworks?.[0]?.name}
                   frameworkVersion={objectiveSelection?.frameworks?.[0]?.version}
                   onComplete={(answers) => handleStepComplete(5, answers)}
                   onBack={() => setCurrentStep(4)}
                   swiftArchitectureType={swiftArchitectureType}
                   controlApplicabilityMatrix={controlApplicabilityMatrix}
+                  sessionId={sessionId}
                 />
               </div>
             )}
@@ -1261,7 +1307,11 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                                 controlApplicabilityMatrix
                               );
 
-                              const excelBlob = await api.downloadSwiftExcelReport(swiftArchitectureType, controlStatuses);
+                              const excelBlob = await api.downloadSwiftExcelReport(
+                                swiftArchitectureType,
+                                controlStatuses,
+                                sessionId,
+                              );
                               url = window.URL.createObjectURL(excelBlob);
                               setSwiftExcelUrl(url);
                             }

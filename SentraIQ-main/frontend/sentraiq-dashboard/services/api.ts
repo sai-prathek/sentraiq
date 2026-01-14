@@ -330,7 +330,8 @@ export const api = {
     startDate: string,
     endDate: string,
     explicitEvidence: EvidenceItem[] = [],
-    assessmentAnswers: any[] = []
+    assessmentAnswers: any[] = [],
+    sessionId?: number | null
   ): Promise<GeneratedPack> => {
     try {
       // Parse evidence IDs more robustly
@@ -383,6 +384,7 @@ export const api = {
         explicit_log_ids: explicitLogIds.length > 0 ? explicitLogIds : undefined,
         explicit_document_ids: explicitDocumentIds.length > 0 ? explicitDocumentIds : undefined,
         assessment_answers: answers.length > 0 ? answers : undefined,
+        session_id: sessionId ?? undefined,
       });
 
       return {
@@ -541,6 +543,46 @@ export const api = {
     }
   },
 
+  // Assessment session APIs for tracking multi-step generate flow
+  startAssessmentSession: async (payload: {
+    objective_selection: any;
+    swift_architecture_type?: string | null;
+  }) => {
+    try {
+      const response = await axios.post(`${API_BASE}/assurance/sessions`, {
+        objective_selection: payload.objective_selection,
+        swift_architecture_type: payload.swift_architecture_type ?? undefined,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error starting assessment session:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to start assessment session');
+    }
+  },
+
+  updateAssessmentSession: async (sessionId: number, payload: any) => {
+    try {
+      const response = await axios.patch(
+        `${API_BASE}/assurance/sessions/${sessionId}`,
+        payload,
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating assessment session:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to update assessment session');
+    }
+  },
+
+  getAssessmentSession: async (sessionId: number) => {
+    try {
+      const response = await axios.get(`${API_BASE}/assurance/sessions/${sessionId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching assessment session:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch assessment session');
+    }
+  },
+
   downloadSwiftExcelReport: async (
     swiftArchitectureType: string | null,
     controlStatuses: {
@@ -548,12 +590,14 @@ export const api = {
       status: 'in-place' | 'not-in-place' | 'not-applicable';
       advisory?: boolean;
       answer_summary?: string;
-    }[]
+    }[],
+    sessionId?: number | null
   ): Promise<Blob> => {
     try {
       const payload = {
         swift_architecture_type: swiftArchitectureType,
         control_statuses: controlStatuses,
+        session_id: sessionId ?? undefined,
       };
 
       const response = await axios.post(

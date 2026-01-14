@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Shield, Clock, XCircle, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { api } from '../services/api';
 
 export interface Requirement {
   control_id: string;
@@ -19,6 +20,7 @@ interface RequirementsTabProps {
   swiftArchitectureType: string | null;
   onComplete: () => void;
   onBack: () => void;
+  sessionId?: number | null;
 }
 
 // Evidence requirements based on architecture type
@@ -1328,32 +1330,74 @@ const RequirementsTab: React.FC<RequirementsTabProps> = ({
   swiftArchitectureType,
   onComplete,
   onBack,
+  sessionId,
 }) => {
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [expandedControls, setExpandedControls] = useState<Set<string>>(new Set());
   const [requirementStatus, setRequirementStatus] = useState<RequirementStatusMap>({});
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [isInitializing, setIsInitializing] = useState(false);
 
-  // Load saved status from localStorage
+  // Load saved status from backend session (if available), or initialize defaults
   useEffect(() => {
-    if (swiftArchitectureType) {
-      const savedStatus = localStorage.getItem(`requirementStatus_${swiftArchitectureType}`);
-      if (savedStatus) {
-        try {
-          setRequirementStatus(JSON.parse(savedStatus));
-        } catch (e) {
-          console.warn('Failed to load requirement status:', e);
+    const fetchSessionRequirements = async () => {
+      if (!sessionId || !swiftArchitectureType) return;
+      setIsInitializing(true);
+      try {
+        const session = await api.getAssessmentSession(sessionId);
+        const sessionRequirements = session?.requirements_status as RequirementStatusMap | undefined;
+        
+        if (sessionRequirements && Object.keys(sessionRequirements).length > 0) {
+          setRequirementStatus(sessionRequirements);
+        } else {
+          // Initialize all requirements as 'pending' if not yet set in session
+          const archRequirements = ARCHITECTURE_EVIDENCE_REQUIREMENTS[swiftArchitectureType] || [];
+          const initialStatus: RequirementStatusMap = {};
+          
+          archRequirements.forEach((req) => {
+            initialStatus[req.control_id] = {};
+            req.requirements.forEach((_, idx) => {
+              initialStatus[req.control_id][idx] = 'pending';
+            });
+          });
+          
+          if (Object.keys(initialStatus).length > 0) {
+            setRequirementStatus(initialStatus);
+            // Save initial status to backend
+            await api.updateAssessmentSession(sessionId, {
+              requirements_status: initialStatus,
+            });
+          }
         }
+      } catch (e) {
+        console.warn('Failed to load requirement status from backend session:', e);
+      } finally {
+        setIsInitializing(false);
       }
-    }
-  }, [swiftArchitectureType]);
+    };
 
-  // Save status to localStorage whenever it changes
-  useEffect(() => {
-    if (swiftArchitectureType && Object.keys(requirementStatus).length > 0) {
-      localStorage.setItem(`requirementStatus_${swiftArchitectureType}`, JSON.stringify(requirementStatus));
+    if (sessionId && swiftArchitectureType) {
+      fetchSessionRequirements();
     }
-  }, [requirementStatus, swiftArchitectureType]);
+  }, [sessionId, swiftArchitectureType]);
+
+  // Sync status to backend whenever it changes (but not during initialization)
+  useEffect(() => {
+    const syncRequirements = async () => {
+      if (!sessionId || Object.keys(requirementStatus).length === 0 || isInitializing) return;
+      try {
+        await api.updateAssessmentSession(sessionId, {
+          requirements_status: requirementStatus,
+        });
+      } catch (e) {
+        console.warn('Failed to sync requirement status to backend session:', e);
+      }
+    };
+
+    if (sessionId && !isInitializing) {
+      syncRequirements();
+    }
+  }, [sessionId, requirementStatus, isInitializing]);
 
   useEffect(() => {
     if (swiftArchitectureType && ARCHITECTURE_EVIDENCE_REQUIREMENTS[swiftArchitectureType]) {

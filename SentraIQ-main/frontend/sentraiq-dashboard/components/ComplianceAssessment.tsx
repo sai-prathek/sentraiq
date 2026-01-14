@@ -27,6 +27,7 @@ interface ComplianceAssessmentProps {
   onBack: () => void;
   swiftArchitectureType?: string | null;
   controlApplicabilityMatrix?: any;
+  sessionId?: number | null;
 }
 
 const SWIFT_QUESTIONS = [
@@ -1627,10 +1628,11 @@ const ComplianceAssessment: React.FC<ComplianceAssessmentProps> = ({
   framework, 
   frameworkName,
   frameworkVersion,
-  onComplete, 
+  onComplete,
   onBack,
   swiftArchitectureType,
-  controlApplicabilityMatrix
+  controlApplicabilityMatrix,
+  sessionId,
 }) => {
   const [answers, setAnswers] = useState<Record<string, AssessmentAnswer>>({});
   const [currentSection, setCurrentSection] = useState<string>('');
@@ -1702,35 +1704,56 @@ const ComplianceAssessment: React.FC<ComplianceAssessmentProps> = ({
     }
   }, [framework, swiftArchitectureType, sections.length]);
 
-  // Hydrate answers from localStorage when the component mounts or framework changes.
-  // This lets auto-answered results persist when navigating forward/backward between
-  // Steps 3+ without resetting, while GenerateTab clears localStorage when the user
-  // navigates back before Step 3.
+  // Hydrate answers from backend assessment session (if available) when the
+  // component mounts or when the framework/session changes. This makes the
+  // backend the source of truth for assessment progress.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    // Only hydrate if we don't already have answers in state
-    if (Object.keys(answers).length > 0) return;
+    const fetchSessionAnswers = async () => {
+      if (!sessionId) return;
+      try {
+        const session = await api.getAssessmentSession(sessionId);
+        const sessionAnswers = session?.assessment_answers as AssessmentAnswer[] | undefined;
+        if (!Array.isArray(sessionAnswers) || sessionAnswers.length === 0) return;
 
-    try {
-      const stored = window.localStorage.getItem('assessmentAnswers');
-      if (!stored) return;
+        const record: Record<string, AssessmentAnswer> = {};
+        sessionAnswers.forEach((ans) => {
+          if (!ans || !ans.questionId) return;
+          record[ans.questionId] = ans;
+        });
 
-      const parsed = JSON.parse(stored) as AssessmentAnswer[];
-      if (!Array.isArray(parsed) || parsed.length === 0) return;
-
-      const record: Record<string, AssessmentAnswer> = {};
-      parsed.forEach((ans) => {
-        if (!ans || !ans.questionId) return;
-        record[ans.questionId] = ans;
-      });
-
-      if (Object.keys(record).length > 0) {
-        setAnswers(record);
+        if (Object.keys(record).length > 0) {
+          setAnswers(record);
+        }
+      } catch (e) {
+        console.warn('Failed to hydrate assessment answers from backend session:', e);
       }
-    } catch (e) {
-      console.warn('Failed to hydrate assessment answers from localStorage:', e);
+    };
+
+    // Only hydrate from backend if we don't already have answers in state
+    if (Object.keys(answers).length === 0) {
+      fetchSessionAnswers();
     }
-  }, [framework]);
+  }, [framework, sessionId]);
+
+  // Whenever answers change and we have a session, push updates to backend so
+  // that subsequent views always reflect server-side state.
+  useEffect(() => {
+    const syncAnswers = async () => {
+      if (!sessionId) return;
+      try {
+        const answerArray = Object.values(answers);
+        await api.updateAssessmentSession(sessionId, {
+          assessment_answers: answerArray,
+        });
+      } catch (e) {
+        console.warn('Failed to sync assessment answers to backend session:', e);
+      }
+    };
+
+    if (sessionId) {
+      syncAnswers();
+    }
+  }, [sessionId, answers]);
 
   const updateAnswer = (
     questionId: string,

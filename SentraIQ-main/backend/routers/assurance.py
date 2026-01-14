@@ -4,10 +4,11 @@ Layer 3: Assurance & Telescope API endpoints
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
 from datetime import datetime
 from typing import Optional
 
-from backend.database import get_session
+from backend.database import get_session, AssurancePack, AssessmentSession
 from backend.layers.telescope import Telescope, ai_cache
 from backend.layers.control_library import (
     get_all_controls, get_controls_by_infrastructure, get_controls_by_framework,
@@ -15,14 +16,121 @@ from backend.layers.control_library import (
     get_swift_architecture_types, get_controls_by_swift_architecture, SwiftArchitectureType
 )
 from backend.models.schemas import (
-    TelescopeQueryRequest, TelescopeQueryResponse, EvidenceItem,
-    AssurancePackRequest, AssurancePackResponse,
-    SwiftExcelReportRequest
+    TelescopeQueryRequest,
+    TelescopeQueryResponse,
+    EvidenceItem,
+    AssurancePackRequest,
+    AssurancePackResponse,
+    SwiftExcelReportRequest,
+    AssessmentSessionCreate,
+    AssessmentSessionUpdate,
+    AssessmentSessionResponse,
 )
 from backend.excel_report import generate_cscf_excel
+from backend.config import settings
 
 
 router = APIRouter()
+
+
+@router.post("/sessions", response_model=AssessmentSessionResponse)
+async def create_assessment_session(
+    request: AssessmentSessionCreate,
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Create a new assessment session.
+
+    This is typically called when the user completes Step 1
+    (Select Compliance Framework) and clicks Continue to Pack Generation.
+    """
+    try:
+        db_session = AssessmentSession(
+            status="in-progress",
+            current_step=1,
+            objective_selection=request.objective_selection,
+            swift_architecture_type=request.swift_architecture_type,
+        )
+        session.add(db_session)
+        await session.commit()
+        await session.refresh(db_session)
+        return AssessmentSessionResponse.from_orm(db_session)
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create assessment session: {str(e)}")
+
+
+@router.patch("/sessions/{session_id}", response_model=AssessmentSessionResponse)
+async def update_assessment_session(
+    session_id: int,
+    request: AssessmentSessionUpdate,
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Partially update an assessment session as the user progresses through steps.
+
+    Any provided fields will be patched onto the session record.
+    """
+    try:
+        result = await session.execute(
+            select(AssessmentSession).where(AssessmentSession.id == session_id)
+        )
+        db_session = result.scalar_one_or_none()
+        if not db_session:
+            raise HTTPException(status_code=404, detail="Assessment session not found")
+
+        updatable_fields = [
+            "status",
+            "current_step",
+            "objective_selection",
+            "swift_architecture_type",
+            "requirements_status",
+            "assessment_answers",
+            "control_statuses",
+            "evidence_summary",
+            "pack_id",
+            "swift_excel_filename",
+            "swift_excel_path",
+            "meta_data",
+        ]
+
+        data = request.model_dump(exclude_unset=True)
+        for field in updatable_fields:
+            if field in data:
+                setattr(db_session, field, data[field])
+
+        # If status transitioned to completed and no completed_at set, stamp it
+        if data.get("status") == "completed" and db_session.completed_at is None:
+            db_session.completed_at = datetime.utcnow()
+
+        await session.commit()
+        await session.refresh(db_session)
+        return AssessmentSessionResponse.from_orm(db_session)
+    except HTTPException:
+        raise
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update assessment session: {str(e)}")
+
+
+@router.get("/sessions/{session_id}", response_model=AssessmentSessionResponse)
+async def get_assessment_session(
+    session_id: int,
+    session: AsyncSession = Depends(get_session),
+):
+    """Fetch a single assessment session by ID."""
+    try:
+        result = await session.execute(
+            select(AssessmentSession).where(AssessmentSession.id == session_id)
+        )
+        db_session = result.scalar_one_or_none()
+        if not db_session:
+            raise HTTPException(status_code=404, detail="Assessment session not found")
+        return AssessmentSessionResponse.from_orm(db_session)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch assessment session: {str(e)}")
 
 
 @router.post("/query", response_model=TelescopeQueryResponse)
@@ -157,6 +265,24 @@ async def generate_assurance_pack(
     try:
         query = request.query or f"Evidence for control {request.control_id}"
 
+        # If this pack is associated with an assessment session, attempt to
+        # retrieve any SWIFT Excel report previously generated for that session
+        # so it can be bundled into the assurance pack ZIP.
+        swift_excel_filename: Optional[str] = None
+        swift_excel_path: Optional[str] = None
+        if request.session_id is not None:
+            try:
+                result = await session.execute(
+                    select(AssessmentSession).where(AssessmentSession.id == request.session_id)
+                )
+                session_row = result.scalar_one_or_none()
+                if session_row:
+                    swift_excel_filename = session_row.swift_excel_filename
+                    swift_excel_path = session_row.swift_excel_path
+            except Exception:
+                # Do not fail pack generation if session lookup fails
+                await session.rollback()
+
         pack = await Telescope.generate_assurance_pack(
             session=session,
             control_id=request.control_id,
@@ -166,7 +292,29 @@ async def generate_assurance_pack(
             explicit_log_ids=request.explicit_log_ids,
             explicit_document_ids=request.explicit_document_ids,
             assessment_answers=request.assessment_answers,
+            swift_excel_filename=swift_excel_filename,
+            swift_excel_path=swift_excel_path,
         )
+
+        # If this pack is part of an assessment session, link it
+        if request.session_id is not None:
+            try:
+                result = await session.execute(
+                    select(AssessmentSession).where(AssessmentSession.id == request.session_id)
+                )
+                db_session = result.scalar_one_or_none()
+                if db_session:
+                    db_session.pack_id = pack.pack_id
+                    # Mark session as completed if not already
+                    db_session.status = db_session.status or "completed"
+                    if db_session.current_step is None or db_session.current_step < 8:
+                        db_session.current_step = 8
+                    if db_session.completed_at is None:
+                        db_session.completed_at = datetime.utcnow()
+                    await session.commit()
+            except Exception:
+                # Don't fail pack generation if session linkage fails
+                await session.rollback()
 
         return AssurancePackResponse(
             pack_id=pack.pack_id,
@@ -216,9 +364,6 @@ async def list_assurance_packs(
     """
     List all assurance packs with metadata
     """
-    from sqlalchemy import select, desc
-    from backend.database import AssurancePack
-    
     try:
         stmt = select(AssurancePack).order_by(desc(AssurancePack.created_at)).limit(limit)
         result = await session.execute(stmt)
@@ -518,6 +663,7 @@ async def get_swift_control_applicability_matrix():
 @router.post("/swift/excel-report")
 async def generate_swift_excel_report(
     request: SwiftExcelReportRequest,
+    session: AsyncSession = Depends(get_session),
 ):
     """
     Generate a SWIFT CSCF Excel assessment report based on control status.
@@ -530,15 +676,44 @@ async def generate_swift_excel_report(
     The endpoint returns an .xlsx file as a binary response.
     """
     from datetime import datetime
+    from pathlib import Path
 
     try:
         excel_bytes = generate_cscf_excel(request)
 
         timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+
+        # If we have a session_id, persist the Excel file on disk and
+        # update the associated AssessmentSession with the path.
         filename = f"SWIFT_CSCF_Assessment_{request.swift_architecture_type or 'N_A'}_{timestamp}.xlsx"
+        excel_content = excel_bytes.getvalue()
+
+        if request.session_id is not None:
+            try:
+                # Make filename session-aware for easier tracking
+                session_filename = (
+                    f"SWIFT_CSCF_Assessment_session-{request.session_id}_"
+                    f"{request.swift_architecture_type or 'N_A'}_{timestamp}.xlsx"
+                )
+                file_path = settings.SWIFT_EXCEL_PATH / session_filename
+                Path(file_path).write_bytes(excel_content)
+
+                result = await session.execute(
+                    select(AssessmentSession).where(AssessmentSession.id == request.session_id)
+                )
+                db_session = result.scalar_one_or_none()
+                if db_session:
+                    db_session.swift_excel_filename = session_filename
+                    db_session.swift_excel_path = str(file_path)
+                    if db_session.current_step is None or db_session.current_step < 8:
+                        db_session.current_step = 8
+                    await session.commit()
+            except Exception:
+                await session.rollback()
+                # Do not fail Excel download if session linkage/storage fails
 
         return Response(
-            content=excel_bytes.getvalue(),
+            content=excel_content,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={
                 "Content-Disposition": f'attachment; filename="{filename}"'
