@@ -31,6 +31,165 @@ const STEPS = [
   { id: 8, label: 'View Report', description: 'Download compliance report' },
 ];
 
+type ControlStatus = 'in-place' | 'not-in-place' | 'not-applicable';
+
+interface ControlStatusData {
+  control_id: string;
+  control_name: string;
+  domain: string;
+  status: ControlStatus;
+  applicable: boolean;
+  advisory: boolean;
+}
+
+// Extract "1.1" from "1.1.a.1"
+const getControlIdFromQuestionId = (questionId: string): string | null => {
+  const parts = questionId.split('.');
+  if (parts.length >= 2) {
+    return `${parts[0]}.${parts[1]}`;
+  }
+  return null;
+};
+
+const isControlApplicable = (
+  controlId: string,
+  swiftArchitectureType: string | null,
+  controlApplicabilityMatrix: any
+): boolean => {
+  if (!swiftArchitectureType || !controlApplicabilityMatrix) {
+    return true;
+  }
+
+  for (const domain of controlApplicabilityMatrix.control_applicability_matrix || []) {
+    for (const control of domain.controls || []) {
+      if (control.control_id === controlId) {
+        const mapping = control.mapping?.[swiftArchitectureType];
+        return mapping?.is_applicable || false;
+      }
+    }
+  }
+  return false;
+};
+
+const getControlStatusForExcel = (
+  controlId: string,
+  assessmentAnswers: AssessmentAnswer[],
+  swiftArchitectureType: string | null,
+  controlApplicabilityMatrix: any
+): ControlStatus => {
+  if (!isControlApplicable(controlId, swiftArchitectureType, controlApplicabilityMatrix)) {
+    return 'not-applicable';
+  }
+
+  const controlQuestions = assessmentAnswers.filter(
+    (answer) => getControlIdFromQuestionId(answer.questionId) === controlId
+  );
+
+  if (controlQuestions.length === 0) {
+    return 'not-in-place';
+  }
+
+  const yesCount = controlQuestions.filter((q) => q.answer === 'yes').length;
+  const noCount = controlQuestions.filter((q) => q.answer === 'no').length;
+  const partialCount = controlQuestions.filter((q) => q.answer === 'partial').length;
+  const totalAnswered = yesCount + noCount + partialCount;
+
+  if (totalAnswered === 0) {
+    return 'not-in-place';
+  }
+
+  const yesPercentage = (yesCount / totalAnswered) * 100;
+  const noPercentage = (noCount / totalAnswered) * 100;
+
+  if (yesPercentage >= 70) {
+    return 'in-place';
+  } else if (noPercentage >= 50) {
+    return 'not-in-place';
+  } else if (partialCount > 0 && yesCount > 0) {
+    return 'not-in-place';
+  } else {
+    return 'not-in-place';
+  }
+};
+
+const buildSwiftControlStatusPayload = (
+  assessmentAnswers: AssessmentAnswer[],
+  swiftArchitectureType: string | null,
+  controlApplicabilityMatrix: any
+) => {
+  const controlMap = new Map<string, ControlStatusData>();
+
+  // From answers
+  assessmentAnswers.forEach((answer) => {
+    const controlId = getControlIdFromQuestionId(answer.questionId);
+    if (!controlId) return;
+
+    if (!controlMap.has(controlId)) {
+      const applicable = isControlApplicable(controlId, swiftArchitectureType, controlApplicabilityMatrix);
+      const status = applicable
+        ? getControlStatusForExcel(controlId, assessmentAnswers, swiftArchitectureType, controlApplicabilityMatrix)
+        : 'not-applicable';
+
+      controlMap.set(controlId, {
+        control_id: controlId,
+        control_name: controlId,
+        domain: 'Unknown',
+        status,
+        applicable,
+        advisory: controlId.endsWith('A'),
+      });
+    }
+  });
+
+  // From applicability matrix (include controls without answers)
+  if (controlApplicabilityMatrix && swiftArchitectureType) {
+    controlApplicabilityMatrix.control_applicability_matrix?.forEach((domain: any) => {
+      domain.controls?.forEach((control: any) => {
+        const controlId = control.control_id;
+        const mapping = control.mapping?.[swiftArchitectureType];
+        const applicable = mapping?.is_applicable || false;
+
+        if (!controlMap.has(controlId)) {
+          const isEntireControlAdvisory = controlId.endsWith('A');
+          const isCellAdvisory = !isEntireControlAdvisory && mapping?.advisory === true;
+          const advisory = isEntireControlAdvisory || isCellAdvisory;
+
+          controlMap.set(controlId, {
+            control_id: controlId,
+            control_name: control.control_name || controlId,
+            domain: domain.domain || 'Unknown',
+            status: applicable ? 'not-in-place' : 'not-applicable',
+            applicable,
+            advisory,
+          });
+        }
+      });
+    });
+  }
+
+  return Array.from(controlMap.values()).map((c) => {
+    const controlQuestions = assessmentAnswers.filter(
+      (answer) => getControlIdFromQuestionId(answer.questionId) === c.control_id
+    );
+
+    const yes = controlQuestions.filter((q) => q.answer === 'yes').length;
+    const no = controlQuestions.filter((q) => q.answer === 'no').length;
+    const partial = controlQuestions.filter((q) => q.answer === 'partial').length;
+
+    const summary =
+      controlQuestions.length === 0
+        ? 'No assessment answers captured for this control.'
+        : `Answers – Yes: ${yes}, Partial: ${partial}, No: ${no}. Overall status: ${c.status.replace('-', ' ')}`;
+
+    return {
+      control_id: c.control_id,
+      status: c.status,
+      advisory: c.advisory,
+      answer_summary: summary,
+    };
+  });
+};
+
 const GenerateTab: React.FC<GenerateTabProps> = ({
   onToast,
   selectedEvidence,
@@ -53,6 +212,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   const [swiftArchitectureType, setSwiftArchitectureType] = useState<string | null>(null);
   const [swiftArchitectureTypes, setSwiftArchitectureTypes] = useState<any[]>([]);
   const [controlApplicabilityMatrix, setControlApplicabilityMatrix] = useState<any>(null);
+  const [swiftExcelUrl, setSwiftExcelUrl] = useState<string | null>(null);
   
   // Track evidence count when entering Step 4 (to distinguish assessment vs enhanced evidence)
   const [evidenceCountBeforeEnhance, setEvidenceCountBeforeEnhance] = useState<number>(0);
@@ -77,6 +237,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     setEvidenceCountBeforeEnhance(0);
     setQuery('');
     setControlId('');
+    setSwiftExcelUrl(null);
     
     // Set default date range
     const end = new Date();
@@ -395,6 +556,32 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       setGeneratedPack(pack);
       onToast("Assurance pack generated successfully!", "success");
       onClearSelectedEvidence();
+      setSwiftExcelUrl(null);
+
+      // Pre-generate SWIFT Excel assessment during pack creation (if SWIFT is selected)
+      const isSwiftSelectedLocal = objectiveSelection?.frameworks?.some(f => f.id === 'SWIFT_CSP');
+      if (isSwiftSelectedLocal && swiftArchitectureType && controlApplicabilityMatrix) {
+        try {
+          const effectiveAnswers: AssessmentAnswer[] =
+            assessmentAnswers.length > 0 ? assessmentAnswers : answers;
+
+          const controlStatuses = buildSwiftControlStatusPayload(
+            effectiveAnswers,
+            swiftArchitectureType,
+            controlApplicabilityMatrix
+          );
+
+          const excelBlob = await api.downloadSwiftExcelReport(swiftArchitectureType, controlStatuses);
+          const url = window.URL.createObjectURL(excelBlob);
+          setSwiftExcelUrl(url);
+        } catch (excelError: any) {
+          console.error("Failed to pre-generate SWIFT Excel report:", excelError);
+          onToast(
+            excelError?.message || "Failed to pre-generate SWIFT Excel assessment. You can retry from the final step.",
+            "error"
+          );
+        }
+      }
       
       // Move to step 8
       setCurrentStep(8);
@@ -1115,6 +1302,59 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                       <FileText className="w-4 h-4" />
                       Download PDF Report
                     </button>
+
+                    {/* SWIFT Excel download - uses pre-generated file from Step 7 if available */}
+                    {objectiveSelection?.frameworks?.some(f => f.id === 'SWIFT_CSP') && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            if (!swiftArchitectureType || !controlApplicabilityMatrix) {
+                              onToast('SWIFT architecture and control matrix are required to download the Excel assessment.', 'error');
+                              return;
+                            }
+
+                            let url = swiftExcelUrl;
+
+                            // If URL is not already available (e.g. pre-generation failed), generate on demand
+                            if (!url) {
+                              const effectiveAnswers: AssessmentAnswer[] = assessmentAnswers;
+                              const controlStatuses = buildSwiftControlStatusPayload(
+                                effectiveAnswers,
+                                swiftArchitectureType,
+                                controlApplicabilityMatrix
+                              );
+
+                              const excelBlob = await api.downloadSwiftExcelReport(swiftArchitectureType, controlStatuses);
+                              url = window.URL.createObjectURL(excelBlob);
+                              setSwiftExcelUrl(url);
+                            }
+
+                            if (!url) {
+                              onToast('Failed to prepare SWIFT Excel assessment.', 'error');
+                              return;
+                            }
+
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `SWIFT_CSCF_Assessment_${swiftArchitectureType || 'assessment'}.xlsx`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          } catch (error: any) {
+                            console.error('Failed to download SWIFT Excel assessment:', error);
+                            onToast(
+                              error?.message || 'Failed to download SWIFT Excel assessment.',
+                              'error'
+                            );
+                          }
+                        }}
+                        className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download SWIFT Excel
+                      </button>
+                    )}
+
                     <a
                       href={generatedPack.download_url}
                       download

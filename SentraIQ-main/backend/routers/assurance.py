@@ -2,7 +2,7 @@
 Layer 3: Assurance & Telescope API endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from typing import Optional
@@ -16,8 +16,10 @@ from backend.layers.control_library import (
 )
 from backend.models.schemas import (
     TelescopeQueryRequest, TelescopeQueryResponse, EvidenceItem,
-    AssurancePackRequest, AssurancePackResponse
+    AssurancePackRequest, AssurancePackResponse,
+    SwiftExcelReportRequest
 )
+from backend.excel_report import generate_cscf_excel
 
 
 router = APIRouter()
@@ -529,3 +531,38 @@ async def get_swift_control_applicability_matrix():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get control applicability matrix: {str(e)}")
+
+
+@router.post("/swift/excel-report")
+async def generate_swift_excel_report(
+    request: SwiftExcelReportRequest,
+):
+    """
+    Generate a SWIFT CSCF Excel assessment report based on control status.
+
+    The request should contain a list of control_statuses with:
+    - control_id (matching a worksheet name in the template, or configured mapping)
+    - status: "in-place" | "not-in-place" | "not-applicable"
+    - optional answer_summary for human-readable context
+
+    The endpoint returns an .xlsx file as a binary response.
+    """
+    from datetime import datetime
+
+    try:
+        excel_bytes = generate_cscf_excel(request)
+
+        timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        filename = f"SWIFT_CSCF_Assessment_{request.swift_architecture_type or 'N_A'}_{timestamp}.xlsx"
+
+        return Response(
+            content=excel_bytes.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            },
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate SWIFT Excel report: {str(e)}")

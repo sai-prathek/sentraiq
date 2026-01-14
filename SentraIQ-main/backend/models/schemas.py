@@ -3,7 +3,7 @@ Pydantic schemas for request/response validation
 """
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Literal
 
 
 # Layer 1: Raw Vault Schemas
@@ -123,6 +123,21 @@ class AssurancePackResponse(BaseModel):
         "structured, time-bound evidence. It does not constitute certification, "
         "regulatory approval, or compliance sign-off."
     )
+
+
+class SwiftControlStatus(BaseModel):
+    """Per-control status used for SWIFT Excel assessments"""
+    control_id: str
+    status: Literal["in-place", "not-in-place", "not-applicable"]
+    advisory: bool = False
+    # Optional human-readable summary that can be written into the Excel sheet
+    answer_summary: Optional[str] = None
+
+
+class SwiftExcelReportRequest(BaseModel):
+    """Request to generate a SWIFT CSCF Excel report based on control status"""
+    swift_architecture_type: Optional[str] = None
+    control_statuses: List[SwiftControlStatus]
 
 
 # Dashboard Schemas

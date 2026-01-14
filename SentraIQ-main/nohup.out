@@ -1,0 +1,528 @@
+Traceback (most recent call last):
+  File "/root/miniconda3/envs/sentra/bin/uvicorn", line 7, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+    run(
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+    server.run()
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+    config.load()
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+    self.loaded_app = import_from_string(self.app)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+    raise exc from None
+  File "/root/miniconda3/envs/sentra/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+    module = importlib.import_module(module_str)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/envs/sentra/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/root/sai/SentraIQ-main/SentraIQ-main/backend/main.py", line 13, in <module>
+    from backend.routers import ingestion, evidence, assurance, dashboard, demo
+  File "/root/sai/SentraIQ-main/SentraIQ-main/backend/routers/assurance.py", line 22, in <module>
+    from backend.excel_report import generate_cscf_excel
+  File "/root/sai/SentraIQ-main/SentraIQ-main/backend/excel_report.py", line 17, in <module>
+    from openpyxl import load_workbook  # type: ignore[import-untyped]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'openpyxl'
+INFO:     Started server process [2530830]
+INFO:     Waiting for application startup.
+2026-01-14 07:03:09,380 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:03:09,380 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("raw_logs")
+2026-01-14 07:03:09,380 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:09,382 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("raw_documents")
+2026-01-14 07:03:09,382 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:09,383 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("evidence_objects")
+2026-01-14 07:03:09,383 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:09,383 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("assurance_packs")
+2026-01-14 07:03:09,383 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:09,384 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("telescope_queries")
+2026-01-14 07:03:09,384 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:09,385 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+INFO:     Started server process [2530895]
+INFO:     Waiting for application startup.
+2026-01-14 07:03:40,193 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:03:40,193 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("raw_logs")
+2026-01-14 07:03:40,193 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:40,194 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("raw_documents")
+2026-01-14 07:03:40,195 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:40,195 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("evidence_objects")
+2026-01-14 07:03:40,195 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:40,196 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("assurance_packs")
+2026-01-14 07:03:40,196 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:40,197 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("telescope_queries")
+2026-01-14 07:03:40,197 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:03:40,198 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+✅ Database initialized
+INFO:     49.43.216.151:23743 - "GET /api/v1/assurance/swift/architecture-types HTTP/1.1" 200 OK
+INFO:     49.43.216.151:56873 - "GET /api/v1/assurance/regulatory-updates/check HTTP/1.1" 200 OK
+2026-01-14 07:03:52,495 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:03:52,505 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:03:52,505 INFO sqlalchemy.engine.Engine [generated in 0.00025s] (100, 0)
+2026-01-14 07:03:52,508 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:24466 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+INFO:     49.43.216.151:23743 - "GET /api/v1/assurance/swift/control-applicability-matrix HTTP/1.1" 200 OK
+2026-01-14 07:03:52,568 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:03:52,569 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:03:52,569 INFO sqlalchemy.engine.Engine [cached since 0.06414s ago] (100, 0)
+2026-01-14 07:03:52,572 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:24466 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+2026-01-14 07:03:52,574 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:03:52,576 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:03:52,576 INFO sqlalchemy.engine.Engine [generated in 0.00023s] (100, 0)
+2026-01-14 07:03:52,577 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:56873 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+2026-01-14 07:03:52,645 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:03:52,646 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:03:52,646 INFO sqlalchemy.engine.Engine [cached since 0.07007s ago] (100, 0)
+2026-01-14 07:03:52,647 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:56873 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+INFO:     49.43.216.151:56873 - "GET /api/v1/assurance/regulatory-updates/check HTTP/1.1" 200 OK
+2026-01-14 07:04:01,489 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:01,489 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:04:01,489 INFO sqlalchemy.engine.Engine [cached since 8.985s ago] (100, 0)
+2026-01-14 07:04:01,492 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:56873 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+2026-01-14 07:04:01,532 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:01,533 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:04:01,533 INFO sqlalchemy.engine.Engine [cached since 8.957s ago] (100, 0)
+2026-01-14 07:04:01,534 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:2144 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+2026-01-14 07:04:01,561 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:01,562 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:04:01,562 INFO sqlalchemy.engine.Engine [cached since 9.057s ago] (100, 0)
+2026-01-14 07:04:01,564 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:56873 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+2026-01-14 07:04:01,585 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:01,585 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:04:01,585 INFO sqlalchemy.engine.Engine [cached since 9.01s ago] (100, 0)
+2026-01-14 07:04:01,587 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:2144 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+INFO:     49.43.216.151:60867 - "OPTIONS /api/v1/assurance/generate-pack HTTP/1.1" 200 OK
+🚀 Starting pack generation: query='Compliance evidence for your environment - SWIFT CSP (CSCF v2026)', control_id=None
+🔍 Querying evidence for time range: 2025-10-14 00:00:00 to 2026-01-14 23:59:59
+🔄 Cache miss - calling OpenAI for query parsing: Compliance evidence for your environment - SWIFT C...
+💾 Cached query parsing result for: Compliance evidence for your environment - SWIFT C...
+2026-01-14 07:04:41,576 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:41,579 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs 
+WHERE raw_logs.ingested_at >= ? AND raw_logs.ingested_at <= ? AND raw_logs.source IN (?) AND (lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?))
+ LIMIT ? OFFSET ?
+2026-01-14 07:04:41,580 INFO sqlalchemy.engine.Engine [generated in 0.00060s] ('2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', 'SWIFT', '%compliance%', '%evidence%', '%environment%', '%SWIFT%', '%CSP%', 100, 0)
+2026-01-14 07:04:41,583 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents 
+WHERE raw_documents.ingested_at >= ? AND raw_documents.ingested_at <= ? AND (lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?))
+ LIMIT ? OFFSET ?
+2026-01-14 07:04:41,583 INFO sqlalchemy.engine.Engine [generated in 0.00025s] ('2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', '%compliance%', '%evidence%', '%environment%', '%SWIFT%', '%CSP%', 50, 0)
+2026-01-14 07:04:41,586 INFO sqlalchemy.engine.Engine INSERT INTO telescope_queries ("query", interpreted_intent, results_count, execution_time_ms, created_at) VALUES (?, ?, ?, ?, ?)
+2026-01-14 07:04:41,586 INFO sqlalchemy.engine.Engine [generated in 0.00028s] ('Compliance evidence for your environment - SWIFT CSP (CSCF v2026)', '{"control_keywords": [], "time_keywords": [], "source_keywords": ["SWIFT"], "action": "search", "search_terms": ["compliance", "evidence", "environme ... (5 characters truncated) ... "SWIFT", "CSP", "CSCF", "v2026"], "summary": "User requests compliance evidence related to SWIFT CSP under CSCF version 2026 for their environment."}', 0, 2464, '2026-01-14 07:04:41.584287')
+2026-01-14 07:04:41,587 INFO sqlalchemy.engine.Engine COMMIT
+📋 Merging explicit evidence: 12 logs, 14 documents
+✅ Found 26 evidence items to include in pack
+📦 Creating pack: PACK-20260114-070442
+📁 Copying evidence files...
+2026-01-14 07:04:42,165 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:42,166 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs 
+WHERE raw_logs.id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:04:42,166 INFO sqlalchemy.engine.Engine [generated in 0.00029s] (5, 8, 11, 14, 15, 17, 21, 22, 25, 27, 29, 30)
+📦 Batch fetched 2 logs from 12 requested
+2026-01-14 07:04:42,169 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents 
+WHERE raw_documents.id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:04:42,169 INFO sqlalchemy.engine.Engine [generated in 0.00032s] (6, 7, 12, 13, 16, 19, 20, 23, 24, 26, 28, 31, 32, 33)
+📦 Batch fetched 0 documents from 14 requested
+✅ Copied log 5: splunk_siem_evidence_1768323935171.log (276 bytes)
+✅ Copied log 8: vulnerability_management_evidence_1768372405628.log (315 bytes)
+⚠️  24 files failed to copy:
+   - log 11: not_found_in_database
+   - log 14: not_found_in_database
+   - log 15: not_found_in_database
+   - log 17: not_found_in_database
+   - log 21: not_found_in_database
+   ... and 19 more
+📦 Creating ZIP archive: /root/sai/SentraIQ-main/SentraIQ-main/storage/assurance_packs/PACK-20260114-070442.zip
+🔐 Calculating pack hash...
+   Used content-based hash (size: 0.01 MB)
+📄 Generating PDF report...
+📦 Adding PDF report to pack ZIP...
+✅ PDF report added to pack ZIP
+🧹 Cleaned up temporary directory
+💾 Saving pack to database...
+2026-01-14 07:04:42,420 INFO sqlalchemy.engine.Engine INSERT INTO assurance_packs (pack_id, control_id, "query", time_range_start, time_range_end, evidence_count, pack_hash, file_path, created_at, meta_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:04:42,421 INFO sqlalchemy.engine.Engine [generated in 0.00156s] ('PACK-20260114-070442', None, 'Compliance evidence for your environment - SWIFT CSP (CSCF v2026)', '2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', 2, '52b04d4c2c780e4a4f8fde05e8fce310e1549469df0eefd052fbc2903a3435e8', '/root/sai/SentraIQ-main/SentraIQ-main/storage/assurance_packs/PACK-20260114-070442.zip', '2026-01-14 07:04:42.417123', '{"pack_id": "PACK-20260114-070442", "control_id": null, "query": "Compliance evidence for your environment - SWIFT CSP (CSCF v2026)", "time_range": { ... (58907 characters truncated) ... 768372405628.log"}], "pack_hash": "52b04d4c2c780e4a4f8fde05e8fce310e1549469df0eefd052fbc2903a3435e8", "pack_size_bytes": 17482, "pack_size_mb": 0.02}')
+2026-01-14 07:04:42,423 INFO sqlalchemy.engine.Engine COMMIT
+2026-01-14 07:04:42,483 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:42,485 INFO sqlalchemy.engine.Engine SELECT assurance_packs.id, assurance_packs.pack_id, assurance_packs.control_id, assurance_packs."query", assurance_packs.time_range_start, assurance_packs.time_range_end, assurance_packs.evidence_count, assurance_packs.pack_hash, assurance_packs.file_path, assurance_packs.created_at, assurance_packs.meta_data 
+FROM assurance_packs 
+WHERE assurance_packs.id = ?
+2026-01-14 07:04:42,485 INFO sqlalchemy.engine.Engine [generated in 0.00028s] (48,)
+✅ Pack saved successfully: PACK-20260114-070442
+2026-01-14 07:04:42,488 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:60867 - "POST /api/v1/assurance/generate-pack HTTP/1.1" 200 OK
+2026-01-14 07:04:42,577 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:42,578 INFO sqlalchemy.engine.Engine SELECT assurance_packs.id, assurance_packs.pack_id, assurance_packs.control_id, assurance_packs."query", assurance_packs.time_range_start, assurance_packs.time_range_end, assurance_packs.evidence_count, assurance_packs.pack_hash, assurance_packs.file_path, assurance_packs.created_at, assurance_packs.meta_data 
+FROM assurance_packs 
+WHERE assurance_packs.pack_id = ?
+2026-01-14 07:04:42,578 INFO sqlalchemy.engine.Engine [generated in 0.00022s] ('PACK-20260114-070442',)
+2026-01-14 07:04:42,778 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:60867 - "GET /api/v1/assurance/report/PACK-20260114-070442?format=pdf HTTP/1.1" 200 OK
+2026-01-14 07:04:49,580 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:04:49,581 INFO sqlalchemy.engine.Engine SELECT assurance_packs.id, assurance_packs.pack_id, assurance_packs.control_id, assurance_packs."query", assurance_packs.time_range_start, assurance_packs.time_range_end, assurance_packs.evidence_count, assurance_packs.pack_hash, assurance_packs.file_path, assurance_packs.created_at, assurance_packs.meta_data 
+FROM assurance_packs 
+WHERE assurance_packs.pack_id = ?
+2026-01-14 07:04:49,581 INFO sqlalchemy.engine.Engine [cached since 7.003s ago] ('PACK-20260114-070442',)
+2026-01-14 07:04:49,583 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.50.99.89:28716 - "GET /api/v1/assurance/download/PACK-20260114-070442 HTTP/1.1" 200 OK
+INFO:     49.43.216.151:29445 - "GET /docs HTTP/1.1" 200 OK
+INFO:     49.43.216.151:29445 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     79.124.40.174:37154 - "GET /actuator/gateway/routes HTTP/1.1" 404 Not Found
+INFO:     103.93.93.211:53344 - "GET /boaform/admin/formLogin?username=ec8&psd=ec8 HTTP/1.0" 404 Not Found
+INFO:     89.42.231.186:50540 - "GET / HTTP/1.1" 200 OK
+INFO:     79.124.40.174:60810 - "GET /geoserver HTTP/1.1" 404 Not Found
+INFO:     49.43.216.151:23387 - "GET /api/v1/assurance/regulatory-updates/check HTTP/1.1" 200 OK
+INFO:     49.43.216.151:10781 - "GET /api/v1/assurance/swift/architecture-types HTTP/1.1" 200 OK
+2026-01-14 07:13:57,924 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:13:57,924 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:13:57,924 INFO sqlalchemy.engine.Engine [cached since 605.4s ago] (100, 0)
+2026-01-14 07:13:57,927 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:33255 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+INFO:     49.43.216.151:10781 - "GET /api/v1/assurance/swift/control-applicability-matrix HTTP/1.1" 200 OK
+2026-01-14 07:13:58,393 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:13:58,393 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:13:58,393 INFO sqlalchemy.engine.Engine [cached since 605.9s ago] (100, 0)
+2026-01-14 07:13:58,394 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:13:58,394 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:13:58,394 INFO sqlalchemy.engine.Engine [cached since 605.8s ago] (100, 0)
+2026-01-14 07:13:58,396 INFO sqlalchemy.engine.Engine ROLLBACK
+2026-01-14 07:13:58,397 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:33255 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+INFO:     49.43.216.151:23387 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+2026-01-14 07:13:58,481 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:13:58,481 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:13:58,481 INFO sqlalchemy.engine.Engine [cached since 605.9s ago] (100, 0)
+2026-01-14 07:13:58,483 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:23387 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+INFO:     49.43.216.151:23387 - "GET /api/v1/assurance/regulatory-updates/check HTTP/1.1" 200 OK
+2026-01-14 07:14:03,628 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:03,628 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:14:03,628 INFO sqlalchemy.engine.Engine [cached since 611.1s ago] (100, 0)
+2026-01-14 07:14:03,631 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:23387 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+2026-01-14 07:14:03,672 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:03,672 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:14:03,672 INFO sqlalchemy.engine.Engine [cached since 611.1s ago] (100, 0)
+2026-01-14 07:14:03,673 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:52375 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+2026-01-14 07:14:03,701 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:03,702 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:14:03,702 INFO sqlalchemy.engine.Engine [cached since 611.2s ago] (100, 0)
+2026-01-14 07:14:03,704 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:23387 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+2026-01-14 07:14:03,722 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:03,723 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:14:03,723 INFO sqlalchemy.engine.Engine [cached since 611.1s ago] (100, 0)
+2026-01-14 07:14:03,724 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:52375 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+🚀 Starting pack generation: query='Compliance evidence for your environment - SWIFT CSP (CSCF v2026)', control_id=None
+🔍 Querying evidence for time range: 2025-10-14 00:00:00 to 2026-01-14 23:59:59
+✅ Cache hit for query parsing: Compliance evidence for your environment - SWIFT C...
+2026-01-14 07:14:08,354 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:08,355 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs 
+WHERE raw_logs.ingested_at >= ? AND raw_logs.ingested_at <= ? AND raw_logs.source IN (?) AND (lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?))
+ LIMIT ? OFFSET ?
+2026-01-14 07:14:08,355 INFO sqlalchemy.engine.Engine [cached since 566.8s ago] ('2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', 'SWIFT', '%compliance%', '%evidence%', '%environment%', '%SWIFT%', '%CSP%', 100, 0)
+2026-01-14 07:14:08,357 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents 
+WHERE raw_documents.ingested_at >= ? AND raw_documents.ingested_at <= ? AND (lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?))
+ LIMIT ? OFFSET ?
+2026-01-14 07:14:08,357 INFO sqlalchemy.engine.Engine [cached since 566.8s ago] ('2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', '%compliance%', '%evidence%', '%environment%', '%SWIFT%', '%CSP%', 50, 0)
+2026-01-14 07:14:08,359 INFO sqlalchemy.engine.Engine INSERT INTO telescope_queries ("query", interpreted_intent, results_count, execution_time_ms, created_at) VALUES (?, ?, ?, ?, ?)
+2026-01-14 07:14:08,359 INFO sqlalchemy.engine.Engine [cached since 566.8s ago] ('Compliance evidence for your environment - SWIFT CSP (CSCF v2026)', '{"control_keywords": [], "time_keywords": [], "source_keywords": ["SWIFT"], "action": "search", "search_terms": ["compliance", "evidence", "environme ... (5 characters truncated) ... "SWIFT", "CSP", "CSCF", "v2026"], "summary": "User requests compliance evidence related to SWIFT CSP under CSCF version 2026 for their environment."}', 0, 5, '2026-01-14 07:14:08.358599')
+2026-01-14 07:14:08,360 INFO sqlalchemy.engine.Engine COMMIT
+📋 Merging explicit evidence: 0 logs, 0 documents
+INFO:     49.43.216.151:52375 - "POST /api/v1/assurance/generate-pack HTTP/1.1" 500 Internal Server Error
+🚀 Starting pack generation: query='Compliance evidence for your environment - SWIFT CSP (CSCF v2026)', control_id=None
+🔍 Querying evidence for time range: 2025-10-14 00:00:00 to 2026-01-14 23:59:59
+✅ Cache hit for query parsing: Compliance evidence for your environment - SWIFT C...
+2026-01-14 07:14:35,419 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:35,420 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs 
+WHERE raw_logs.ingested_at >= ? AND raw_logs.ingested_at <= ? AND raw_logs.source IN (?) AND (lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?))
+ LIMIT ? OFFSET ?
+2026-01-14 07:14:35,420 INFO sqlalchemy.engine.Engine [cached since 593.8s ago] ('2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', 'SWIFT', '%compliance%', '%evidence%', '%environment%', '%SWIFT%', '%CSP%', 100, 0)
+2026-01-14 07:14:35,422 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents 
+WHERE raw_documents.ingested_at >= ? AND raw_documents.ingested_at <= ? AND (lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?))
+ LIMIT ? OFFSET ?
+2026-01-14 07:14:35,422 INFO sqlalchemy.engine.Engine [cached since 593.8s ago] ('2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', '%compliance%', '%evidence%', '%environment%', '%SWIFT%', '%CSP%', 50, 0)
+2026-01-14 07:14:35,424 INFO sqlalchemy.engine.Engine INSERT INTO telescope_queries ("query", interpreted_intent, results_count, execution_time_ms, created_at) VALUES (?, ?, ?, ?, ?)
+2026-01-14 07:14:35,424 INFO sqlalchemy.engine.Engine [cached since 593.8s ago] ('Compliance evidence for your environment - SWIFT CSP (CSCF v2026)', '{"control_keywords": [], "time_keywords": [], "source_keywords": ["SWIFT"], "action": "search", "search_terms": ["compliance", "evidence", "environme ... (5 characters truncated) ... "SWIFT", "CSP", "CSCF", "v2026"], "summary": "User requests compliance evidence related to SWIFT CSP under CSCF version 2026 for their environment."}', 0, 6, '2026-01-14 07:14:35.423799')
+2026-01-14 07:14:35,425 INFO sqlalchemy.engine.Engine COMMIT
+📋 Merging explicit evidence: 12 logs, 14 documents
+✅ Found 26 evidence items to include in pack
+📦 Creating pack: PACK-20260114-071435
+📁 Copying evidence files...
+2026-01-14 07:14:35,475 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:35,476 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs 
+WHERE raw_logs.id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:14:35,476 INFO sqlalchemy.engine.Engine [cached since 593.3s ago] (5, 8, 11, 14, 15, 17, 21, 22, 25, 27, 29, 30)
+📦 Batch fetched 2 logs from 12 requested
+2026-01-14 07:14:35,477 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents 
+WHERE raw_documents.id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:14:35,477 INFO sqlalchemy.engine.Engine [cached since 593.3s ago] (6, 7, 12, 13, 16, 19, 20, 23, 24, 26, 28, 31, 32, 33)
+📦 Batch fetched 0 documents from 14 requested
+✅ Copied log 5: splunk_siem_evidence_1768323935171.log (276 bytes)
+✅ Copied log 8: vulnerability_management_evidence_1768372405628.log (315 bytes)
+⚠️  24 files failed to copy:
+   - log 11: not_found_in_database
+   - log 14: not_found_in_database
+   - log 15: not_found_in_database
+   - log 17: not_found_in_database
+   - log 21: not_found_in_database
+   ... and 19 more
+📦 Creating ZIP archive: /root/sai/SentraIQ-main/SentraIQ-main/storage/assurance_packs/PACK-20260114-071435.zip
+🔐 Calculating pack hash...
+   Used content-based hash (size: 0.01 MB)
+📄 Generating PDF report...
+📦 Adding PDF report to pack ZIP...
+✅ PDF report added to pack ZIP
+🧹 Cleaned up temporary directory
+💾 Saving pack to database...
+2026-01-14 07:14:35,614 INFO sqlalchemy.engine.Engine INSERT INTO assurance_packs (pack_id, control_id, "query", time_range_start, time_range_end, evidence_count, pack_hash, file_path, created_at, meta_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:14:35,614 INFO sqlalchemy.engine.Engine [cached since 593.2s ago] ('PACK-20260114-071435', None, 'Compliance evidence for your environment - SWIFT CSP (CSCF v2026)', '2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', 2, '75021c69ed240e67a12b1e287b9e596fa0c5f3b3a33bd1b0d95cadde8f00da1a', '/root/sai/SentraIQ-main/SentraIQ-main/storage/assurance_packs/PACK-20260114-071435.zip', '2026-01-14 07:14:35.612372', '{"pack_id": "PACK-20260114-071435", "control_id": null, "query": "Compliance evidence for your environment - SWIFT CSP (CSCF v2026)", "time_range": { ... (58904 characters truncated) ... 768372405628.log"}], "pack_hash": "75021c69ed240e67a12b1e287b9e596fa0c5f3b3a33bd1b0d95cadde8f00da1a", "pack_size_bytes": 17482, "pack_size_mb": 0.02}')
+2026-01-14 07:14:35,616 INFO sqlalchemy.engine.Engine COMMIT
+2026-01-14 07:14:35,666 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:35,666 INFO sqlalchemy.engine.Engine SELECT assurance_packs.id, assurance_packs.pack_id, assurance_packs.control_id, assurance_packs."query", assurance_packs.time_range_start, assurance_packs.time_range_end, assurance_packs.evidence_count, assurance_packs.pack_hash, assurance_packs.file_path, assurance_packs.created_at, assurance_packs.meta_data 
+FROM assurance_packs 
+WHERE assurance_packs.id = ?
+2026-01-14 07:14:35,666 INFO sqlalchemy.engine.Engine [cached since 593.2s ago] (49,)
+✅ Pack saved successfully: PACK-20260114-071435
+2026-01-14 07:14:35,668 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:31009 - "POST /api/v1/assurance/generate-pack HTTP/1.1" 200 OK
+INFO:     49.43.216.151:31009 - "OPTIONS /api/v1/assurance/swift/excel-report HTTP/1.1" 200 OK
+2026-01-14 07:14:35,801 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:14:35,801 INFO sqlalchemy.engine.Engine SELECT assurance_packs.id, assurance_packs.pack_id, assurance_packs.control_id, assurance_packs."query", assurance_packs.time_range_start, assurance_packs.time_range_end, assurance_packs.evidence_count, assurance_packs.pack_hash, assurance_packs.file_path, assurance_packs.created_at, assurance_packs.meta_data 
+FROM assurance_packs 
+WHERE assurance_packs.pack_id = ?
+2026-01-14 07:14:35,801 INFO sqlalchemy.engine.Engine [cached since 593.2s ago] ('PACK-20260114-071435',)
+2026-01-14 07:14:35,915 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:31009 - "POST /api/v1/assurance/swift/excel-report HTTP/1.1" 500 Internal Server Error
+INFO:     49.43.216.151:53042 - "GET /api/v1/assurance/report/PACK-20260114-071435?format=pdf HTTP/1.1" 200 OK
+INFO:     Started server process [2531491]
+INFO:     Waiting for application startup.
+2026-01-14 07:17:35,081 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:17:35,081 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("raw_logs")
+2026-01-14 07:17:35,081 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:17:35,083 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("raw_documents")
+2026-01-14 07:17:35,083 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:17:35,084 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("evidence_objects")
+2026-01-14 07:17:35,084 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:17:35,085 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("assurance_packs")
+2026-01-14 07:17:35,085 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:17:35,085 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("telescope_queries")
+2026-01-14 07:17:35,085 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-01-14 07:17:35,086 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+✅ Database initialized
+INFO:     49.43.216.151:30962 - "GET /api/v1/assurance/swift/architecture-types HTTP/1.1" 200 OK
+INFO:     49.43.216.151:55168 - "GET /api/v1/assurance/regulatory-updates/check HTTP/1.1" 200 OK
+2026-01-14 07:17:53,434 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:17:53,443 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:17:53,443 INFO sqlalchemy.engine.Engine [generated in 0.00030s] (100, 0)
+2026-01-14 07:17:53,446 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:41697 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+INFO:     49.43.216.151:30962 - "GET /api/v1/assurance/swift/control-applicability-matrix HTTP/1.1" 200 OK
+2026-01-14 07:17:53,536 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:17:53,536 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:17:53,536 INFO sqlalchemy.engine.Engine [cached since 0.0934s ago] (100, 0)
+2026-01-14 07:17:53,538 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:41697 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+2026-01-14 07:17:53,546 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:17:53,548 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:17:53,548 INFO sqlalchemy.engine.Engine [generated in 0.00033s] (100, 0)
+2026-01-14 07:17:53,549 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:55168 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+2026-01-14 07:17:53,626 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:17:53,626 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:17:53,627 INFO sqlalchemy.engine.Engine [cached since 0.07886s ago] (100, 0)
+2026-01-14 07:17:53,628 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:41697 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+INFO:     49.43.216.151:41697 - "GET /api/v1/assurance/regulatory-updates/check HTTP/1.1" 200 OK
+2026-01-14 07:18:00,590 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:18:00,590 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:18:00,591 INFO sqlalchemy.engine.Engine [cached since 7.148s ago] (100, 0)
+2026-01-14 07:18:00,593 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:41697 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+2026-01-14 07:18:00,639 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:18:00,639 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:18:00,640 INFO sqlalchemy.engine.Engine [cached since 7.092s ago] (100, 0)
+2026-01-14 07:18:00,641 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:43807 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+2026-01-14 07:18:00,652 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:18:00,652 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs ORDER BY raw_logs.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:18:00,652 INFO sqlalchemy.engine.Engine [cached since 7.21s ago] (100, 0)
+2026-01-14 07:18:00,655 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:41697 - "GET /api/v1/ingest/logs HTTP/1.1" 200 OK
+2026-01-14 07:18:00,696 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:18:00,696 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents ORDER BY raw_documents.ingested_at DESC
+ LIMIT ? OFFSET ?
+2026-01-14 07:18:00,696 INFO sqlalchemy.engine.Engine [cached since 7.149s ago] (100, 0)
+2026-01-14 07:18:00,698 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:43807 - "GET /api/v1/ingest/documents HTTP/1.1" 200 OK
+INFO:     49.43.216.151:12824 - "OPTIONS /api/v1/assurance/generate-pack HTTP/1.1" 200 OK
+🚀 Starting pack generation: query='Compliance evidence for your environment - SWIFT CSP (CSCF v2025)', control_id=None
+🔍 Querying evidence for time range: 2025-10-14 00:00:00 to 2026-01-14 23:59:59
+🔄 Cache miss - calling OpenAI for query parsing: Compliance evidence for your environment - SWIFT C...
+💾 Cached query parsing result for: Compliance evidence for your environment - SWIFT C...
+2026-01-14 07:18:23,516 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:18:23,520 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs 
+WHERE raw_logs.ingested_at >= ? AND raw_logs.ingested_at <= ? AND raw_logs.source IN (?) AND (lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?) OR lower(raw_logs.content) LIKE lower(?))
+ LIMIT ? OFFSET ?
+2026-01-14 07:18:23,520 INFO sqlalchemy.engine.Engine [generated in 0.00046s] ('2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', 'SWIFT', '%compliance%', '%evidence%', '%environment%', '%SWIFT%', '%CSP%', 100, 0)
+2026-01-14 07:18:23,523 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents 
+WHERE raw_documents.ingested_at >= ? AND raw_documents.ingested_at <= ? AND (lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?) OR lower(raw_documents.extracted_text) LIKE lower(?))
+ LIMIT ? OFFSET ?
+2026-01-14 07:18:23,523 INFO sqlalchemy.engine.Engine [generated in 0.00029s] ('2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', '%compliance%', '%evidence%', '%environment%', '%SWIFT%', '%CSP%', 50, 0)
+2026-01-14 07:18:23,526 INFO sqlalchemy.engine.Engine INSERT INTO telescope_queries ("query", interpreted_intent, results_count, execution_time_ms, created_at) VALUES (?, ?, ?, ?, ?)
+2026-01-14 07:18:23,526 INFO sqlalchemy.engine.Engine [generated in 0.00023s] ('Compliance evidence for your environment - SWIFT CSP (CSCF v2025)', '{"control_keywords": [], "time_keywords": [], "source_keywords": ["SWIFT"], "action": "generate_pack", "search_terms": ["compliance", "evidence", "en ... (2 characters truncated) ... ronment", "SWIFT", "CSP", "CSCF", "v2025"], "summary": "Generate compliance evidence pack for the SWIFT CSP environment based on CSCF version 2025."}', 0, 2485, '2026-01-14 07:18:23.524579')
+2026-01-14 07:18:23,527 INFO sqlalchemy.engine.Engine COMMIT
+📋 Merging explicit evidence: 12 logs, 14 documents
+✅ Found 26 evidence items to include in pack
+📦 Creating pack: PACK-20260114-071823
+📁 Copying evidence files...
+2026-01-14 07:18:23,576 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:18:23,577 INFO sqlalchemy.engine.Engine SELECT raw_logs.id, raw_logs.hash, raw_logs.source, raw_logs.filename, raw_logs.file_path, raw_logs.content, raw_logs.size_bytes, raw_logs.description, raw_logs.ingested_at, raw_logs.meta_data 
+FROM raw_logs 
+WHERE raw_logs.id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:18:23,577 INFO sqlalchemy.engine.Engine [generated in 0.00031s] (5, 8, 11, 14, 15, 17, 21, 22, 25, 27, 29, 30)
+📦 Batch fetched 2 logs from 12 requested
+2026-01-14 07:18:23,579 INFO sqlalchemy.engine.Engine SELECT raw_documents.id, raw_documents.hash, raw_documents.doc_type, raw_documents.filename, raw_documents.file_path, raw_documents.size_bytes, raw_documents.extracted_text, raw_documents.description, raw_documents.ingested_at, raw_documents.meta_data 
+FROM raw_documents 
+WHERE raw_documents.id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:18:23,579 INFO sqlalchemy.engine.Engine [generated in 0.00023s] (6, 7, 12, 13, 16, 19, 20, 23, 24, 26, 28, 31, 32, 33)
+📦 Batch fetched 0 documents from 14 requested
+✅ Copied log 5: splunk_siem_evidence_1768323935171.log (276 bytes)
+✅ Copied log 8: vulnerability_management_evidence_1768372405628.log (315 bytes)
+⚠️  24 files failed to copy:
+   - log 11: not_found_in_database
+   - log 14: not_found_in_database
+   - log 15: not_found_in_database
+   - log 17: not_found_in_database
+   - log 21: not_found_in_database
+   ... and 19 more
+📦 Creating ZIP archive: /root/sai/SentraIQ-main/SentraIQ-main/storage/assurance_packs/PACK-20260114-071823.zip
+🔐 Calculating pack hash...
+   Used content-based hash (size: 0.01 MB)
+📄 Generating PDF report...
+📦 Adding PDF report to pack ZIP...
+✅ PDF report added to pack ZIP
+🧹 Cleaned up temporary directory
+💾 Saving pack to database...
+2026-01-14 07:18:23,828 INFO sqlalchemy.engine.Engine INSERT INTO assurance_packs (pack_id, control_id, "query", time_range_start, time_range_end, evidence_count, pack_hash, file_path, created_at, meta_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-01-14 07:18:23,828 INFO sqlalchemy.engine.Engine [generated in 0.00107s] ('PACK-20260114-071823', None, 'Compliance evidence for your environment - SWIFT CSP (CSCF v2025)', '2025-10-14 00:00:00.000000', '2026-01-14 23:59:59.000000', 2, '960a9cff713b84c17047c574f42c74a2b1fdfd4b0cd6838031119dfb43a0b869', '/root/sai/SentraIQ-main/SentraIQ-main/storage/assurance_packs/PACK-20260114-071823.zip', '2026-01-14 07:18:23.825637', '{"pack_id": "PACK-20260114-071823", "control_id": null, "query": "Compliance evidence for your environment - SWIFT CSP (CSCF v2025)", "time_range": { ... (58904 characters truncated) ... 768372405628.log"}], "pack_hash": "960a9cff713b84c17047c574f42c74a2b1fdfd4b0cd6838031119dfb43a0b869", "pack_size_bytes": 17473, "pack_size_mb": 0.02}')
+2026-01-14 07:18:23,830 INFO sqlalchemy.engine.Engine COMMIT
+2026-01-14 07:18:23,896 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:18:23,898 INFO sqlalchemy.engine.Engine SELECT assurance_packs.id, assurance_packs.pack_id, assurance_packs.control_id, assurance_packs."query", assurance_packs.time_range_start, assurance_packs.time_range_end, assurance_packs.evidence_count, assurance_packs.pack_hash, assurance_packs.file_path, assurance_packs.created_at, assurance_packs.meta_data 
+FROM assurance_packs 
+WHERE assurance_packs.id = ?
+2026-01-14 07:18:23,898 INFO sqlalchemy.engine.Engine [generated in 0.00021s] (50,)
+✅ Pack saved successfully: PACK-20260114-071823
+2026-01-14 07:18:23,900 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:12824 - "POST /api/v1/assurance/generate-pack HTTP/1.1" 200 OK
+INFO:     49.43.216.151:12824 - "POST /api/v1/assurance/swift/excel-report HTTP/1.1" 200 OK
+2026-01-14 07:18:25,843 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-14 07:18:25,844 INFO sqlalchemy.engine.Engine SELECT assurance_packs.id, assurance_packs.pack_id, assurance_packs.control_id, assurance_packs."query", assurance_packs.time_range_start, assurance_packs.time_range_end, assurance_packs.evidence_count, assurance_packs.pack_hash, assurance_packs.file_path, assurance_packs.created_at, assurance_packs.meta_data 
+FROM assurance_packs 
+WHERE assurance_packs.pack_id = ?
+2026-01-14 07:18:25,844 INFO sqlalchemy.engine.Engine [generated in 0.00021s] ('PACK-20260114-071823',)
+2026-01-14 07:18:25,956 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     49.43.216.151:24770 - "GET /api/v1/assurance/report/PACK-20260114-071823?format=pdf HTTP/1.1" 200 OK
+INFO:     89.42.231.186:44956 - "GET / HTTP/1.1" 200 OK

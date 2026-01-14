@@ -552,4 +552,34 @@ export const api = {
       throw new Error(error.response?.data?.detail || 'Failed to fetch control applicability matrix');
     }
   },
+
+  downloadSwiftExcelReport: async (
+    swiftArchitectureType: string | null,
+    controlStatuses: {
+      control_id: string;
+      status: 'in-place' | 'not-in-place' | 'not-applicable';
+      advisory?: boolean;
+      answer_summary?: string;
+    }[]
+  ): Promise<Blob> => {
+    try {
+      const payload = {
+        swift_architecture_type: swiftArchitectureType,
+        control_statuses: controlStatuses,
+      };
+
+      const response = await axios.post(
+        `${API_BASE}/assurance/swift/excel-report`,
+        payload,
+        {
+          responseType: 'blob',
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Error generating SWIFT Excel report:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to generate SWIFT Excel report');
+    }
+  },
 };

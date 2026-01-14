@@ -87,27 +87,33 @@ echo "   Logs: $PROJECT_ROOT/backend.log"
 echo "   API: http://localhost:$BACKEND_PORT"
 echo "   Docs: http://localhost:$BACKEND_PORT/docs"
 
-# Start Frontend
+# Start Frontend via PM2
 echo ""
-echo "🚀 Starting Frontend on port $FRONTEND_PORT..."
-cd "$PROJECT_ROOT/frontend/sentraiq-dashboard"
-
-# Check if node_modules exists
-if [ ! -d "node_modules" ]; then
-    echo "⚠️  Warning: node_modules not found. Run 'npm install' first."
-fi
+echo "🚀 Starting Frontend with pm2 (process: sentraiq-frontend)..."
 
 # Ensure .env.local exists with correct API URL
+cd "$PROJECT_ROOT/frontend/sentraiq-dashboard"
 if [ ! -f ".env.local" ]; then
     echo "📝 Creating .env.local..."
     echo "VITE_API_URL=http://49.50.99.89:$BACKEND_PORT" > .env.local
 fi
 
-# Start frontend in background
-nohup npm run dev -- --host 0.0.0.0 --port $FRONTEND_PORT > frontend.log 2>&1 &
-FRONTEND_PID=$!
-echo "✅ Frontend started (PID: $FRONTEND_PID)"
-echo "   Logs: $PROJECT_ROOT/frontend/sentraiq-dashboard/frontend.log"
+# Use pm2 to manage the frontend
+if ! command -v pm2 > /dev/null 2>&1; then
+    echo "❌ pm2 is not installed or not in PATH"
+    exit 1
+fi
+
+# Restart existing process or start it if not already running
+if pm2 describe sentraiq-frontend > /dev/null 2>&1; then
+    cd /root/sai/SentraIQ-main/SentraIQ-main/frontend/sentraiq-dashboard && pm2 restart sentraiq-frontend
+else
+    cd /root/sai/SentraIQ-main/SentraIQ-main/frontend/sentraiq-dashboard && pm2 start ecosystem.config.cjs --only sentraiq-frontend
+fi
+
+echo "✅ Frontend started under pm2 (process: sentraiq-frontend)"
+echo "   Use: pm2 status sentraiq-frontend"
+echo "   Logs: pm2 logs sentraiq-frontend"
 echo "   Dashboard: http://localhost:$FRONTEND_PORT"
 
 # Summary
@@ -117,7 +123,7 @@ echo "✅ SentraIQ services restarted successfully!"
 echo ""
 echo "📊 Service Status:"
 echo "   Backend PID:  $BACKEND_PID (port $BACKEND_PORT)"
-echo "   Frontend PID: $FRONTEND_PID (port $FRONTEND_PORT)"
+echo "   Frontend:     pm2 process 'sentraiq-frontend' (port $FRONTEND_PORT)"
 echo ""
 echo "🔗 URLs:"
 echo "   API:       http://localhost:$BACKEND_PORT"
@@ -129,6 +135,7 @@ echo "   Backend:  tail -f $PROJECT_ROOT/backend.log"
 echo "   Frontend: tail -f $PROJECT_ROOT/frontend/sentraiq-dashboard/frontend.log"
 echo ""
 echo "🛑 To stop services:"
-echo "   kill $BACKEND_PID $FRONTEND_PID"
+echo "   kill $BACKEND_PID"
+echo "   pm2 stop sentraiq-frontend"
 echo "   or run: fuser -k $BACKEND_PORT/tcp $FRONTEND_PORT/tcp"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
