@@ -19,7 +19,11 @@ from openpyxl import load_workbook  # type: ignore[import-untyped]
 from openpyxl.cell.cell import MergedCell
 
 from backend.config import settings
-from backend.models.schemas import SwiftExcelReportRequest, SwiftControlStatus
+from backend.models.schemas import (
+    SwiftExcelReportRequest,
+    SwiftControlStatus,
+    SwiftUserBackgroundData,
+)
 
 
 TEMPLATE_FILENAME = "CSCF_Assessment_Template_for_Mandatory_Controls_v2025_2.0.xlsx"
@@ -59,6 +63,92 @@ def _find_guideline_row(ws) -> Optional[int]:
     return None
 
 
+def _populate_user_background_sheet(
+    wb, user_background: Optional[SwiftUserBackgroundData]
+) -> None:
+    """
+    Locate the 'User Background Data Sheet' worksheet (by header text) and
+    populate the key cells with values from the request.
+
+    The implementation is resilient to minor layout changes by:
+    - Searching for the sheet that contains the title 'USER BACKGROUND DATA SHEET'
+    - Matching left-hand labels in column A to known keys and writing into column B
+    """
+    if not user_background:
+        return
+
+    header_text = "USER BACKGROUND DATA SHEET"
+    target_ws = None
+
+    # Try to find the worksheet that contains the header text in the first few rows
+    for ws in wb.worksheets:
+        try:
+            for row in ws.iter_rows(min_row=1, max_row=5, max_col=5):
+                for cell in row:
+                    if isinstance(cell.value, str) and header_text.lower() in cell.value.lower():
+                        target_ws = ws
+                        break
+                if target_ws:
+                    break
+        except Exception:
+            # If anything goes wrong scanning this sheet, skip it – we don't want to
+            # fail the whole Excel generation just because of one worksheet.
+            continue
+        if target_ws:
+            break
+
+    if not target_ws:
+        logging.warning(
+            "Could not locate 'User Background Data Sheet' worksheet in CSCF template"
+        )
+        return
+
+    # Map the visible label text in column A to attributes on SwiftUserBackgroundData
+    label_to_attr: Dict[str, str] = {
+        "Customer Name": "customer_name",
+        "BIC": "bic",
+        "Architecture Type": "architecture_type",
+        "Assessment Start Date": "assessment_start_date",
+        "Assessment End Date": "assessment_end_date",
+        "CSCF Version": "cscf_version",
+        "Assessor Firm": "assessor_firm",
+        "Lead Assessor Name": "lead_assessor_name",
+        "Lead Assessor Title": "lead_assessor_title",
+        "Assessor Name(s)": "assessor_names",
+    }
+
+    # Iterate down column A, and when we see a recognised label, set the value in column B
+    for row in target_ws.iter_rows(min_row=1, max_col=2):
+        label_cell = row[0]
+        value_cell = row[1] if len(row) > 1 else None
+
+        if not isinstance(label_cell.value, str):
+            continue
+
+        label = label_cell.value.strip()
+        attr_name = label_to_attr.get(label)
+        if not attr_name or value_cell is None:
+            continue
+
+        try:
+            value = getattr(user_background, attr_name, None)
+        except Exception:
+            value = None
+
+        if value is None:
+            continue
+
+        previous = value_cell.value
+        value_cell.value = value
+        logging.debug(
+            "Updated User Background sheet cell %s%d from %r to %r",
+            value_cell.column_letter,
+            value_cell.row,
+            previous,
+            value,
+        )
+
+
 def generate_cscf_excel(request: SwiftExcelReportRequest) -> BytesIO:
     """
     Generate an Excel workbook for a SWIFT CSCF assessment.
@@ -79,6 +169,18 @@ def generate_cscf_excel(request: SwiftExcelReportRequest) -> BytesIO:
     # Load workbook - use default settings to preserve structure and data validation
     # data_only=False preserves formulas, which is important for the template structure
     wb = load_workbook(filename=str(template_path), keep_vba=False)
+
+    # First, try to populate the User Background Data Sheet, if the caller
+    # provided any user background information.
+    try:
+        # If architecture_type is not explicitly set in user_background, default
+        # to the swift_architecture_type from the request (if available).
+        user_bg = request.user_background
+        if user_bg and not user_bg.architecture_type and request.swift_architecture_type:
+            user_bg.architecture_type = request.swift_architecture_type
+        _populate_user_background_sheet(wb, user_bg)
+    except Exception as e:
+        logging.warning(f"Failed to populate User Background Data Sheet: {e}")
 
     # Map internal status to Excel dropdown values
     status_to_excel_value: Dict[str, str] = {

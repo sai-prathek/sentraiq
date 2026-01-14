@@ -251,6 +251,20 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   const [controlApplicabilityMatrix, setControlApplicabilityMatrix] = useState<any>(null);
   const [swiftExcelUrl, setSwiftExcelUrl] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const todayIso = new Date().toISOString().split('T')[0];
+
+  // User background data for SWIFT Excel "User Background Data Sheet"
+  const [userBackground, setUserBackground] = useState({
+    customer_name: 'Infosek K2K UK',
+    bic: 'INFOSK2K',
+    cscf_version: '2025',
+    assessment_start_date: todayIso,
+    assessment_end_date: todayIso,
+    assessor_firm: 'SentraIQ Advisory',
+    lead_assessor_name: 'Rashpal Bhamra',
+    lead_assessor_title: 'Principal Consultant',
+    assessor_names: 'Rashpal Bhamra',
+  });
   
   // Track evidence count when entering Step 4 (to distinguish assessment vs enhanced evidence)
   const [evidenceCountBeforeEnhance, setEvidenceCountBeforeEnhance] = useState<number>(0);
@@ -259,6 +273,16 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   const [query, setQuery] = useState('');
   const [controlId, setControlId] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+  // Keep assessment start/end dates in sync with the evidence time range so the
+  // user only has to choose dates once in the form.
+  useEffect(() => {
+    setUserBackground((prev) => ({
+      ...prev,
+      assessment_start_date: dateRange.start || prev.assessment_start_date,
+      assessment_end_date: dateRange.end || prev.assessment_end_date,
+    }));
+  }, [dateRange.start, dateRange.end]);
 
   // Reset function
   const resetFlow = React.useCallback(() => {
@@ -687,6 +711,10 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
             swiftArchitectureType,
             controlStatuses,
             sessionId,
+            {
+              ...userBackground,
+              architecture_type: swiftArchitectureType,
+            },
           );
           const url = window.URL.createObjectURL(excelBlob);
           setSwiftExcelUrl(url);
@@ -1322,6 +1350,128 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
 
                 {/* Pack Generation Form */}
                 <div className="space-y-6">
+                  {/* User Background Data for SWIFT Excel */}
+                  {isSwiftSelected && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                      <h3 className="font-semibold text-gray-900 mb-4">
+                        User Background (for SWIFT CSCF Excel)
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            Customer Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={userBackground.customer_name}
+                            onChange={(e) =>
+                              setUserBackground((prev) => ({
+                                ...prev,
+                                customer_name: e.target.value,
+                              }))
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            BIC <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={userBackground.bic}
+                            onChange={(e) =>
+                              setUserBackground((prev) => ({
+                                ...prev,
+                                bic: e.target.value,
+                              }))
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            CSCF Version
+                          </label>
+                          <input
+                            type="text"
+                            value={userBackground.cscf_version}
+                            onChange={(e) =>
+                              setUserBackground((prev) => ({
+                                ...prev,
+                                cscf_version: e.target.value,
+                              }))
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            Assessor Firm
+                          </label>
+                          <input
+                            type="text"
+                            value={userBackground.assessor_firm}
+                            onChange={(e) =>
+                              setUserBackground((prev) => ({
+                                ...prev,
+                                assessor_firm: e.target.value,
+                              }))
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            Lead Assessor Name
+                          </label>
+                          <input
+                            type="text"
+                            value={userBackground.lead_assessor_name}
+                            onChange={(e) =>
+                              setUserBackground((prev) => ({
+                                ...prev,
+                                lead_assessor_name: e.target.value,
+                              }))
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            Lead Assessor Title
+                          </label>
+                          <input
+                            type="text"
+                            value={userBackground.lead_assessor_title}
+                            onChange={(e) =>
+                              setUserBackground((prev) => ({
+                                ...prev,
+                                lead_assessor_title: e.target.value,
+                              }))
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            Assessor Name(s)
+                          </label>
+                          <input
+                            type="text"
+                            value={userBackground.assessor_names}
+                            onChange={(e) =>
+                              setUserBackground((prev) => ({
+                                ...prev,
+                                assessor_names: e.target.value,
+                              }))
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
                       Evidence Requirement
@@ -1424,6 +1574,10 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                                 swiftArchitectureType,
                                 controlStatuses,
                                 sessionId,
+                                {
+                                  ...userBackground,
+                                  architecture_type: swiftArchitectureType,
+                                },
                               );
                               url = window.URL.createObjectURL(excelBlob);
                               setSwiftExcelUrl(url);

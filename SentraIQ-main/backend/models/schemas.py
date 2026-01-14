@@ -136,12 +136,36 @@ class SwiftControlStatus(BaseModel):
     answer_summary: Optional[str] = None
 
 
+class SwiftUserBackgroundData(BaseModel):
+    """
+    User background fields written into the 'User Background Data Sheet'
+    worksheet of the CSCF Excel template.
+
+    All fields are optional to keep the API backwards-compatible. When not
+    provided, the corresponding cells in the template are left unchanged.
+    """
+
+    customer_name: Optional[str] = None
+    bic: Optional[str] = None
+    cscf_version: Optional[str] = None
+    assessment_start_date: Optional[str] = None
+    assessment_end_date: Optional[str] = None
+    assessor_firm: Optional[str] = None
+    lead_assessor_name: Optional[str] = None
+    lead_assessor_title: Optional[str] = None
+    assessor_names: Optional[str] = None
+    # This is typically the SWIFT architecture type (A1, A2, A3, A4, B)
+    architecture_type: Optional[str] = None
+
+
 class SwiftExcelReportRequest(BaseModel):
     """Request to generate a SWIFT CSCF Excel report based on control status"""
     swift_architecture_type: Optional[str] = None
     control_statuses: List[SwiftControlStatus]
     # Optional assessment session identifier so the generated Excel can be tracked per session
     session_id: Optional[int] = None
+    # Optional user background data for the User Background Data Sheet
+    user_background: Optional[SwiftUserBackgroundData] = None
 
 
 # Assessment Session Schemas

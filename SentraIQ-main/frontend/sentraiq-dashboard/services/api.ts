@@ -611,14 +611,34 @@ export const api = {
       advisory?: boolean;
       answer_summary?: string;
     }[],
-    sessionId?: number | null
+    sessionId?: number | null,
+    userBackground?: {
+      customer_name?: string;
+      bic?: string;
+      cscf_version?: string;
+      assessment_start_date?: string;
+      assessment_end_date?: string;
+      assessor_firm?: string;
+      lead_assessor_name?: string;
+      lead_assessor_title?: string;
+      assessor_names?: string;
+      architecture_type?: string | null;
+    }
   ): Promise<Blob> => {
     try {
-      const payload = {
+      const payload: any = {
         swift_architecture_type: swiftArchitectureType,
         control_statuses: controlStatuses,
         session_id: sessionId ?? undefined,
       };
+
+      if (userBackground) {
+        payload.user_background = {
+          ...userBackground,
+          // If architecture_type is not explicitly set, fall back to the SWIFT architecture type
+          architecture_type: userBackground.architecture_type ?? swiftArchitectureType ?? undefined,
+        };
+      }
 
       const response = await axios.post(
         `${API_BASE}/assurance/swift/excel-report`,
