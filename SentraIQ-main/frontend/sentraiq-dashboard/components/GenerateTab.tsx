@@ -176,10 +176,49 @@ const buildSwiftControlStatusPayload = (
     const no = controlQuestions.filter((q) => q.answer === 'no').length;
     const partial = controlQuestions.filter((q) => q.answer === 'partial').length;
 
-    const summary =
+    const baseSummary =
       controlQuestions.length === 0
         ? 'No assessment answers captured for this control.'
-        : `Answers – Yes: ${yes}, Partial: ${partial}, No: ${no}. Overall status: ${c.status.replace('-', ' ')}`;
+        : `Answers – Yes: ${yes}, Partial: ${partial}, No: ${no}. Overall status: ${c.status.replace('-', ' ')}.`;
+
+    // Build reasoning and evidence details from assessment answers
+    const reasons: string[] = [];
+    const evidenceFilenames = new Set<string>();
+
+    controlQuestions.forEach((q) => {
+      if (q.reason) {
+        reasons.push(`Q ${q.questionId}: ${q.reason}`);
+      } else if (q.notes) {
+        reasons.push(`Q ${q.questionId}: ${q.notes}`);
+      }
+
+      if (Array.isArray(q.evidence)) {
+        q.evidence.forEach((e) => {
+          if (e?.filename) {
+            evidenceFilenames.add(e.filename);
+          }
+        });
+      }
+    });
+
+    let summary = baseSummary;
+
+    if (reasons.length > 0) {
+      if (c.status === 'in-place') {
+        // For Yes controls, include reason and evidences as justification
+        summary += `\nReasoning for Yes: ${reasons.join(' | ')}`;
+      } else if (c.status === 'not-in-place') {
+        // For No controls, include only the reasons (no explicit evidence list label)
+        summary += `\nReason: ${reasons.join(' | ')}`;
+      } else {
+        // For N/A or other statuses, still include generic reasons if present
+        summary += `\nReason: ${reasons.join(' | ')}`;
+      }
+    }
+
+    if (c.status === 'in-place' && evidenceFilenames.size > 0) {
+      summary += `\nEvidence used: ${Array.from(evidenceFilenames).join('; ')}`;
+    }
 
     return {
       control_id: c.control_id,

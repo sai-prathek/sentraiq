@@ -147,6 +147,36 @@ def generate_cscf_excel(request: SwiftExcelReportRequest) -> BytesIO:
             original_value = cell.value
             cell.value = excel_value
 
+            # Also write reasoning / evidence summary (if provided) into the
+            # merged cell directly under the question.
+            #
+            # Layout (per your description and template):
+            # - Question text: merged cells B{target_row}:C{target_row}
+            # - Yes/No dropdown: D{target_row}
+            # - Reasoning cell: merged cells B{target_row+1}:D{target_row+1}
+            #
+            # We only need to write to the top-left cell of the merged region,
+            # which is B{target_row+1}.
+            if control.answer_summary:
+                reason_row = target_row + 1
+                reason_cell_ref = f"B{reason_row}"
+                try:
+                    reason_cell = ws[reason_cell_ref]
+                    # Even if this is part of a merged range, openpyxl treats
+                    # the top-left cell as a normal writable Cell.
+                    prev_reason_value = reason_cell.value
+                    reason_cell.value = control.answer_summary
+
+                    logging.debug(
+                        f"Updated {sheet_name}!{reason_cell_ref} from "
+                        f"{prev_reason_value!r} to {control.answer_summary!r}"
+                    )
+                except Exception as reason_err:
+                    logging.warning(
+                        f"Failed to write reasoning for control {control.control_id} "
+                        f"in sheet {sheet_name} at {reason_cell_ref}: {reason_err}"
+                    )
+
             # Optional debug logging
             logging.debug(
                 f"Updated {sheet_name}!{target_cell_ref} from {original_value!r} to {excel_value!r}"
