@@ -168,6 +168,40 @@ class SwiftExcelReportRequest(BaseModel):
     user_background: Optional[SwiftUserBackgroundData] = None
 
 
+class TimelineEvent(BaseModel):
+    """Single event in a control timeline (status or evidence activity)."""
+
+    event_type: Literal[
+        "status_change", "evidence_added", "evidence_removed", "assessment_milestone"
+    ]
+    control_id: str
+    control_name: str
+    timestamp: datetime
+
+    # Status transition details (for status_change events)
+    status_before: Optional[str] = None
+    status_after: Optional[str] = None
+
+    # Evidence context (for evidence_* events)
+    evidence_id: Optional[int] = None
+    evidence_filename: Optional[str] = None
+
+    # Assessment context (for milestones)
+    assessment_session_id: Optional[int] = None
+
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class ControlTimelineResponse(BaseModel):
+    """Response payload for control timeline queries."""
+
+    control_id: Optional[str]
+    time_range_start: datetime
+    time_range_end: datetime
+    events: List[TimelineEvent]
+    summary: Dict[str, Any]
+
+
 # Assessment Session Schemas
 
 

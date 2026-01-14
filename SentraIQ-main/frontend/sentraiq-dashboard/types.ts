@@ -76,6 +76,33 @@ export interface AssessmentSessionHistoryItem {
   updated_at: string;
 }
 
+export interface TimelineEvent {
+  event_type: 'status_change' | 'evidence_added' | 'evidence_removed' | 'assessment_milestone';
+  control_id: string;
+  control_name: string;
+  timestamp: string;
+  status_before?: string | null;
+  status_after?: string | null;
+  evidence_id?: number | null;
+  evidence_filename?: string | null;
+  assessment_session_id?: number | null;
+  metadata?: any;
+}
+
+export interface ControlTimelineResponse {
+  control_id?: string | null;
+  time_range_start: string;
+  time_range_end: string;
+  events: TimelineEvent[];
+  summary: {
+    total_events: number;
+    status_changes: number;
+    evidence_added: number;
+    assessment_milestones: number;
+    [key: string]: any;
+  };
+}
+
 export interface IngestedLog {
   id: number;
   hash: string;

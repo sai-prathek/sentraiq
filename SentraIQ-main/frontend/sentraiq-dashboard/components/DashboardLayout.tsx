@@ -5,7 +5,7 @@ import Header from './Header';
 import ToastContainer from './Toast';
 import ScrollToTop from './ScrollToTop';
 import { motion } from 'framer-motion';
-import { Database, FileText, Package, History, FileCheck, GitBranch } from 'lucide-react';
+import { Database, FileText, Package, History, FileCheck, GitBranch, Activity } from 'lucide-react';
 
 const DashboardLayout: React.FC = () => {
   const location = useLocation();
@@ -94,6 +94,7 @@ const DashboardLayout: React.FC = () => {
     if (path.includes('/query')) return 'query';
     if (path.includes('/history')) return 'history';
     if (path.includes('/controls')) return 'controls';
+    if (path.includes('/timeline')) return 'timeline';
     return 'generate';
   };
 
@@ -105,6 +106,7 @@ const DashboardLayout: React.FC = () => {
     { id: 'query', label: 'Query Evidence', icon: FileText, path: '/dashboard/query' },
     { id: 'history', label: 'Pack History', icon: History, path: '/dashboard/history' },
     { id: 'controls', label: 'Control Versioning', icon: GitBranch, path: '/dashboard/controls' },
+    { id: 'timeline', label: 'Control Timeline', icon: Activity, path: '/dashboard/timeline' },
   ];
 
   return (

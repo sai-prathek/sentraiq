@@ -83,6 +83,45 @@ class EvidenceObject(Base):
     meta_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
 
+class ControlStatusSnapshot(Base):
+    """Tracks control status changes over time for building control timelines."""
+
+    __tablename__ = "control_status_snapshots"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # Core control identification
+    control_id: Mapped[str] = mapped_column(String(50), index=True)
+    control_name: Mapped[str] = mapped_column(String(200))
+
+    # Status transition
+    status: Mapped[str] = mapped_column(
+        String(50)
+    )  # in-place, not-in-place, not-applicable
+    previous_status: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+
+    # Context
+    framework: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    swift_architecture_type: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True
+    )
+    assessment_session_id: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True, index=True
+    )
+
+    # Evidence context at the time of snapshot (optional roll-up)
+    evidence_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Free-form reason/metadata for why this snapshot was created
+    snapshot_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Timestamp & extra metadata
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, index=True
+    )
+    meta_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+
+
 class AssurancePack(Base):
     """Layer 3: Telescope - Generated assurance packs"""
     __tablename__ = "assurance_packs"

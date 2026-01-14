@@ -8,6 +8,7 @@ import GeneratePage from './pages/GeneratePage';
 import HistoryPage from './pages/HistoryPage';
 import ControlVersioningPage from './pages/ControlVersioningPage';
 import BusinessOverviewPage from './pages/BusinessOverviewPage';
+import TimelinePage from './pages/TimelinePage';
 
 const App: React.FC = () => {
   return (
@@ -27,6 +28,7 @@ const App: React.FC = () => {
           <Route path="query" element={<QueryPage />} />
           <Route path="history" element={<HistoryPage />} />
           <Route path="controls" element={<ControlVersioningPage />} />
+          <Route path="timeline" element={<TimelinePage />} />
         </Route>
 
         {/* Legacy routes for backward compatibility */}

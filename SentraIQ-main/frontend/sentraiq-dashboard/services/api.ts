@@ -1,6 +1,13 @@
 /// <reference types="vite/client" />
 import axios from 'axios';
-import { DashboardStats, EvidenceItem, GeneratedPack, IngestResponse, AssessmentSessionHistoryItem } from '../types';
+import {
+  DashboardStats,
+  EvidenceItem,
+  GeneratedPack,
+  IngestResponse,
+  AssessmentSessionHistoryItem,
+  ControlTimelineResponse,
+} from '../types';
 
 // Use explicit local backend by default for development.
 // If VITE_API_URL is set (e.g., in production), use that instead.
@@ -664,6 +671,24 @@ export const api = {
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || 'Failed to download SWIFT Excel report');
+    }
+  },
+
+  getControlTimeline: async (params: {
+    control_id?: string;
+    framework?: string;
+    swift_architecture_type?: string;
+    time_range_start: string;
+    time_range_end: string;
+  }): Promise<ControlTimelineResponse> => {
+    try {
+      const response = await axios.get(`${API_BASE}/assurance/timeline`, {
+        params,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching control timeline:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch control timeline');
     }
   },
 };

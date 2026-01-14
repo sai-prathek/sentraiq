@@ -9,11 +9,17 @@ import zipfile
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, and_
 from datetime import datetime
 from typing import Optional, List
 
-from backend.database import get_session, AssurancePack, AssessmentSession
+from backend.database import (
+    get_session,
+    AssurancePack,
+    AssessmentSession,
+    EvidenceObject,
+    ControlStatusSnapshot,
+)
 from backend.layers.telescope import Telescope, ai_cache
 from backend.layers.control_library import (
     get_all_controls, get_controls_by_infrastructure, get_controls_by_framework,
@@ -30,6 +36,8 @@ from backend.models.schemas import (
     AssessmentSessionCreate,
     AssessmentSessionUpdate,
     AssessmentSessionResponse,
+    ControlTimelineResponse,
+    TimelineEvent,
 )
 from backend.excel_report import generate_cscf_excel
 from backend.config import settings
@@ -100,6 +108,10 @@ async def update_assessment_session(
         ]
 
         data = request.model_dump(exclude_unset=True)
+
+        # Capture previous control_statuses before updating so we can detect changes
+        previous_control_statuses = getattr(db_session, "control_statuses", None)
+
         for field in updatable_fields:
             if field in data:
                 setattr(db_session, field, data[field])
@@ -107,6 +119,68 @@ async def update_assessment_session(
         # If status transitioned to completed and no completed_at set, stamp it
         if data.get("status") == "completed" and db_session.completed_at is None:
             db_session.completed_at = datetime.utcnow()
+
+        # If control_statuses were provided, create snapshots for changed controls
+        if "control_statuses" in data:
+            new_statuses = data.get("control_statuses") or []
+
+            # Normalize to a dict keyed by control_id -> status
+            def build_status_map(status_list):
+                mapping = {}
+                for item in status_list or []:
+                    cid = item.get("control_id")
+                    status_val = item.get("status")
+                    if cid and status_val:
+                        mapping[cid] = status_val
+                return mapping
+
+            prev_map = build_status_map(previous_control_statuses)
+            new_map = build_status_map(new_statuses)
+
+            # Extract framework and architecture context from the session
+            framework_ids = []
+            objective = db_session.objective_selection or {}
+            for fw in objective.get("frameworks", []):
+                fw_id = fw.get("id")
+                if fw_id:
+                    framework_ids.append(fw_id)
+            framework_str = ",".join(sorted(set(framework_ids))) if framework_ids else None
+
+            swift_arch_type = db_session.swift_architecture_type
+
+            # For each control in the new map, compare with previous and snapshot if changed
+            for cid, new_status in new_map.items():
+                prev_status = prev_map.get(cid)
+                if prev_status == new_status:
+                    continue
+
+                # Try to resolve a friendly control name from applicability matrix / control library
+                control_name = cid
+                try:
+                    from backend.layers.control_library import SWIFT_CSP_MAPPING
+
+                    matrix = SWIFT_CSP_MAPPING.get("control_applicability_matrix", [])
+                    for domain in matrix:
+                        for ctrl in domain.get("controls", []):
+                            if ctrl.get("control_id") == cid:
+                                control_name = ctrl.get("control_name", cid)
+                                break
+                except Exception:
+                    # Fallback to using control_id as the name if anything fails
+                    control_name = cid
+
+                snapshot = ControlStatusSnapshot(
+                    control_id=cid,
+                    control_name=control_name,
+                    status=new_status,
+                    previous_status=prev_status,
+                    framework=framework_str,
+                    swift_architecture_type=swift_arch_type,
+                    assessment_session_id=db_session.id,
+                    snapshot_reason="assessment_session_update",
+                    evidence_count=0,
+                )
+                session.add(snapshot)
 
         await session.commit()
         await session.refresh(db_session)
@@ -653,6 +727,191 @@ async def check_regulatory_updates(
         "total_updates": len(updates),
         "note": "This is a mocked response for demo purposes. In production, this would use Gemini API with Google Search Grounding to monitor official regulatory bulletins."
     }
+
+
+@router.get("/timeline", response_model=ControlTimelineResponse)
+async def get_control_timeline(
+    control_id: Optional[str] = None,
+    framework: Optional[str] = None,
+    swift_architecture_type: Optional[str] = None,
+    time_range_start: Optional[datetime] = None,
+    time_range_end: Optional[datetime] = None,
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Get a control timeline showing status changes and evidence activity.
+
+    Returns timeline events including:
+    - Control status changes (with before/after status)
+    - Evidence additions
+    - Assessment session milestones
+
+    Notes:
+    - Evidence removals are not currently tracked as separate events because
+      deletions do not persist a deletion timestamp in the database.
+    """
+    # Default to last 90 days if no range is provided
+    now = datetime.utcnow()
+    if time_range_end is None:
+        time_range_end = now
+    if time_range_start is None:
+        from datetime import timedelta
+
+        time_range_start = time_range_end - timedelta(days=90)
+
+    # Collect status change events from ControlStatusSnapshot
+    status_filters = [
+        ControlStatusSnapshot.created_at >= time_range_start,
+        ControlStatusSnapshot.created_at <= time_range_end,
+    ]
+    if control_id:
+        status_filters.append(ControlStatusSnapshot.control_id == control_id)
+    if framework:
+        status_filters.append(ControlStatusSnapshot.framework == framework)
+    if swift_architecture_type:
+        status_filters.append(
+            ControlStatusSnapshot.swift_architecture_type == swift_architecture_type
+        )
+
+    status_stmt = (
+        select(ControlStatusSnapshot)
+        .where(and_(*status_filters))
+        .order_by(ControlStatusSnapshot.created_at.asc())
+    )
+    status_result = await session.execute(status_stmt)
+    status_rows = status_result.scalars().all()
+
+    events: List[TimelineEvent] = []
+
+    for row in status_rows:
+        events.append(
+            TimelineEvent(
+                event_type="status_change",
+                control_id=row.control_id,
+                control_name=row.control_name,
+                timestamp=row.created_at,
+                status_before=row.previous_status,
+                status_after=row.status,
+                assessment_session_id=row.assessment_session_id,
+                metadata={
+                    "framework": row.framework,
+                    "swift_architecture_type": row.swift_architecture_type,
+                    "evidence_count": row.evidence_count,
+                },
+            )
+        )
+
+    # Collect evidence-added events from EvidenceObject
+    evidence_filters = [
+        EvidenceObject.created_at >= time_range_start,
+        EvidenceObject.created_at <= time_range_end,
+    ]
+    if control_id:
+        evidence_filters.append(EvidenceObject.control_id == control_id)
+
+    evidence_stmt = (
+        select(EvidenceObject)
+        .where(and_(*evidence_filters))
+        .order_by(EvidenceObject.created_at.asc())
+    )
+    evidence_result = await session.execute(evidence_stmt)
+    evidence_rows = evidence_result.scalars().all()
+
+    for eo in evidence_rows:
+        events.append(
+            TimelineEvent(
+                event_type="evidence_added",
+                control_id=eo.control_id,
+                control_name=eo.control_name,
+                timestamp=eo.created_at,
+                evidence_id=eo.id,
+                evidence_filename=eo.meta_data.get("filename")
+                if eo.meta_data
+                else None,
+                metadata={
+                    "linkage_score": eo.linkage_score,
+                    "log_id": eo.log_id,
+                    "document_id": eo.document_id,
+                },
+            )
+        )
+
+    # Collect assessment milestones from AssessmentSession
+    session_filters = [
+        AssessmentSession.started_at <= time_range_end,
+        AssessmentSession.updated_at >= time_range_start,
+    ]
+
+    if framework:
+        # Frameworks are inside objective_selection JSON; we keep filtering simple
+        # by not applying JSON predicates here for now.
+        pass
+
+    session_stmt = (
+        select(AssessmentSession).where(and_(*session_filters)).order_by(
+            AssessmentSession.started_at.asc()
+        )
+    )
+    session_result = await session.execute(session_stmt)
+    sessions = session_result.scalars().all()
+
+    for s in sessions:
+        # Session started milestone
+        events.append(
+            TimelineEvent(
+                event_type="assessment_milestone",
+                control_id=control_id or "ALL",
+                control_name="Assessment session started",
+                timestamp=s.started_at,
+                assessment_session_id=s.id,
+                metadata={
+                    "status": s.status,
+                    "current_step": s.current_step,
+                    "type": "started",
+                },
+            )
+        )
+        # Session completed milestone (if in range and completed)
+        if s.completed_at and time_range_start <= s.completed_at <= time_range_end:
+            events.append(
+                TimelineEvent(
+                    event_type="assessment_milestone",
+                    control_id=control_id or "ALL",
+                    control_name="Assessment session completed",
+                    timestamp=s.completed_at,
+                    assessment_session_id=s.id,
+                    metadata={
+                        "status": s.status,
+                        "current_step": s.current_step,
+                        "type": "completed",
+                    },
+                )
+            )
+
+    # Sort all events chronologically
+    events.sort(key=lambda e: e.timestamp)
+
+    # Build summary statistics
+    summary: Dict[str, Any] = {
+        "total_events": len(events),
+        "status_changes": len(
+            [e for e in events if e.event_type == "status_change"]
+        ),
+        "evidence_added": len(
+            [e for e in events if e.event_type == "evidence_added"]
+        ),
+        "assessment_milestones": len(
+            [e for e in events if e.event_type == "assessment_milestone"]
+        ),
+    }
+
+    return ControlTimelineResponse(
+        control_id=control_id,
+        time_range_start=time_range_start,
+        time_range_end=time_range_end,
+        events=events,
+        summary=summary,
+    )
 
 
 @router.get("/swift/architecture-types")
