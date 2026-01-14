@@ -363,8 +363,8 @@ async def generate_assurance_pack(
                 db_session = result.scalar_one_or_none()
                 if db_session:
                     db_session.pack_id = pack.pack_id
-                    # Mark session as completed if not already
-                    db_session.status = db_session.status or "completed"
+                    # Mark session as completed when step 8 is reached after successful pack generation
+                    db_session.status = "completed"
                     if db_session.current_step is None or db_session.current_step < 8:
                         db_session.current_step = 8
                     if db_session.completed_at is None:

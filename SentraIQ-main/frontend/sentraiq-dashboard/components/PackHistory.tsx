@@ -267,7 +267,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
                       <div className="flex items-center gap-2">
                         <Hash className="w-4 h-4 text-gray-400" />
                         <code className="text-xs font-mono text-gray-900 bg-gray-100 px-2 py-0.5 rounded">
-                          #{sessionItem.id}
+                        {index + 1}
                         </code>
                       </div>
                     </td>
