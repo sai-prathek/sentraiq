@@ -460,18 +460,6 @@ export const api = {
     }
   },
 
-  // Fetch PDF report (used for download button)
-  getPackReportPdf: async (packId: string): Promise<Blob> => {
-    try {
-      const response = await axios.get(`${API_BASE}/assurance/report/${packId}?format=pdf`, {
-        responseType: 'blob',
-      });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to fetch pack PDF report');
-    }
-  },
-
   downloadPack: async (packId: string): Promise<Blob> => {
     try {
       const apiBase = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== ''

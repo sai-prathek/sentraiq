@@ -202,8 +202,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [generatedPack, setGeneratedPack] = useState<GeneratedPack | null>(null);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [loadingPdf, setLoadingPdf] = useState(false);
 
   // Step data
   const [objectiveSelection, setObjectiveSelection] = useState<ObjectiveSelection | null>(null);
@@ -227,8 +225,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     // Reset all state to initial values
     setCurrentStep(1);
     setGeneratedPack(null);
-    setPdfUrl(null);
-    setLoadingPdf(false);
     setObjectiveSelection(null);
     setAssessmentAnswers([]);
     setRegulatoryUpdates(null);
@@ -372,12 +368,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     }
   }, [objectiveSelection]);
 
-  // Auto-load PDF when pack is generated
-  useEffect(() => {
-    if (generatedPack && !pdfUrl && !loadingPdf) {
-      loadPdf();
-    }
-  }, [generatedPack]);
 
   // Track evidence count when entering Step 7 (to distinguish assessment evidence)
   useEffect(() => {
@@ -404,33 +394,7 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     });
   }, [currentStep]);
 
-  const loadPdf = async () => {
-    if (!generatedPack) return;
-    setLoadingPdf(true);
-    try {
-      const pdfBlob = await api.getPackReportPdf(generatedPack.pack_id);
-      const url = window.URL.createObjectURL(pdfBlob);
-      setPdfUrl(url);
-    } catch (error: any) {
-      console.error('Failed to load PDF report:', error);
-      onToast(
-        error?.message ||
-          'Failed to load PDF report. If this is a fresh environment, install reportlab on the backend.',
-        'error'
-      );
-    } finally {
-      setLoadingPdf(false);
-    }
-  };
-
-  // Cleanup PDF object URL when component unmounts or URL changes
-  useEffect(() => {
-    return () => {
-      if (pdfUrl) {
-        window.URL.revokeObjectURL(pdfUrl);
-      }
-    };
-  }, [pdfUrl]);
+  // (PDF generation removed – reports are now provided via markdown and Excel only)
 
   const handleStepComplete = (step: Step, data?: any) => {
     if (step === 1 && data) {
@@ -1276,33 +1240,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                     Back
                   </button>
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={async () => {
-                        try {
-                          const pdfBlob = await api.getPackReportPdf(generatedPack.pack_id);
-                          const url = window.URL.createObjectURL(pdfBlob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `${generatedPack.pack_id}_report.pdf`;
-                          document.body.appendChild(a);
-                          a.click();
-                          window.URL.revokeObjectURL(url);
-                          document.body.removeChild(a);
-                          onToast('PDF report downloaded successfully!', 'success');
-                        } catch (error: any) {
-                          onToast(
-                            error?.message ||
-                              'Failed to download PDF report. If this is a fresh environment, install reportlab on the backend.',
-                            'error'
-                          );
-                        }
-                      }}
-                      className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Download PDF Report
-                    </button>
-
                     {/* SWIFT Excel download - uses pre-generated file from Step 7 if available */}
                     {objectiveSelection?.frameworks?.some(f => f.id === 'SWIFT_CSP') && (
                       <button
@@ -1366,30 +1303,26 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
                   </div>
                 </div>
 
-                {loadingPdf ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-900 rounded-full animate-spin"></div>
+                <div className="border border-gray-200 rounded-lg overflow-hidden mt-6">
+                  <div className="bg-gray-50 border-b border-gray-200 p-4 flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="font-semibold text-gray-900">Pack Generated Successfully</span>
                   </div>
-                ) : pdfUrl ? (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="bg-gray-50 border-b border-gray-200 p-4 flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="font-semibold text-gray-900">Pack Generated Successfully</span>
-                    </div>
-                    <div className="p-0 h-[600px]">
-                      <iframe
-                        src={pdfUrl}
-                        title="Compliance Report PDF"
-                        className="w-full h-full"
-                      />
-                    </div>
+                  <div className="p-6 space-y-3 text-gray-700">
+                    <p>
+                      Your assurance pack has been generated. You can{' '}
+                      <span className="font-semibold">download the ZIP</span> with all evidence using the
+                      buttons above.
+                    </p>
+                    {objectiveSelection?.frameworks?.some(f => f.id === 'SWIFT_CSP') && (
+                      <p>
+                        A <span className="font-semibold">SWIFT CSCF Excel assessment</span> is also ready.
+                        Use the <span className="font-semibold">“Download SWIFT Excel”</span> button to open
+                        it in Excel and review the control-level Yes/No status.
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p>Report not available</p>
-                  </div>
-                )}
+                </div>
               </div>
             )}
           </motion.div>

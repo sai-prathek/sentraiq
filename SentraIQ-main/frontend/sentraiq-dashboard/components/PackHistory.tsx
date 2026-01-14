@@ -14,7 +14,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
   const [selectedPack, setSelectedPack] = useState<PackHistoryItem | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
-  const [reportPdfUrl, setReportPdfUrl] = useState<string | null>(null);
+  const [reportMarkdown, setReportMarkdown] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -39,16 +39,11 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
     setLoadingReport(true);
     setShowReport(true);
     try {
-      const pdfBlob = await api.getPackReportPdf(pack.pack_id);
-      const url = window.URL.createObjectURL(pdfBlob);
-      setReportPdfUrl(url);
+      const markdown = await api.getPackReport(pack.pack_id);
+      setReportMarkdown(markdown);
     } catch (error: any) {
-      console.error('Failed to load report PDF:', error);
-      onToast(
-        error?.message ||
-          'Failed to load PDF report. If this is a fresh environment, install reportlab on the backend.',
-        'error'
-      );
+      console.error('Failed to load report:', error);
+      onToast(error?.message || 'Failed to load pack report', 'error');
       setShowReport(false);
     } finally {
       setLoadingReport(false);
@@ -73,14 +68,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
     }
   };
 
-  // Cleanup PDF object URL when component unmounts or URL changes
-  useEffect(() => {
-    return () => {
-      if (reportPdfUrl) {
-        window.URL.revokeObjectURL(reportPdfUrl);
-      }
-    };
-  }, [reportPdfUrl]);
+  // No PDF object URLs to clean up now – reports are markdown only
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -283,17 +271,14 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
       {showReport && selectedPack && (
         <>
           {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
-            onClick={() => {
-              setShowReport(false);
-              setSelectedPack(null);
-              if (reportPdfUrl) {
-                window.URL.revokeObjectURL(reportPdfUrl);
-                setReportPdfUrl(null);
-              }
-            }}
-          />
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50 z-50"
+                onClick={() => {
+                  setShowReport(false);
+                  setSelectedPack(null);
+                  setReportMarkdown(null);
+                }}
+              />
 
           {/* Modal */}
           <div className="fixed inset-4 md:inset-8 lg:inset-16 z-50 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden">
@@ -309,10 +294,7 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
                 onClick={() => {
                   setShowReport(false);
                   setSelectedPack(null);
-                  if (reportPdfUrl) {
-                    window.URL.revokeObjectURL(reportPdfUrl);
-                    setReportPdfUrl(null);
-                  }
+                  setReportMarkdown(null);
                 }}
                 className="p-2.5 hover:bg-gray-200 rounded-lg transition-colors"
                 aria-label="Close"
@@ -327,15 +309,15 @@ const PackHistory: React.FC<PackHistoryProps> = ({ onToast }) => {
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading PDF report...</p>
+                    <p className="text-gray-600">Loading report...</p>
                   </div>
                 </div>
-              ) : reportPdfUrl ? (
-                <iframe
-                  src={reportPdfUrl}
-                  title="Pack Report PDF"
-                  className="w-full h-full"
-                />
+              ) : reportMarkdown ? (
+                <div className="h-full overflow-auto p-6">
+                  <pre className="whitespace-pre-wrap text-sm font-mono text-gray-800">
+                    {reportMarkdown}
+                  </pre>
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   <p>Report not available.</p>
