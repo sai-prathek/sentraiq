@@ -1,12 +1,17 @@
 """
 Layer 3: Assurance & Telescope API endpoints
 """
+import json
+import os
+import shutil
+import zipfile
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from backend.database import get_session, AssurancePack, AssessmentSession
 from backend.layers.telescope import Telescope, ai_cache
@@ -131,6 +136,59 @@ async def get_assessment_session(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch assessment session: {str(e)}")
+
+
+@router.get("/sessions", response_model=List[AssessmentSessionResponse])
+async def list_assessment_sessions(
+    limit: int = 100,
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    List recent assessment sessions for history views.
+
+    Returns high-level metadata for each session, including any associated
+    assurance pack or SWIFT Excel file.
+    """
+    try:
+        stmt = (
+            select(AssessmentSession)
+            .order_by(desc(AssessmentSession.started_at))
+            .limit(limit)
+        )
+        result = await session.execute(stmt)
+        sessions = result.scalars().all()
+        return [AssessmentSessionResponse.from_orm(s) for s in sessions]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list assessment sessions: {str(e)}")
+
+
+@router.delete("/sessions/{session_id}")
+async def delete_assessment_session(
+    session_id: int,
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Delete an assessment session.
+
+    This only deletes the session tracking record; it does not delete any
+    underlying assurance packs or evidence from storage.
+    """
+    try:
+        result = await session.execute(
+            select(AssessmentSession).where(AssessmentSession.id == session_id)
+        )
+        db_session = result.scalar_one_or_none()
+        if not db_session:
+            raise HTTPException(status_code=404, detail="Assessment session not found")
+
+        await session.delete(db_session)
+        await session.commit()
+        return {"message": "Assessment session deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        await session.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete assessment session: {str(e)}")
 
 
 @router.post("/query", response_model=TelescopeQueryResponse)
@@ -708,6 +766,79 @@ async def generate_swift_excel_report(
                     if db_session.current_step is None or db_session.current_step < 8:
                         db_session.current_step = 8
                     await session.commit()
+
+                    # If this session already has an assurance pack, update that pack
+                    # to include the newly generated SWIFT Excel file. This makes the
+                    # Excel appear inside the existing pack ZIP without requiring the
+                    # user to regenerate the pack.
+                    if db_session.pack_id:
+                        try:
+                            pack_id = db_session.pack_id
+                            pack_dir = settings.ASSURANCE_PACKS_PATH / pack_id
+                            zip_path = settings.ASSURANCE_PACKS_PATH / f"{pack_id}.zip"
+                            manifest_path = pack_dir / "manifest.json"
+
+                            if pack_dir.exists() and manifest_path.exists():
+                                # Load existing manifest
+                                with open(manifest_path, "r") as f:
+                                    manifest = json.load(f)
+
+                                # Ensure destination directory exists
+                                reports_dir = pack_dir / "reports"
+                                reports_dir.mkdir(exist_ok=True)
+
+                                excel_src = Path(file_path)
+                                if excel_src.exists():
+                                    excel_dest = reports_dir / session_filename
+                                    shutil.copy2(excel_src, excel_dest)
+
+                                    excel_size = excel_dest.stat().st_size
+                                    relative_excel_path = excel_dest.relative_to(pack_dir)
+
+                                    # Ensure manifest fields exist
+                                    manifest.setdefault("files", [])
+                                    manifest.setdefault("files_copied", 0)
+                                    manifest.setdefault("total_file_size_bytes", 0)
+
+                                    manifest["files"].append(
+                                        {
+                                            "type": "swift_excel",
+                                            "id": None,
+                                            "filename": excel_dest.name,
+                                            "relative_path": str(relative_excel_path),
+                                            "size_bytes": excel_size,
+                                        }
+                                    )
+                                    manifest["files_copied"] += 1
+                                    manifest["total_file_size_bytes"] += excel_size
+
+                                    # Update swift_excel metadata
+                                    manifest.setdefault("swift_excel", {})
+                                    manifest["swift_excel"]["filename"] = excel_dest.name
+                                    manifest["swift_excel"]["relative_path"] = str(
+                                        relative_excel_path
+                                    )
+
+                                    # Persist updated manifest
+                                    with open(manifest_path, "w") as f:
+                                        json.dump(manifest, f, indent=2)
+
+                                    # Recreate ZIP to include the Excel
+                                    if zip_path.exists():
+                                        zip_path.unlink()
+                                    with zipfile.ZipFile(
+                                        zip_path, "w", zipfile.ZIP_DEFLATED
+                                    ) as zipf:
+                                        for root, dirs, files in os.walk(pack_dir):
+                                            root_path = Path(root)
+                                            for file in files:
+                                                file_path_in_dir = root_path / file
+                                                arcname = file_path_in_dir.relative_to(pack_dir)
+                                                zipf.write(file_path_in_dir, arcname)
+
+                        except Exception:
+                            # Do not fail Excel download or session update if pack update fails
+                            pass
             except Exception:
                 await session.rollback()
                 # Do not fail Excel download if session linkage/storage fails
@@ -723,3 +854,51 @@ async def generate_swift_excel_report(
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate SWIFT Excel report: {str(e)}")
+
+
+@router.get("/sessions/{session_id}/swift-excel")
+async def download_swift_excel_for_session(
+    session_id: int,
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Download the SWIFT CSCF Excel assessment file associated with a session.
+
+    This serves the previously generated Excel file that was stored on disk
+    when the user ran the SWIFT Excel report step in the generate flow.
+    """
+    from pathlib import Path
+
+    try:
+        result = await session.execute(
+            select(AssessmentSession).where(AssessmentSession.id == session_id)
+        )
+        db_session = result.scalar_one_or_none()
+        if not db_session:
+            raise HTTPException(status_code=404, detail="Assessment session not found")
+
+        if not db_session.swift_excel_path or not db_session.swift_excel_filename:
+            raise HTTPException(
+                status_code=404,
+                detail="No SWIFT Excel report is associated with this session",
+            )
+
+        excel_path = Path(db_session.swift_excel_path)
+        if not excel_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Stored SWIFT Excel file could not be found on disk",
+            )
+
+        return FileResponse(
+            path=excel_path,
+            filename=db_session.swift_excel_filename,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to download SWIFT Excel report for session: {str(e)}",
+        )

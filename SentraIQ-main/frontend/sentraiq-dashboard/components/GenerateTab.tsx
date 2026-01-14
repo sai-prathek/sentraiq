@@ -10,7 +10,7 @@ import IngestTab from './IngestTab';
 import RequirementsTab from './RequirementsTab';
 import ControlStatusTable from './ControlStatusTable';
 import { api } from '../services/api';
-import { EvidenceItem, GeneratedPack, DashboardOutletContext } from '../types';
+import { EvidenceItem, GeneratedPack, DashboardOutletContext, PackHistoryItem } from '../types';
 
 interface GenerateTabProps {
   onToast: (msg: string, type: 'success' | 'error') => void;
@@ -272,8 +272,6 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
     prevLocationRef.current = location.pathname;
   }, [location.pathname, resetFlow]);
 
-  // Load session data from backend on mount if sessionId exists in URL params or state
-  // For now, we'll only load if explicitly provided - new sessions start fresh
   useEffect(() => {
     // Set default date range
     const end = new Date();
@@ -283,6 +281,82 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
       start: start.toISOString().split('T')[0],
       end: end.toISOString().split('T')[0]
     });
+
+    // If there is an activeAssessmentSessionId in localStorage, load and resume that session
+    const storedSessionId = window.localStorage.getItem('activeAssessmentSessionId');
+    if (storedSessionId) {
+      const id = parseInt(storedSessionId, 10);
+      if (!Number.isNaN(id)) {
+        (async () => {
+          try {
+            const sessionData = await api.getAssessmentSession(id);
+            setSessionId(sessionData.id);
+
+            // Restore objective selection and related state
+            if (sessionData.objective_selection) {
+              setObjectiveSelection(sessionData.objective_selection);
+            }
+            if (sessionData.swift_architecture_type) {
+              setSwiftArchitectureType(sessionData.swift_architecture_type);
+            }
+            if (sessionData.assessment_answers) {
+              setAssessmentAnswers(sessionData.assessment_answers);
+            }
+            if (sessionData.evidence_summary?.total_selected) {
+              setEvidenceCountBeforeEnhance(sessionData.evidence_summary.total_selected);
+            }
+
+            // If a pack was already generated for this session, hydrate Step 8 state
+            if (sessionData.pack_id) {
+              try {
+                const packs: PackHistoryItem[] = await api.listPacks();
+                const packMeta = packs.find((p) => p.pack_id === sessionData.pack_id);
+                if (packMeta) {
+                  // Restore query and filters from the original pack metadata
+                  setQuery(packMeta.query || '');
+                  setControlId(packMeta.control_id || '');
+
+                  if (packMeta.time_range_start && packMeta.time_range_end) {
+                    const startDate = new Date(packMeta.time_range_start);
+                    const endDate = new Date(packMeta.time_range_end);
+                    setDateRange({
+                      start: startDate.toISOString().split('T')[0],
+                      end: endDate.toISOString().split('T')[0],
+                    });
+                  }
+
+                  // Hydrate generatedPack so Step 8 can render downloads
+                  const hydratedPack: GeneratedPack = {
+                    pack_id: packMeta.pack_id,
+                    evidence_count: packMeta.evidence_count,
+                    pack_hash: packMeta.pack_hash,
+                    file_path: packMeta.download_url || '',
+                    download_url: packMeta.download_url,
+                    timestamp: packMeta.created_at,
+                  };
+                  setGeneratedPack(hydratedPack);
+                }
+              } catch (packError) {
+                console.error('Failed to hydrate generated pack from history:', packError);
+              }
+            }
+
+            // Restore current step, but clamp to valid range 1-8
+            const stepFromSession = sessionData.current_step as Step | undefined;
+            if (stepFromSession && stepFromSession >= 1 && stepFromSession <= 8) {
+              setCurrentStep(stepFromSession);
+            }
+          } catch (error) {
+            console.error('Failed to resume assessment session:', error);
+          } finally {
+            // Clear after attempting to resume so we don't loop
+            window.localStorage.removeItem('activeAssessmentSessionId');
+          }
+        })();
+      } else {
+        window.localStorage.removeItem('activeAssessmentSessionId');
+      }
+    }
   }, []);
 
   // Load SWIFT architecture types and control applicability matrix when SWIFT framework is selected

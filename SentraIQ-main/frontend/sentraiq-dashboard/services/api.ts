@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import axios from 'axios';
-import { DashboardStats, EvidenceItem, GeneratedPack, IngestResponse } from '../types';
+import { DashboardStats, EvidenceItem, GeneratedPack, IngestResponse, AssessmentSessionHistoryItem } from '../types';
 
 // Use explicit local backend by default for development.
 // If VITE_API_URL is set (e.g., in production), use that instead.
@@ -487,6 +487,26 @@ export const api = {
     }
   },
 
+  listAssessmentSessions: async (): Promise<AssessmentSessionHistoryItem[]> => {
+    try {
+      const response = await axios.get(`${API_BASE}/assurance/sessions`);
+      return response.data || [];
+    } catch (error: any) {
+      console.error('Error fetching assessment sessions:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to fetch assessment sessions');
+    }
+  },
+
+  deleteAssessmentSession: async (sessionId: number) => {
+    try {
+      const response = await axios.delete(`${API_BASE}/assurance/sessions/${sessionId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting assessment session:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to delete assessment session');
+    }
+  },
+
   getControls: async (infrastructure?: string, frameworks?: string[]) => {
     try {
       const params: any = {};
@@ -612,6 +632,18 @@ export const api = {
     } catch (error: any) {
       console.error('Error generating SWIFT Excel report:', error);
       throw new Error(error.response?.data?.detail || 'Failed to generate SWIFT Excel report');
+    }
+  },
+
+  downloadSwiftExcelForSession: async (sessionId: number): Promise<Blob> => {
+    try {
+      const response = await axios.get(
+        `${API_BASE}/assurance/sessions/${sessionId}/swift-excel`,
+        { responseType: 'blob' },
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to download SWIFT Excel report');
     }
   },
 };

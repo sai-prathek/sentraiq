@@ -57,6 +57,25 @@ export interface PackHistoryItem {
   };
 }
 
+export interface AssessmentSessionHistoryItem {
+  id: number;
+  status?: string;
+  current_step?: number;
+  objective_selection?: any;
+  swift_architecture_type?: string | null;
+  requirements_status?: any;
+  assessment_answers?: any[];
+  control_statuses?: any[];
+  evidence_summary?: any;
+  pack_id?: string | null;
+  swift_excel_filename?: string | null;
+  swift_excel_path?: string | null;
+  meta_data?: any;
+  started_at: string;
+  completed_at?: string | null;
+  updated_at: string;
+}
+
 export interface IngestedLog {
   id: number;
   hash: string;
