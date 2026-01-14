@@ -1436,7 +1436,14 @@ const GenerateTab: React.FC<GenerateTabProps> = ({
 
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = `SWIFT_CSCF_Assessment_${swiftArchitectureType || 'assessment'}.xlsx`;
+                            // Append current date/time to the filename to ensure uniqueness
+                            const now = new Date();
+                            const timestamp = now
+                              .toISOString()
+                              .replace(/[-:]/g, '')
+                              .replace(/\..+/, '')
+                              .replace('T', '-');
+                            a.download = `SWIFT_CSCF_Assessment_${swiftArchitectureType || 'assessment'}_${timestamp}.xlsx`;
                             document.body.appendChild(a);
                             a.click();
                             document.body.removeChild(a);

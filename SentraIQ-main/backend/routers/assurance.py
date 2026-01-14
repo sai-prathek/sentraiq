@@ -395,6 +395,7 @@ async def download_assurance_pack(pack_id: str, session: AsyncSession = Depends(
     from sqlalchemy import select
     from backend.database import AssurancePack
     from pathlib import Path
+    from datetime import datetime
 
     stmt = select(AssurancePack).where(AssurancePack.pack_id == pack_id)
     result = await session.execute(stmt)
@@ -407,9 +408,13 @@ async def download_assurance_pack(pack_id: str, session: AsyncSession = Depends(
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Pack file not found")
 
+    # Append current date to filename to ensure uniqueness
+    download_timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+    filename = f"{pack_id}_{download_timestamp}.zip"
+
     return FileResponse(
         path=file_path,
-        filename=f"{pack_id}.zip",
+        filename=filename,
         media_type="application/zip"
     )
 
@@ -470,6 +475,7 @@ async def get_pack_report(
         pack_id: Pack ID
     """
     from fastapi.responses import Response
+    from datetime import datetime
     
     try:
         # Always generate markdown report
@@ -478,11 +484,15 @@ async def get_pack_report(
             pack_id=pack_id
         )
         
+        # Append current date to filename to ensure uniqueness
+        download_timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        filename = f"{pack_id}_report_{download_timestamp}.md"
+        
         return Response(
             content=report,
             media_type="text/markdown",
             headers={
-                "Content-Disposition": f'inline; filename="{pack_id}_report.md"'
+                "Content-Disposition": f'inline; filename="{filename}"'
             }
         )
     except ValueError as e:
@@ -868,6 +878,7 @@ async def download_swift_excel_for_session(
     when the user ran the SWIFT Excel report step in the generate flow.
     """
     from pathlib import Path
+    from datetime import datetime
 
     try:
         result = await session.execute(
@@ -890,9 +901,16 @@ async def download_swift_excel_for_session(
                 detail="Stored SWIFT Excel file could not be found on disk",
             )
 
+        # Append current date to filename to ensure uniqueness
+        download_timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        # Extract base filename without extension, add timestamp, then restore extension
+        base_filename = Path(db_session.swift_excel_filename).stem
+        extension = Path(db_session.swift_excel_filename).suffix
+        filename = f"{base_filename}_{download_timestamp}{extension}"
+
         return FileResponse(
             path=excel_path,
-            filename=db_session.swift_excel_filename,
+            filename=filename,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
     except HTTPException:
